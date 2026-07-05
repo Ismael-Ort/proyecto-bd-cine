@@ -1,0 +1,30 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# Java compiled files
+bin/
+build/
+dist/
+target/
+*.class
+
+# Logs
+*.log
+
+# Database credentials / local config
+.env
+config/db.properties
+
+# OS files
+.DS_Store
+Thumbs.db
