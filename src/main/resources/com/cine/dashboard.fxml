@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="rootPane" prefHeight="820" prefWidth="1500" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.DashboardController">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <left>
+        <VBox fx:id="sidebar" minWidth="220" prefWidth="250" styleClass="sidebar">
+
+            <!-- Logo / marca -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="sidebar-logo-box">
+                <VBox.margin>
+                    <Insets bottom="30" />
+                </VBox.margin>
+                <StackPane fx:id="logoIcon" maxHeight="36" maxWidth="36" prefHeight="36" prefWidth="36" styleClass="logo-icon">
+                    <Label styleClass="logo-glyph" text="▦" />
+                </StackPane>
+                <VBox spacing="0">
+                    <Label fx:id="brandTitle" styleClass="brand-title" text="Cinéma" />
+                    <Label fx:id="brandSubtitle" styleClass="brand-subtitle" text="ADMIN" />
+                </VBox>
+            </HBox>
+
+            <!-- Menú de navegación -->
+            <VBox fx:id="navMenu" spacing="4" styleClass="nav-menu">
+
+                <Button fx:id="navPanel" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item, nav-item-selected" text="Panel">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="▦" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navPeliculas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Películas">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="🎬" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navSalas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Salas">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="🏮" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navFunciones" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Funciones">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="📅" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navVentas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Ventas">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="🎫" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navClientes" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Clientes">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="👥" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navEmpleados" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Empleados">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="👤" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="navFidelidad" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Fidelidad">
+                    <graphic>
+                        <Label styleClass="nav-icon" text="🏆" />
+                    </graphic>
+                </Button>
+
+            </VBox>
+
+            <!-- Empuja el pie de página hacia abajo -->
+            <Region VBox.vgrow="ALWAYS" />
+
+            <Label fx:id="sidebarFooter" styleClass="sidebar-footer" text="Sistema de gestión de cine · v1.0" />
+
+        </VBox>
+    </left>
+
+    <!-- ===================== CONTENIDO PRINCIPAL ===================== -->
+    <center>
+        <ScrollPane fx:id="mainScroll" fitToHeight="true" fitToWidth="true" styleClass="main-scroll">
+            <VBox fx:id="mainContent" spacing="24" styleClass="main-content">
+                <padding>
+                    <Insets bottom="36" left="40" right="40" top="36" />
+                </padding>
+
+                <!-- Encabezado de página -->
+                <VBox fx:id="pageHeader" spacing="4" styleClass="page-header">
+                    <Label fx:id="pageTitle" styleClass="page-title" text="Panel de control" />
+                    <Label fx:id="pageSubtitle" styleClass="page-subtitle" text="Vista general del cine" />
+                </VBox>
+
+                <!-- Fila de tarjetas de estadísticas -->
+                <HBox fx:id="statsRow" spacing="20" styleClass="stats-row">
+
+                    <VBox fx:id="cardIngresosActivos" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                            <Label styleClass="stat-card-label" text="INGRESOS ACTIVOS" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="stat-card-icon" text="\$" />
+                        </HBox>
+                  <Label fx:id="lblEntradasVendidasValor1" styleClass="stat-card-value" text="2" />
+                    </VBox>
+
+                    <VBox fx:id="cardEntradasVendidas" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                            <Label styleClass="stat-card-label" text="ENTRADAS VENDIDAS" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="stat-card-icon" text="🎫" />
+                        </HBox>
+                        <Label fx:id="lblEntradasVendidasValor" styleClass="stat-card-value" text="2" />
+                    </VBox>
+
+                    <VBox fx:id="cardPeliculasCartelera" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                            <Label styleClass="stat-card-label" text="PELÍCULAS EN CARTELERA" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="stat-card-icon" text="🎬" />
+                        </HBox>
+                        <Label fx:id="lblPeliculasCarteleraValor" styleClass="stat-card-value" text="4" />
+                    </VBox>
+
+                    <VBox fx:id="cardClientesRegistrados" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                            <Label styleClass="stat-card-label" text="CLIENTES REGISTRADOS" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="stat-card-icon" text="👥" />
+                        </HBox>
+                        <Label fx:id="lblClientesRegistradosValor" styleClass="stat-card-value" text="3" />
+                    </VBox>
+
+                </HBox>
+
+                <!-- Fila de paneles inferiores -->
+                <HBox fx:id="panelsRow" spacing="20" styleClass="panels-row" VBox.vgrow="ALWAYS">
+
+                    <!-- Panel: Últimas ventas -->
+                    <VBox fx:id="panelVentas" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                            <Label styleClass="panel-icon" text="📈" />
+                            <Label styleClass="panel-title" text="Últimas ventas" />
+                        </HBox>
+
+                        <VBox fx:id="ventasListContainer" spacing="16" styleClass="list-container">
+
+                            <HBox alignment="CENTER_LEFT" styleClass="venta-row">
+                                <VBox spacing="2" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <VBox alignment="CENTER_RIGHT" spacing="2" />
+                            </HBox>
+
+                        </VBox>
+                    </VBox>
+
+                    <!-- Panel: Próximas funciones -->
+                    <VBox fx:id="panelFunciones" prefWidth="380" spacing="18" styleClass="panel-card" HBox.hgrow="NEVER">
+                        <Label styleClass="panel-title" text="Próximas funciones" />
+
+                        <VBox fx:id="funcionesListContainer" spacing="18" styleClass="list-container">
+
+                            <VBox spacing="2" />
+
+                            <VBox spacing="2" />
+
+                            <VBox spacing="2" />
+
+                        </VBox>
+                    </VBox>
+
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
