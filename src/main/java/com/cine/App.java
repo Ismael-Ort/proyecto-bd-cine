@@ -2,8 +2,10 @@ package com.cine;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -13,13 +15,18 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/cine/dashboard.fxml"));
         Parent root = loader.load();
 
-        Scene scene = new Scene(root, 1500, 820);
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+
+        Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
         scene.getStylesheets().add(getClass().getResource("/com/cine/styles.css").toExternalForm());
 
         stage.setTitle("Cinéma - Panel de control");
-        stage.setMinWidth(1200);
-        stage.setMinHeight(700);
+        // Tamaño mínimo por debajo del cual el layout empieza a verse apretado.
+        // Ajusta estos valores si agregas/quitas contenido al dashboard.
+        stage.setMinWidth(1000);
+        stage.setMinHeight(600);
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 

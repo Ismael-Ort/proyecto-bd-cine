@@ -7,7 +7,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane fx:id="rootPane" prefHeight="820" prefWidth="1500" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.DashboardController">
@@ -17,17 +16,12 @@
         <VBox fx:id="sidebar" minWidth="220" prefWidth="250" styleClass="sidebar">
 
             <!-- Logo / marca -->
-            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="sidebar-logo-box">
+            <HBox alignment="CENTER_LEFT" spacing="6" styleClass="sidebar-logo-box">
                 <VBox.margin>
                     <Insets bottom="30" />
                 </VBox.margin>
-                <StackPane fx:id="logoIcon" maxHeight="36" maxWidth="36" prefHeight="36" prefWidth="36" styleClass="logo-icon">
-                    <Label styleClass="logo-glyph" text="▦" />
-                </StackPane>
-                <VBox spacing="0">
-                    <Label fx:id="brandTitle" styleClass="brand-title" text="Cinéma" />
-                    <Label fx:id="brandSubtitle" styleClass="brand-subtitle" text="ADMIN" />
-                </VBox>
+                <Label fx:id="brandTitle" styleClass="brand-title" text="Cinema" />
+                <Label fx:id="brandBadge" styleClass="brand-badge" text="HUB" />
             </HBox>
 
             <!-- Menú de navegación -->
