@@ -4,181 +4,875 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="rootPane" prefHeight="820" prefWidth="1500" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.DashboardController">
+<BorderPane fx:id="rootPane" prefHeight="820" prefWidth="1500" styleClass="root-pane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.DashboardController">
 
-    <!-- ===================== SIDEBAR ===================== -->
     <left>
         <VBox fx:id="sidebar" minWidth="220" prefWidth="250" styleClass="sidebar">
-
-            <!-- Logo / marca -->
-            <HBox alignment="CENTER_LEFT" spacing="6" styleClass="sidebar-logo-box">
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="sidebar-logo-box">
                 <VBox.margin>
                     <Insets bottom="30" />
                 </VBox.margin>
-                <Label fx:id="brandTitle" styleClass="brand-title" text="Cinema" />
-                <Label fx:id="brandBadge" styleClass="brand-badge" text="HUB" />
+                <Label styleClass="brand-mark" text="C" />
+                <VBox spacing="2">
+                    <Label fx:id="brandTitle" styleClass="brand-title" text="CinemaHUB" />
+                    <Label fx:id="brandBadge" styleClass="brand-badge" text="ADMIN" />
+                </VBox>
             </HBox>
 
-            <!-- Menú de navegación -->
             <VBox fx:id="navMenu" spacing="4" styleClass="nav-menu">
-
                 <Button fx:id="navPanel" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item, nav-item-selected" text="Panel">
                     <graphic>
-                        <Label styleClass="nav-icon" text="▦" />
+                        <Label styleClass="nav-icon" text="[]" />
                     </graphic>
                 </Button>
 
-                <Button fx:id="navPeliculas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Películas">
+                <Button fx:id="navPeliculas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Peliculas">
                     <graphic>
-                        <Label styleClass="nav-icon" text="🎬" />
+                        <Label styleClass="nav-icon" text="##" />
                     </graphic>
                 </Button>
 
                 <Button fx:id="navSalas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Salas">
                     <graphic>
-                        <Label styleClass="nav-icon" text="🏮" />
+                        <Label styleClass="nav-icon" text="S" />
                     </graphic>
                 </Button>
 
                 <Button fx:id="navFunciones" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Funciones">
                     <graphic>
-                        <Label styleClass="nav-icon" text="📅" />
+                        <Label styleClass="nav-icon" text="F" />
                     </graphic>
                 </Button>
 
                 <Button fx:id="navVentas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Ventas">
                     <graphic>
-                        <Label styleClass="nav-icon" text="🎫" />
+                        <Label styleClass="nav-icon" text="\$" />
                     </graphic>
                 </Button>
 
                 <Button fx:id="navClientes" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Clientes">
                     <graphic>
-                        <Label styleClass="nav-icon" text="👥" />
+                        <Label styleClass="nav-icon" text="CL" />
                     </graphic>
                 </Button>
 
                 <Button fx:id="navEmpleados" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Empleados">
                     <graphic>
-                        <Label styleClass="nav-icon" text="👤" />
+                        <Label styleClass="nav-icon" text="E" />
                     </graphic>
                 </Button>
 
                 <Button fx:id="navFidelidad" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Fidelidad">
                     <graphic>
-                        <Label styleClass="nav-icon" text="🏆" />
+                        <Label styleClass="nav-icon" text="*" />
                     </graphic>
                 </Button>
-
             </VBox>
 
-            <!-- Empuja el pie de página hacia abajo -->
             <Region VBox.vgrow="ALWAYS" />
-
-            <Label fx:id="sidebarFooter" styleClass="sidebar-footer" text="Sistema de gestión de cine · v1.0" />
-
+            <Label fx:id="sidebarFooter" styleClass="sidebar-footer" text="Sistema de gestion de cine - v1.0" />
         </VBox>
     </left>
 
-    <!-- ===================== CONTENIDO PRINCIPAL ===================== -->
     <center>
         <ScrollPane fx:id="mainScroll" fitToHeight="true" fitToWidth="true" styleClass="main-scroll">
-            <VBox fx:id="mainContent" spacing="24" styleClass="main-content">
-                <padding>
-                    <Insets bottom="36" left="40" right="40" top="36" />
-                </padding>
+            <StackPane fx:id="viewsContainer" styleClass="views-container">
 
-                <!-- Encabezado de página -->
-                <VBox fx:id="pageHeader" spacing="4" styleClass="page-header">
-                    <Label fx:id="pageTitle" styleClass="page-title" text="Panel de control" />
-                    <Label fx:id="pageSubtitle" styleClass="page-subtitle" text="Vista general del cine" />
+                <VBox fx:id="dashboardView" spacing="24" styleClass="main-content">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox fx:id="pageHeader" spacing="4" styleClass="page-header">
+                        <Label fx:id="pageTitle" styleClass="page-title" text="Panel de control" />
+                        <Label fx:id="pageSubtitle" styleClass="page-subtitle" text="Vista general del cine" />
+                    </VBox>
+
+                    <HBox fx:id="statsRow" spacing="20" styleClass="stats-row">
+                        <VBox fx:id="cardIngresosActivos" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                                <Label styleClass="stat-card-label" text="INGRESOS ACTIVOS" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label styleClass="stat-card-icon" text="\$" />
+                            </HBox>
+                            <Label fx:id="lblIngresosActivosValor" styleClass="stat-card-value" text="2" />
+                        </VBox>
+
+                        <VBox fx:id="cardEntradasVendidas" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                                <Label styleClass="stat-card-label" text="ENTRADAS VENDIDAS" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label styleClass="stat-card-icon" text="#" />
+                            </HBox>
+                            <Label fx:id="lblEntradasVendidasValor" styleClass="stat-card-value" text="2" />
+                        </VBox>
+
+                        <VBox fx:id="cardPeliculasCartelera" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                                <Label styleClass="stat-card-label" text="PELICULAS EN CARTELERA" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label styleClass="stat-card-icon" text="P" />
+                            </HBox>
+                            <Label fx:id="lblPeliculasCarteleraValor" styleClass="stat-card-value" text="4" />
+                        </VBox>
+
+                        <VBox fx:id="cardClientesRegistrados" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                                <Label styleClass="stat-card-label" text="CLIENTES REGISTRADOS" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label styleClass="stat-card-icon" text="CL" />
+                            </HBox>
+                            <Label fx:id="lblClientesRegistradosValor" styleClass="stat-card-value" text="3" />
+                        </VBox>
+                    </HBox>
+
+                    <HBox fx:id="panelsRow" spacing="20" styleClass="panels-row" VBox.vgrow="ALWAYS">
+                        <VBox fx:id="panelVentas" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                                <Label styleClass="panel-icon" text="\$" />
+                                <Label styleClass="panel-title" text="Ultimas ventas" />
+                            </HBox>
+                            <VBox fx:id="ventasListContainer" spacing="16" styleClass="list-container">
+                                <HBox alignment="CENTER_LEFT" styleClass="venta-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Venta #001" />
+                                        <Label styleClass="row-subtitle" text="Cliente registrado - Sala 2" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="Bs 45.00" />
+                                        <Label styleClass="status-pill, status-activa" text="ACTIVA" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <VBox fx:id="panelFunciones" prefWidth="380" spacing="18" styleClass="panel-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Proximas funciones" />
+                            <VBox fx:id="funcionesListContainer" spacing="18" styleClass="list-container">
+                                <VBox spacing="2">
+                                    <Label styleClass="funcion-title" text="Dune: Parte Tres" />
+                                    <Label styleClass="funcion-subtitle" text="Sala 1 - 20:00" />
+                                </VBox>
+                                <VBox spacing="2">
+                                    <Label styleClass="funcion-title" text="El Ultimo Detective" />
+                                    <Label styleClass="funcion-subtitle" text="Sala 2 - 21:30" />
+                                </VBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
                 </VBox>
 
-                <!-- Fila de tarjetas de estadísticas -->
-                <HBox fx:id="statsRow" spacing="20" styleClass="stats-row">
+                <VBox fx:id="peliculasView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
 
-                    <VBox fx:id="cardIngresosActivos" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
-                            <Label styleClass="stat-card-label" text="INGRESOS ACTIVOS" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="stat-card-icon" text="\$" />
-                        </HBox>
-                  <Label fx:id="lblEntradasVendidasValor1" styleClass="stat-card-value" text="2" />
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Peliculas" />
+                        <Label styleClass="page-subtitle" text="Cartelera del cine" />
                     </VBox>
 
-                    <VBox fx:id="cardEntradasVendidas" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
-                            <Label styleClass="stat-card-label" text="ENTRADAS VENDIDAS" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="stat-card-icon" text="🎫" />
-                        </HBox>
-                        <Label fx:id="lblEntradasVendidasValor" styleClass="stat-card-value" text="2" />
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="peliculas-layout">
+                        <VBox fx:id="peliculaForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nueva pelicula" />
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Titulo" />
+                                <TextField fx:id="txtPeliculaTitulo" promptText="Nombre de la pelicula" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Genero" />
+                                <TextField fx:id="txtPeliculaGenero" promptText="Accion, drama, comedia..." styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Duracion (min)" />
+                                <TextField fx:id="txtPeliculaDuracion" promptText="120" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Sinopsis" />
+                                <TextArea fx:id="txtPeliculaSinopsis" prefRowCount="4" promptText="Resumen breve para la cartelera" styleClass="form-textarea" wrapText="true" />
+                            </VBox>
+
+                            <Button fx:id="btnAgregarPelicula" maxWidth="Infinity" styleClass="primary-button" text="+  Agregar" />
+                        </VBox>
+
+                        <FlowPane fx:id="peliculasCardsContainer" hgap="18" prefWrapLength="660" styleClass="cards-grid" vgap="18" HBox.hgrow="ALWAYS">
+                            <VBox spacing="12" styleClass="movie-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Dune: Parte Tres" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarPeliculaDemo1" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label styleClass="movie-genre-pill" text="Ciencia Ficcion" />
+                                    <Label styleClass="movie-meta" text="155 min" />
+                                </HBox>
+                                <Label styleClass="movie-description" text="La saga de Arrakis continua." wrapText="true" />
+                            </VBox>
+
+                            <VBox spacing="12" styleClass="movie-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="El Ultimo Detective" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarPeliculaDemo2" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label styleClass="movie-genre-pill" text="Thriller" />
+                                    <Label styleClass="movie-meta" text="118 min" />
+                                </HBox>
+                                <Label styleClass="movie-description" text="Un caso imposible en la ciudad." wrapText="true" />
+                            </VBox>
+
+                            <VBox spacing="12" styleClass="movie-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Corazones de Papel" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarPeliculaDemo3" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label styleClass="movie-genre-pill" text="Drama" />
+                                    <Label styleClass="movie-meta" text="102 min" />
+                                </HBox>
+                                <Label styleClass="movie-description" text="Amor y memoria." wrapText="true" />
+                            </VBox>
+                        </FlowPane>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="salasView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Salas y butacas" />
+                        <Label styleClass="page-subtitle" text="Configuracion fisica de las salas del cine" />
                     </VBox>
 
-                    <VBox fx:id="cardPeliculasCartelera" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
-                            <Label styleClass="stat-card-label" text="PELÍCULAS EN CARTELERA" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="stat-card-icon" text="🎬" />
+                    <HBox alignment="CENTER_LEFT" spacing="18" styleClass="seat-legend">
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Region styleClass="legend-dot, legend-dot-regular" />
+                            <Label styleClass="legend-text" text="Regular" />
                         </HBox>
-                        <Label fx:id="lblPeliculasCarteleraValor" styleClass="stat-card-value" text="4" />
-                    </VBox>
-
-                    <VBox fx:id="cardClientesRegistrados" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
-                            <Label styleClass="stat-card-label" text="CLIENTES REGISTRADOS" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="stat-card-icon" text="👥" />
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Region styleClass="legend-dot, legend-dot-vip" />
+                            <Label styleClass="legend-text" text="VIP" />
                         </HBox>
-                        <Label fx:id="lblClientesRegistradosValor" styleClass="stat-card-value" text="3" />
-                    </VBox>
-
-                </HBox>
-
-                <!-- Fila de paneles inferiores -->
-                <HBox fx:id="panelsRow" spacing="20" styleClass="panels-row" VBox.vgrow="ALWAYS">
-
-                    <!-- Panel: Últimas ventas -->
-                    <VBox fx:id="panelVentas" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
-                            <Label styleClass="panel-icon" text="📈" />
-                            <Label styleClass="panel-title" text="Últimas ventas" />
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Region styleClass="legend-dot, legend-dot-selected" />
+                            <Label styleClass="legend-text" text="Seleccionada" />
                         </HBox>
+                    </HBox>
 
-                        <VBox fx:id="ventasListContainer" spacing="16" styleClass="list-container">
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="salas-layout">
+                        <VBox fx:id="salaForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nueva sala" />
 
-                            <HBox alignment="CENTER_LEFT" styleClass="venta-row">
-                                <VBox spacing="2" />
-                                <Region HBox.hgrow="ALWAYS" />
-                                <VBox alignment="CENTER_RIGHT" spacing="2" />
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Nombre" />
+                                <TextField fx:id="txtSalaNombre" promptText="Ej: Sala 3" styleClass="form-input" />
+                            </VBox>
+
+                            <HBox spacing="12">
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="form-label" text="Filas" />
+                                    <TextField fx:id="txtSalaFilas" promptText="6" styleClass="form-input" />
+                                </VBox>
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="form-label" text="Columnas" />
+                                    <TextField fx:id="txtSalaColumnas" promptText="8" styleClass="form-input" />
+                                </VBox>
                             </HBox>
 
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Filas VIP (ej: A,B)" />
+                                <TextField fx:id="txtSalaFilasVip" promptText="A" styleClass="form-input" />
+                            </VBox>
+
+                            <Button fx:id="btnAgregarSala" maxWidth="Infinity" styleClass="primary-button" text="+  Agregar" />
                         </VBox>
+
+                        <VBox fx:id="salasListContainer" spacing="20" HBox.hgrow="ALWAYS">
+
+                            <VBox spacing="18" styleClass="room-card">
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <VBox spacing="2">
+                                        <Label styleClass="room-title" text="Sala 1" />
+                                        <Label styleClass="room-meta" text="48 butacas - VIP: A" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarSalaDemo1" styleClass="icon-button" text="X" />
+                                </HBox>
+
+                                <VBox alignment="CENTER" spacing="6">
+                                    <Label styleClass="screen-label" text="PANTALLA" />
+                                    <Region styleClass="screen-bar" />
+                                </VBox>
+
+                                <VBox alignment="CENTER" spacing="8" styleClass="seat-grid">
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="A" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="1" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="2" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="3" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="4" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="5" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="6" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="7" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="8" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="B" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                            <ToggleButton styleClass="seat-btn" text="7" />
+                                            <ToggleButton styleClass="seat-btn" text="8" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="C" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                            <ToggleButton styleClass="seat-btn" text="7" />
+                                            <ToggleButton styleClass="seat-btn" text="8" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="D" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                            <ToggleButton styleClass="seat-btn" text="7" />
+                                            <ToggleButton styleClass="seat-btn" text="8" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="E" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                            <ToggleButton styleClass="seat-btn" text="7" />
+                                            <ToggleButton styleClass="seat-btn" text="8" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="F" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                            <ToggleButton styleClass="seat-btn" text="7" />
+                                            <ToggleButton styleClass="seat-btn" text="8" />
+                                        </HBox>
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+
+                            <VBox spacing="18" styleClass="room-card">
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <VBox spacing="2">
+                                        <Label styleClass="room-title" text="Sala 2 VIP" />
+                                        <Label styleClass="room-meta" text="30 butacas - VIP: A, B" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarSalaDemo2" styleClass="icon-button" text="X" />
+                                </HBox>
+
+                                <VBox alignment="CENTER" spacing="6">
+                                    <Label styleClass="screen-label" text="PANTALLA" />
+                                    <Region styleClass="screen-bar" />
+                                </VBox>
+
+                                <VBox alignment="CENTER" spacing="8" styleClass="seat-grid">
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="A" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="1" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="2" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="3" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="4" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="5" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="6" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="B" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="1" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="2" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="3" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="4" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="5" />
+                                            <ToggleButton styleClass="seat-btn, seat-vip" text="6" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="C" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="D" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                        </HBox>
+                                    </HBox>
+                                    <HBox alignment="CENTER" spacing="8">
+                                        <Label styleClass="seat-row-label" text="E" />
+                                        <HBox spacing="6">
+                                            <ToggleButton styleClass="seat-btn" text="1" />
+                                            <ToggleButton styleClass="seat-btn" text="2" />
+                                            <ToggleButton styleClass="seat-btn" text="3" />
+                                            <ToggleButton styleClass="seat-btn" text="4" />
+                                            <ToggleButton styleClass="seat-btn" text="5" />
+                                            <ToggleButton styleClass="seat-btn" text="6" />
+                                        </HBox>
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="funcionesView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Funciones" />
+                        <Label styleClass="page-subtitle" text="Programacion de peliculas por sala y horario" />
                     </VBox>
 
-                    <!-- Panel: Próximas funciones -->
-                    <VBox fx:id="panelFunciones" prefWidth="380" spacing="18" styleClass="panel-card" HBox.hgrow="NEVER">
-                        <Label styleClass="panel-title" text="Próximas funciones" />
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="funciones-layout">
+                        <VBox fx:id="funcionForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nueva funcion" />
 
-                        <VBox fx:id="funcionesListContainer" spacing="18" styleClass="list-container">
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Pelicula" />
+                                <TextField fx:id="txtFuncionPelicula" promptText="Titulo de la pelicula" styleClass="form-input" />
+                            </VBox>
 
-                            <VBox spacing="2" />
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Sala" />
+                                <TextField fx:id="txtFuncionSala" promptText="Ej: Sala 1" styleClass="form-input" />
+                            </VBox>
 
-                            <VBox spacing="2" />
+                            <HBox spacing="12">
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="form-label" text="Fecha" />
+                                    <TextField fx:id="txtFuncionFecha" promptText="dd/mm/aaaa" styleClass="form-input" />
+                                </VBox>
+                                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="form-label" text="Hora" />
+                                    <TextField fx:id="txtFuncionHora" promptText="20:00" styleClass="form-input" />
+                                </VBox>
+                            </HBox>
 
-                            <VBox spacing="2" />
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Tarifa base (Bs)" />
+                                <TextField fx:id="txtFuncionTarifa" promptText="45.00" styleClass="form-input" />
+                            </VBox>
 
+                            <Button fx:id="btnAgregarFuncion" maxWidth="Infinity" styleClass="primary-button" text="+  Agregar" />
                         </VBox>
+
+                        <VBox fx:id="panelFuncionesLista" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                                <Label styleClass="panel-icon" text="F" />
+                                <Label styleClass="panel-title" text="Funciones programadas" />
+                            </HBox>
+                            <VBox fx:id="funcionesListaContainer" spacing="0" styleClass="list-container">
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="funcion-title" text="Dune: Parte Tres" />
+                                        <Label styleClass="funcion-subtitle" text="Sala 1 - 08/07/2026 - 20:00" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="row-amount" text="Bs 45.00" />
+                                    <Button fx:id="btnEliminarFuncionDemo1" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="funcion-title" text="El Ultimo Detective" />
+                                        <Label styleClass="funcion-subtitle" text="Sala 2 VIP - 08/07/2026 - 21:30" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="row-amount" text="Bs 60.00" />
+                                    <Button fx:id="btnEliminarFuncionDemo2" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="funcion-title" text="Corazones de Papel" />
+                                        <Label styleClass="funcion-subtitle" text="Sala 1 - 09/07/2026 - 18:15" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="row-amount" text="Bs 40.00" />
+                                    <Button fx:id="btnEliminarFuncionDemo3" styleClass="icon-button" text="X" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="ventasView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Ventas" />
+                        <Label styleClass="page-subtitle" text="Registro de entradas, pagos y estados de venta" />
                     </VBox>
 
-                </HBox>
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="ventas-layout">
+                        <VBox fx:id="ventaForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nueva venta" />
 
-            </VBox>
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Cliente" />
+                                <TextField fx:id="txtVentaCliente" promptText="Nombre o 'Consumidor final'" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Funcion" />
+                                <TextField fx:id="txtVentaFuncion" promptText="Pelicula - Sala - Hora" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Butaca(s)" />
+                                <TextField fx:id="txtVentaButacas" promptText="Ej: A1, A2" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Tipo de entrada" />
+                                <TextField fx:id="txtVentaTipoEntrada" promptText="Adulto, Nino, Estudiante..." styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Metodo de pago" />
+                                <TextField fx:id="txtVentaMetodoPago" promptText="Efectivo, Tarjeta..." styleClass="form-input" />
+                            </VBox>
+
+                            <Button fx:id="btnRegistrarVenta" maxWidth="Infinity" styleClass="primary-button" text="+  Registrar venta" />
+                        </VBox>
+
+                        <VBox fx:id="panelVentasLista" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                                <Label styleClass="panel-icon" text="\$" />
+                                <Label styleClass="panel-title" text="Ventas recientes" />
+                            </HBox>
+                            <VBox fx:id="ventasListaContainer" spacing="0" styleClass="list-container">
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Venta #001" />
+                                        <Label styleClass="row-subtitle" text="Cliente registrado - Sala 2 VIP" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="Bs 45.00" />
+                                        <Label styleClass="status-pill, status-activa" text="ACTIVA" />
+                                    </VBox>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Venta #002" />
+                                        <Label styleClass="row-subtitle" text="Consumidor final - Sala 1" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="Bs 90.00" />
+                                        <Label styleClass="status-pill, status-devuelta" text="DEVUELTA" />
+                                    </VBox>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Venta #003" />
+                                        <Label styleClass="row-subtitle" text="Cliente registrado - Sala 1" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="Bs 40.00" />
+                                        <Label styleClass="status-pill, status-anulada" text="ANULADA" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="clientesView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Clientes" />
+                        <Label styleClass="page-subtitle" text="Registro de compradores y datos de contacto" />
+                    </VBox>
+
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="clientes-layout">
+                        <VBox fx:id="clienteForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nuevo cliente" />
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Nombre completo" />
+                                <TextField fx:id="txtClienteNombre" promptText="Nombre y apellido" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Telefono" />
+                                <TextField fx:id="txtClienteTelefono" promptText="Ej: 71234567" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Correo electronico" />
+                                <TextField fx:id="txtClienteEmail" promptText="correo@ejemplo.com" styleClass="form-input" />
+                            </VBox>
+
+                            <Button fx:id="btnAgregarCliente" maxWidth="Infinity" styleClass="primary-button" text="+  Agregar" />
+                        </VBox>
+
+                        <FlowPane fx:id="clientesCardsContainer" hgap="18" prefWrapLength="660" styleClass="cards-grid" vgap="18" HBox.hgrow="ALWAYS">
+                            <VBox spacing="10" styleClass="item-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Marcos Rivas" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarClienteDemo1" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <Label styleClass="movie-meta" text="71234567" />
+                                <Label styleClass="movie-meta" text="marcos.rivas@correo.com" />
+                                <Label styleClass="movie-genre-pill" text="6 pts" />
+                            </VBox>
+
+                            <VBox spacing="10" styleClass="item-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Daniela Soto" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarClienteDemo2" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <Label styleClass="movie-meta" text="76543210" />
+                                <Label styleClass="movie-meta" text="daniela.soto@correo.com" />
+                                <Label styleClass="movie-genre-pill" text="9 pts" />
+                            </VBox>
+
+                            <VBox spacing="10" styleClass="item-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Consumidor final" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                </HBox>
+                                <Label styleClass="movie-meta" text="Cliente generico para ventas sin registro" wrapText="true" />
+                                <Label styleClass="movie-genre-pill" text="0 pts" />
+                            </VBox>
+                        </FlowPane>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="empleadosView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Empleados" />
+                        <Label styleClass="page-subtitle" text="Usuarios internos, roles y personal del cine" />
+                    </VBox>
+
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="empleados-layout">
+                        <VBox fx:id="empleadoForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nuevo empleado" />
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Nombre completo" />
+                                <TextField fx:id="txtEmpleadoNombre" promptText="Nombre y apellido" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Cargo" />
+                                <TextField fx:id="txtEmpleadoCargo" promptText="Ej: Cajero, Supervisor" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Rol de acceso" />
+                                <TextField fx:id="txtEmpleadoRol" promptText="Administrador, Cajero o Supervisor" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Usuario" />
+                                <TextField fx:id="txtEmpleadoUsuario" promptText="Usuario de acceso al sistema" styleClass="form-input" />
+                            </VBox>
+
+                            <Button fx:id="btnAgregarEmpleado" maxWidth="Infinity" styleClass="primary-button" text="+  Agregar" />
+                        </VBox>
+
+                        <FlowPane fx:id="empleadosCardsContainer" hgap="18" prefWrapLength="660" styleClass="cards-grid" vgap="18" HBox.hgrow="ALWAYS">
+                            <VBox spacing="10" styleClass="item-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Laura Fernandez" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarEmpleadoDemo1" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <Label styleClass="movie-meta" text="Cargo: Supervisora" />
+                                <Label styleClass="movie-meta" text="Usuario: lfernandez" />
+                                <Label styleClass="movie-genre-pill" text="Administrador" />
+                            </VBox>
+
+                            <VBox spacing="10" styleClass="item-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Jorge Paredes" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarEmpleadoDemo2" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <Label styleClass="movie-meta" text="Cargo: Cajero" />
+                                <Label styleClass="movie-meta" text="Usuario: jparedes" />
+                                <Label styleClass="movie-genre-pill" text="Cajero" />
+                            </VBox>
+
+                            <VBox spacing="10" styleClass="item-card">
+                                <HBox alignment="TOP_LEFT" spacing="10">
+                                    <Label styleClass="movie-title" text="Andrea Molina" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnEliminarEmpleadoDemo3" styleClass="icon-button" text="X" />
+                                </HBox>
+                                <Label styleClass="movie-meta" text="Cargo: Cajera" />
+                                <Label styleClass="movie-meta" text="Usuario: amolina" />
+                                <Label styleClass="movie-genre-pill" text="Cajero" />
+                            </VBox>
+                        </FlowPane>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="fidelidadView" managed="false" spacing="24" styleClass="main-content" visible="false">
+                    <padding>
+                        <Insets bottom="36" left="40" right="40" top="36" />
+                    </padding>
+
+                    <VBox spacing="4" styleClass="page-header">
+                        <Label styleClass="page-title" text="Fidelidad" />
+                        <Label styleClass="page-subtitle" text="Historial de puntos y beneficios de clientes" />
+                    </VBox>
+
+                    <HBox alignment="TOP_LEFT" spacing="24" styleClass="fidelidad-layout">
+                        <VBox fx:id="fidelidadForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+                            <Label styleClass="panel-title" text="Nuevo movimiento" />
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Cliente" />
+                                <TextField fx:id="txtFidelidadCliente" promptText="Nombre del cliente" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Tipo de movimiento" />
+                                <TextField fx:id="txtFidelidadTipo" promptText="Ganado o Canjeado" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Puntos" />
+                                <TextField fx:id="txtFidelidadPuntos" promptText="1" styleClass="form-input" />
+                            </VBox>
+
+                            <VBox spacing="8">
+                                <Label styleClass="form-label" text="Venta asociada" />
+                                <TextField fx:id="txtFidelidadVenta" promptText="Venta #001 (opcional)" styleClass="form-input" />
+                            </VBox>
+
+                            <Button fx:id="btnRegistrarMovimiento" maxWidth="Infinity" styleClass="primary-button" text="+  Registrar movimiento" />
+                        </VBox>
+
+                        <VBox fx:id="panelFidelidadLista" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                                <Label styleClass="panel-icon" text="*" />
+                                <Label styleClass="panel-title" text="Historial de puntos" />
+                            </HBox>
+                            <VBox fx:id="fidelidadListaContainer" spacing="0" styleClass="list-container">
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Daniela Soto" />
+                                        <Label styleClass="row-subtitle" text="Venta #001 - 08/07/2026" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="+1 pt" />
+                                        <Label styleClass="status-pill, status-activa" text="GANADO" />
+                                    </VBox>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Marcos Rivas" />
+                                        <Label styleClass="row-subtitle" text="Venta #003 - 07/07/2026" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="+1 pt" />
+                                        <Label styleClass="status-pill, status-activa" text="GANADO" />
+                                    </VBox>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                                    <VBox spacing="2">
+                                        <Label styleClass="row-title" text="Daniela Soto" />
+                                        <Label styleClass="row-subtitle" text="Beneficio de fidelidad - 05/07/2026" />
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                                        <Label styleClass="row-amount" text="-9 pts" />
+                                        <Label styleClass="status-pill, status-devuelta" text="CANJEADO" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+            </StackPane>
         </ScrollPane>
     </center>
 
