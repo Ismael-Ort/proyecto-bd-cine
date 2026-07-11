@@ -93,6 +93,8 @@ Actividades principales:
 - [ ] Revisar si el modelo representa correctamente la propuesta.
 - [ ] Corregir entidades o relaciones innecesarias.
 - [ ] Guardar el modelo conceptual en la carpeta correspondiente.
+- [ ] Agregar atributo canal a la entidad Venta.
+- [ ] Agregar relación Cliente-Usuario (0..1) equivalente a Empleado-Usuario.
 
 Estado: En proceso
 

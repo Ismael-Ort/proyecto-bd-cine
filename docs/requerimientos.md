@@ -10,13 +10,17 @@ Este documento presenta los requerimientos funcionales y no funcionales del Sist
 
 El sistema debe permitir registrar, consultar y actualizar clientes del cine. Cada cliente tendrá un identificador único que permitirá asociarlo con sus compras y con el programa de fidelidad.
 
-Los clientes no iniciarán sesión en el sistema. Serán registrados y consultados por los empleados para realizar ventas y controlar puntos de fidelidad.
+Los clientes podrán ser registrados por un empleado (venta por taquilla) o registrarse ellos mismos creando un usuario (venta en línea). El sistema debe distinguir entre cliente registrado y consumidor final (cliente genérico sin datos completos, usado en ventas por taquilla sin registro).
 
 ### RF-02: Gestión de empleados y usuarios
 
-El sistema debe permitir registrar empleados responsables de las operaciones del cine. También debe permitir crear usuarios de acceso asociados a empleados.
+El sistema debe permitir registrar empleados responsables de las operaciones del cine. También debe permitir crear usuarios de acceso asociados a empleados (para operar el sistema interno) y usuarios de acceso asociados a clientes (para comprar en línea).
 
 Cada usuario podrá tener un rol asignado, como administrador, cajero o supervisor, para controlar sus permisos dentro del sistema.
+
+### RF-02.1: Gestión de roles
+
+El sistema debe permitir asociar un usuario a un cliente registrado, siendo este usuario obligatorio únicamente si el cliente desea comprar en línea.
 
 ### RF-03: Gestión de películas y géneros
 
@@ -32,7 +36,7 @@ El sistema debe permitir programar funciones asociando una película, una sala, 
 
 ### RF-06: Consulta de disponibilidad
 
-El sistema debe permitir consultar la disponibilidad de butacas para una función específica antes de realizar una venta. Las butacas vendidas no deberán aparecer como disponibles.
+El sistema debe permitir consultar la disponibilidad de butacas para una función específica antes de realizar una venta. Las butacas vendidas no deberán aparecer como disponibles. La exclusividad de la butaca debe garantizarse independientemente del canal (taquilla o en línea) por el cual se realice la consulta o la venta.
 
 Si en una etapa futura se implementan reservas, las butacas reservadas también deberán considerarse no disponibles.
 
@@ -90,7 +94,7 @@ El sistema debe permitir que un cliente con usuario pueda consultar funciones, s
 
 ### RF-19: Canal de venta
 
-El sistema debe registrar el canal por el cual se realiza cada venta, indicando si fue realizada por taquilla o en línea.
+El sistema debe registrar el canal por el cual se realiza cada venta (TAQUILLA o EN_LINEA) mediante un atributo obligatorio en la entidad Venta. Si el canal es TAQUILLA, la venta debe estar asociada a un empleado. Si el canal es EN_LINEA, la venta puede no tener empleado asociado, pero debe estar asociada a un cliente que haya iniciado sesión mediante su usuario.
 
 ---
 

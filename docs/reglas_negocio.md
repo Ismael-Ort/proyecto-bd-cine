@@ -150,4 +150,4 @@ Este documento define las restricciones lógicas y de integridad que la base de 
 - [x] Reglas de fidelidad definidas.
 - [x] Reglas de trazabilidad y estados definidas.
 - [x] Ajuste del diseño para permitir ventas por taquilla y ventas en línea.
-- [ ] Ajustes finales según criterios oficiales del profesor.
+- [ ] Verificar alineación con requerimientos.md tras el ajuste de canales de venta.
