@@ -196,6 +196,20 @@ Podrá realizar acciones como:
 
 Estos roles podrán ajustarse durante el desarrollo según los criterios oficiales del proyecto.
 
+## Ajuste final del enfoque del sistema
+
+Después de la revisión del modelo conceptual, el equipo decidió ajustar el enfoque del sistema para contemplar dos canales de venta: venta presencial en taquilla y venta en línea.
+
+En la venta presencial, un empleado del cine inicia sesión en el sistema, atiende al cliente, consulta las funciones disponibles, selecciona una butaca y registra la venta.
+
+En la venta en línea, el cliente puede iniciar sesión mediante un usuario, consultar la cartelera, seleccionar una función, elegir una butaca disponible y realizar la compra desde una plataforma digital.
+
+Para evitar duplicar la lógica de acceso, el sistema manejará una entidad general llamada Usuario. Esta entidad permitirá el acceso tanto a empleados como a clientes, diferenciando sus permisos mediante el atributo Rol.
+
+Los roles definidos inicialmente serán ADMIN, CAJERO, SUPERVISOR y CLIENTE.
+
+De esta forma, el sistema no queda limitado a ventas presenciales en taquilla, sino que también permite representar un modelo más actual de compra en línea. Al mismo tiempo, se mantiene el enfoque principal del proyecto: controlar funciones, butacas, ventas, entradas y programa de fidelidad.
+
 ---
 
 ## Escenario esperado
