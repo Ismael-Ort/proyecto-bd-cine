@@ -72,6 +72,26 @@ La entrada gratuita no deberá generar nuevos puntos.
 
 El sistema debe permitir realizar consultas básicas relacionadas con funciones, ventas, clientes, butacas ocupadas, butacas disponibles y puntos de fidelidad.
 
+### RF-15: Acceso de usuarios
+
+El sistema debe permitir el acceso mediante usuarios y contraseñas. Los usuarios podrán estar asociados a clientes o empleados, según el rol asignado.
+
+### RF-16: Roles de usuario
+
+El sistema debe manejar roles de usuario para controlar los permisos dentro del sistema. Los roles iniciales serán ADMIN, CAJERO, SUPERVISOR y CLIENTE.
+
+### RF-17: Venta por taquilla
+
+El sistema debe permitir registrar ventas presenciales en taquilla. En este caso, la venta será registrada por un empleado autorizado.
+
+### RF-18: Venta en línea
+
+El sistema debe permitir que un cliente con usuario pueda consultar funciones, seleccionar una butaca disponible y realizar una compra en línea.
+
+### RF-19: Canal de venta
+
+El sistema debe registrar el canal por el cual se realiza cada venta, indicando si fue realizada por taquilla o en línea.
+
 ---
 
 ## Requerimientos no funcionales
@@ -107,6 +127,10 @@ El sistema debe tener una interfaz comprensible para el usuario, especialmente p
 ### RNF-08: Escalabilidad del diseño
 
 La base de datos debe diseñarse de forma que permita agregar módulos futuros, como cafetería, promociones o reservas, sin tener que rehacer todo el modelo.
+
+### RNF-09: Escalabilidad hacia ventas presenciales y en línea
+
+El diseño de la base de datos debe permitir manejar tanto ventas presenciales como ventas en línea, sin duplicar la estructura principal de ventas, entradas, funciones, butacas y clientes.
 
 ---
 
