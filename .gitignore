@@ -28,3 +28,10 @@ config/db.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+
+# Database credentials / local config
+.env
+config/db.properties
+config/dbCine.properties
+src/main/resources/dbCine.properties
