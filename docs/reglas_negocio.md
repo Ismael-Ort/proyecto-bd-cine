@@ -1,153 +1,146 @@
 # Reglas de Negocio - Sistema de Gestión de Cine
 
-Este documento define las restricciones lógicas y de integridad que la base de datos y la aplicación deben cumplir para garantizar el correcto funcionamiento del sistema.
+Este documento establece las reglas de negocio que deben cumplirse para garantizar el correcto funcionamiento del Sistema de Gestión de Cine. Estas reglas son consistentes con el modelo conceptual y el modelo lógico del proyecto.
 
 ---
 
-## 1. Módulo de infraestructura y cartelera
+# 1. Infraestructura y cartelera
 
-- **BR-01: Mapeo de butacas**  
-  Cada sala posee una configuración fija de butacas físicas. No se pueden programar funciones en una sala si esta no tiene butacas registradas previamente en el sistema.
+## BR-01. Registro de salas
+Toda función deberá programarse en una sala previamente registrada.
 
-- **BR-02: Integridad de la programación**  
-  Una función requiere obligatoriamente la asignación de una película activa, una sala física, una fecha y una hora específica.
+## BR-02. Registro de butacas
+Una sala deberá tener butacas registradas antes de poder programar funciones.
 
-- **BR-03: Restricción horaria**  
-  No se puede programar más de una función simultáneamente en la misma sala si los horarios de proyección se solapan, considerando la duración de la película más un margen de tiempo estimado para la limpieza de la sala.
+## BR-03. Programación de funciones
+Toda función deberá estar asociada a una película, una sala, una fecha, una hora y una tarifa base.
 
----
-
-## 2. Módulo de usuarios, clientes y empleados
-
-- **BR-04: Usuario general del sistema**  
-  El sistema manejará una entidad general llamada Usuario, la cual permitirá el acceso tanto de empleados como de clientes.
-
-- **BR-05: Roles de usuario**  
-  Cada usuario tendrá un rol asignado para determinar sus permisos dentro del sistema. Los roles iniciales serán ADMIN, CAJERO, SUPERVISOR y CLIENTE.
-
-- **BR-06: Usuario de empleado**  
-  Un empleado podrá tener un usuario para acceder al sistema interno del cine. Según su rol, podrá gestionar ventas, funciones, reportes, usuarios u otros módulos administrativos.
-
-- **BR-07: Usuario de cliente**  
-  Un cliente podrá tener un usuario para acceder al sistema en línea, consultar funciones, seleccionar butacas disponibles y realizar compras.
-
-- **BR-08: Relación usuario-empleado**  
-  Un usuario con rol ADMIN, CAJERO o SUPERVISOR deberá estar asociado a un empleado del cine.
-
-- **BR-09: Relación usuario-cliente**  
-  Un usuario con rol CLIENTE deberá estar asociado a un cliente registrado en el sistema.
-
-- **BR-10: Registro de clientes**  
-  Los clientes serán registrados para asociar sus compras, entradas y movimientos de fidelidad.
+## BR-04. Solapamiento de funciones
+No podrán existir dos funciones programadas simultáneamente en la misma sala.
 
 ---
 
-## 3. Módulo de canales de venta
+# 2. Usuarios, clientes y empleados
 
-- **BR-11: Canales de venta**  
-  El sistema permitirá dos canales principales de venta: TAQUILLA y EN_LINEA.
+## BR-05. Usuarios del sistema
+El sistema manejará una entidad Usuario que permitirá el acceso tanto de clientes como de empleados.
 
-- **BR-12: Venta por taquilla**  
-  En una venta por taquilla, la operación será registrada por un empleado autorizado del cine.
+## BR-06. Roles
+Todo usuario deberá tener uno de los siguientes roles:
+- Administrador
+- Cajero
+- Cliente
 
-- **BR-13: Venta en línea**  
-  En una venta en línea, la operación será realizada por un cliente mediante su usuario de acceso.
+## BR-07. Asociación de usuarios
+Un usuario podrá estar asociado a un cliente o a un empleado, pero no a ambos al mismo tiempo.
 
-- **BR-14: Canal de venta obligatorio**  
-  Toda venta deberá registrar el canal por el cual fue realizada, indicando si fue una venta por TAQUILLA o una venta EN_LINEA.
+## BR-08. Empleados
+Los empleados realizarán las operaciones internas del sistema según los permisos de su rol.
 
-- **BR-15: Relación empleado-venta**  
-  Una venta por taquilla debe estar asociada al empleado que la registró. Una venta en línea puede no tener empleado asociado.
-
-- **BR-16: Relación cliente-venta**  
-  Toda venta debe estar asociada a un cliente, ya sea que la compra se realice por taquilla o en línea.
-
----
-
-## 4. Módulo de taquilla, compra en línea y control de aforo
-
-- **BR-17: Exclusividad de asiento**  
-  Una combinación única de función y butaca solo puede estar asociada a una entrada activa en el sistema. Queda prohibido duplicar la asignación de una misma butaca para una misma función.
-
-- **BR-18: Disponibilidad de butacas**  
-  Una butaca asociada a una entrada activa no debe aparecer como disponible para la misma función.
-
-- **BR-19: Selección de butaca**  
-  Tanto en una venta por taquilla como en una venta en línea, la butaca seleccionada debe estar disponible antes de registrarse la entrada.
-
-- **BR-20: Butacas en ventas anuladas o devueltas**  
-  Si una venta o entrada cambia a estado Anulada o Devuelta, esa entrada no debe considerarse como ocupación activa de la butaca.
-
-- **BR-21: Venta multiticket**  
-  Una única transacción de venta puede contener una o varias entradas. Cada entrada debe identificar la función, la butaca y el tipo de entrada correspondiente.
+## BR-09. Clientes
+Los clientes podrán realizar compras en línea y participar en el programa de fidelidad.
 
 ---
 
-## 5. Módulo de precios y tipos de entrada
+# 3. Ventas
 
-- **BR-22: Tarifa base de función**  
-  Cada función tendrá una tarifa base que servirá como punto de partida para calcular el precio de las entradas.
+## BR-10. Canales de venta
+Toda venta deberá indicar el canal por el cual fue realizada:
+- Taquilla
+- En línea
 
-- **BR-23: Tipo de butaca**  
-  Las butacas podrán tener un tipo, como Regular o VIP. Si la butaca es VIP, se podrá aplicar un cargo adicional.
+## BR-11. Venta en taquilla
+Las ventas en taquilla deberán estar asociadas a un empleado.
 
-- **BR-24: Tipo de entrada**  
-  Cada entrada tendrá un tipo asignado, como Adulto, Niño, Estudiante o Adulto Mayor.
+## BR-12. Venta en línea
+Las ventas en línea podrán realizarse sin empleado y estarán asociadas al cliente autenticado cuando corresponda.
 
-- **BR-25: Cálculo del precio final**  
-  El precio final de cada entrada se calculará tomando en cuenta la tarifa base de la función, el tipo de butaca y el tipo de entrada.
+## BR-13. Cliente en la venta
+Una venta podrá asociarse a un cliente registrado o realizarse sin cliente.
 
----
-
-## 6. Módulo del programa de fidelidad
-
-- **BR-26: Generación de puntos**  
-  Cada entrada asociada a un cliente registrado y pagada con un valor mayor a 0 generará un punto en el historial del cliente.
-
-- **BR-27: Entradas gratuitas**  
-  Las entradas gratuitas por fidelidad tendrán precio final igual a 0 y no generarán nuevos puntos.
-
-- **BR-28: Cálculo del balance de puntos**  
-  El saldo de puntos del cliente se calculará a partir del historial de puntos, sumando los puntos ganados y restando los puntos canjeados.
-
-- **BR-29: Aplicación automática del beneficio de fidelidad**  
-  Si un cliente tiene 9 puntos acumulados antes de realizar una nueva compra, el sistema deberá aplicar el beneficio de fidelidad a una entrada, registrándola con descuento del 100%.
-
-- **BR-30: Registro del canje**  
-  Cuando se aplique el beneficio de fidelidad, el sistema deberá registrar en el historial de puntos el canje correspondiente.
-
-- **BR-31: Fidelidad en ambos canales**  
-  El programa de fidelidad aplicará tanto para ventas por taquilla como para ventas en línea, siempre que la venta esté asociada a un cliente registrado.
+## BR-14. Venta con múltiples entradas
+Una venta podrá contener una o varias entradas.
 
 ---
 
-## 7. Módulo de transacciones y control de estados
+# 4. Entradas y butacas
 
-- **BR-32: Trazabilidad de operaciones**  
-  Ningún registro de venta, entrada o movimiento de puntos deberá eliminarse físicamente de la base de datos. Las modificaciones operativas se gestionarán mediante cambios de estado.
+## BR-15. Asociación de entrada
+Cada entrada deberá estar asociada a una venta, una función, una butaca y un tipo de entrada.
 
-- **BR-33: Ciclo de vida de una venta**  
-  Una venta se registrará inicialmente con estado Activa. Podrá cambiar a Anulada o Devuelta según corresponda.
+## BR-16. Exclusividad de butacas
+Una misma butaca no podrá venderse dos veces para una misma función.
 
-- **BR-34: Ciclo de vida de una entrada**  
-  Una entrada se registrará inicialmente con estado Activa. Si la venta asociada es anulada o devuelta, sus entradas deberán actualizarse al estado correspondiente.
+## BR-17. Disponibilidad
+Solo podrán seleccionarse butacas disponibles para la función correspondiente.
 
-- **BR-35: Atomicidad transaccional**  
-  El flujo completo de una venta debe ejecutarse dentro de una transacción. Si falla la validación de puntos, la validación de butaca, el registro de la venta, el registro de entradas o el registro de puntos, la operación completa deberá revertirse.
-
-- **BR-36: Consistencia entre canal y usuario**  
-  Si una venta tiene canal TAQUILLA, debe estar asociada a un empleado. Si una venta tiene canal EN_LINEA, debe estar asociada a un cliente que realizó la compra mediante su usuario.
+## BR-18. Liberación de butacas
+Cuando una entrada sea cancelada, la butaca volverá a estar disponible.
 
 ---
 
-## Estado del documento
+# 5. Tipos de entrada y precios
+
+## BR-19. Tipo de entrada
+Toda entrada deberá tener un tipo de entrada.
+
+## BR-20. Precio final
+El precio final se calculará a partir de la tarifa base de la función y del descuento correspondiente al tipo de entrada.
+
+---
+
+# 6. Programa de fidelidad
+
+## BR-21. Acumulación de puntos
+Solo las entradas pagadas generarán puntos de fidelidad.
+
+## BR-22. Entradas gratuitas
+Las entradas obtenidas mediante el programa de fidelidad tendrán precio final igual a cero y no acumularán nuevos puntos.
+
+## BR-23. Historial de puntos
+Todo movimiento de acumulación o canje deberá registrarse en el historial de puntos.
+
+## BR-24. Aplicación del beneficio
+Cuando un cliente cumpla la condición establecida por el programa de fidelidad, el sistema aplicará automáticamente el beneficio correspondiente.
+
+---
+
+# 7. Estados y transacciones
+
+## BR-25. Estados de venta
+Las ventas manejarán los estados:
+- Pendiente
+- Completada
+- Cancelada
+
+## BR-26. Estados de entrada
+Las entradas manejarán los estados:
+- Reservada
+- Pagada
+- Cancelada
+- Utilizada
+
+## BR-27. Conservación del historial
+Las ventas, entradas y movimientos de puntos no deberán eliminarse físicamente de la base de datos.
+
+## BR-28. Transacciones
+El registro de una venta deberá ejecutarse como una única transacción. Si ocurre un error durante el proceso, todas las operaciones deberán revertirse.
+
+---
+
+# Estado del documento
 
 - [x] Reglas de infraestructura definidas.
-- [x] Reglas de usuarios, clientes y empleados actualizadas.
-- [x] Reglas de canales de venta definidas.
-- [x] Reglas de control de butacas definidas.
-- [x] Reglas de precios y tipos de entrada definidas.
-- [x] Reglas de fidelidad definidas.
-- [x] Reglas de trazabilidad y estados definidas.
-- [x] Ajuste del diseño para permitir ventas por taquilla y ventas en línea.
-- [ ] Verificar alineación con requerimientos.md tras el ajuste de canales de venta.
+- [x] Reglas de usuarios definidas.
+- [x] Reglas de ventas definidas.
+- [x] Reglas de entradas y butacas definidas.
+- [x] Reglas del programa de fidelidad definidas.
+- [x] Reglas de estados y transacciones definidas.
+- [x] Documento consistente con el modelo conceptual.
+- [x] Documento consistente con el modelo lógico.
+
+---
+
+# Conclusión
+
+Las reglas de negocio establecen las restricciones necesarias para garantizar la integridad, consistencia y trazabilidad del Sistema de Gestión de Cine. Estas reglas sirven como base para la implementación de la base de datos y el desarrollo de la aplicación, asegurando que las operaciones del sistema se realicen de forma segura y conforme al diseño definido.
