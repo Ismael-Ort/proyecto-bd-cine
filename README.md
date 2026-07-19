@@ -1,74 +1,140 @@
-# Sistema de Cine - Proyecto Final de Base de Datos
+# Sistema de Gestión de Cine - Proyecto Final de Base de Datos
 
 Este repositorio corresponde al proyecto final de la asignatura de Base de Datos.
 
-El proyecto consiste en el análisis, diseño y desarrollo de un sistema para la gestión de un cine, utilizando Java como lenguaje de programación y una base de datos relacional en MariaDB/MySQL.
+El proyecto consiste en el análisis, diseño e implementación de un sistema para la gestión de un cine, utilizando Java como lenguaje de programación y una base de datos relacional en MariaDB/MySQL.
 
-## Estado del proyecto
+---
 
-El proyecto se encuentra actualmente en fase de análisis y diseño de base de datos.
+# Estado del proyecto
 
-Ya se completaron los documentos iniciales de análisis, requerimientos, reglas de negocio y plan de trabajo. A partir de estos documentos, el equipo iniciará la elaboración del modelo conceptual, el cual servirá como base para desarrollar posteriormente el modelo lógico, el modelo físico y la implementación de la base de datos.
+El proyecto se encuentra actualmente en la fase de diseño e implementación de la base de datos.
 
-## Objetivo general
+Hasta el momento se han completado:
 
-Diseñar y desarrollar un sistema que permita gestionar operaciones principales de un cine, como películas, salas, funciones, ventas de entradas, clientes, empleados, control de butacas y programa de fidelidad, utilizando una base de datos relacional que garantice integridad, trazabilidad y organización de la información.
+- Análisis inicial.
+- Definición del alcance.
+- Requerimientos funcionales y no funcionales.
+- Reglas de negocio.
+- Plan de trabajo.
+- Modelo conceptual.
+- Modelo lógico.
 
-## Alcance inicial del sistema
+El siguiente paso consiste en desarrollar el modelo físico, implementar la base de datos y comenzar el desarrollo de la aplicación.
 
-El sistema estará enfocado en la gestión interna del cine. Los empleados accederán al sistema mediante un usuario y contraseña, mientras que los clientes serán registrados para asociarlos a sus compras y al programa de fidelidad.
+---
 
-El alcance principal incluye:
+# Objetivo general
+
+Diseñar e implementar un sistema que permita gestionar las operaciones principales de un cine, incluyendo la administración de películas, géneros, salas, funciones, clientes, empleados, usuarios, ventas de entradas y programa de fidelidad, utilizando una base de datos relacional que garantice integridad, consistencia y trazabilidad de la información.
+
+---
+
+# Alcance del sistema
+
+El sistema estará orientado a la gestión interna del cine y permitirá realizar ventas tanto en taquilla como en línea.
+
+Los empleados accederán mediante un usuario y contraseña. Los clientes podrán estar registrados en el sistema y, opcionalmente, disponer de un usuario para realizar compras en línea. Toda venta deberá estar asociada a un cliente registrado.
+
+El alcance incluye:
 
 - Gestión de clientes.
-- Gestión de empleados y usuarios.
-- Gestión de películas y géneros.
-- Gestión de salas y butacas.
+- Gestión de empleados.
+- Gestión de usuarios.
+- Gestión de películas.
+- Gestión de géneros.
+- Gestión de salas.
+- Gestión de butacas.
 - Programación de funciones.
-- Venta de entradas.
+- Venta de entradas por taquilla.
+- Venta de entradas en línea.
 - Consulta de disponibilidad de butacas.
-- Control de métodos de pago.
-- Manejo de tipos de entrada.
+- Gestión de métodos de pago.
+- Gestión de tipos de entrada.
 - Programa de fidelidad.
 - Historial de puntos.
-- Control de ventas activas, anuladas o devueltas.
 
-Como extensión futura, el sistema podrá incluir módulos adicionales como cafetería, productos, inventario, combos o reservas.
+Como posibles extensiones futuras, el sistema podrá incorporar módulos como cafetería, inventario, productos, combos y reservas.
 
-## Estructura del repositorio
+---
 
-- `docs/`: documentos de análisis, requerimientos, reglas de negocio y planificación.
-- `modelos/`: modelos conceptual, lógico y físico.
-- `database/`: scripts SQL de creación de tablas, datos de prueba y consultas.
-- `src/`: código fuente del sistema en Java.
-- `lib/`: librerías externas necesarias para el proyecto.
+# Funcionalidades principales
 
-## Tecnologías previstas
+- Administración de películas y géneros.
+- Administración de salas y butacas.
+- Programación de funciones.
+- Registro de clientes.
+- Administración de empleados y usuarios.
+- Venta de entradas por taquilla.
+- Venta de entradas en línea.
+- Selección de butacas disponibles.
+- Gestión de métodos de pago.
+- Programa de fidelidad basado en acumulación y canje de puntos.
+- Historial de movimientos de puntos.
 
-- Java.
-- MariaDB / MySQL.
-- Git y GitHub.
-- IntelliJ IDEA.
+---
 
-## Avance actual
+# Tecnologías utilizadas
+
+- Java
+- MariaDB / MySQL
+- Git
+- GitHub
+- IntelliJ IDEA
+
+---
+
+# Estructura del repositorio
+
+```
+docs/
+modelos/
+database/
+src/
+lib/
+```
+
+Descripción:
+
+- **docs/**: análisis inicial, requerimientos, reglas de negocio y plan de trabajo.
+- **modelos/**: modelos conceptual, lógico y físico.
+- **database/**: scripts SQL, datos de prueba y consultas.
+- **src/**: código fuente de la aplicación.
+- **lib/**: librerías externas del proyecto.
+
+---
+
+# Avance del proyecto
 
 - [x] Creación del repositorio.
 - [x] Estructura inicial de carpetas.
-- [x] README inicial.
-- [x] Análisis inicial del sistema.
+- [x] README.
+- [x] Análisis inicial.
+- [x] Definición del alcance.
 - [x] Requerimientos funcionales y no funcionales.
 - [x] Reglas de negocio.
 - [x] Plan de trabajo.
-- [ ] Modelo conceptual.
-- [ ] Modelo lógico.
+- [x] Modelo conceptual.
+- [x] Modelo lógico.
 - [ ] Modelo físico.
-- [ ] Script SQL de creación de base de datos.
+- [ ] Script SQL de creación de la base de datos.
 - [ ] Datos de prueba.
 - [ ] Consultas de prueba.
 - [ ] Desarrollo de la aplicación en Java.
-- [ ] Pruebas finales.
+- [ ] Pruebas del sistema.
 - [ ] Documentación final.
 
-## Próximo paso
+---
 
-El próximo paso del proyecto es elaborar el modelo conceptual, identificando las entidades principales del sistema, sus relaciones y cardinalidades.
+# Próximo paso
+
+El siguiente paso del proyecto consiste en desarrollar el modelo físico de la base de datos, definiendo:
+
+- Tipos de datos.
+- Restricciones.
+- Claves primarias y foráneas.
+- Índices.
+- Reglas de integridad.
+- Script SQL de creación de la base de datos.
+
+Posteriormente se implementará la base de datos y se iniciará el desarrollo de la aplicación en Java.
