@@ -42,7 +42,7 @@ Actividades principales:
 - [x] Revisar si el alcance es posible de completar en el tiempo disponible.
 - [x] Ajustar el enfoque del sistema para contemplar ventas por taquilla y ventas en línea.
 - [x] Definir que la entidad Usuario será general para clientes y empleados.
-- [x] Definir que el cliente podrá comprar como cliente registrado, cliente con usuario o consumidor final.
+- [x] Definir que el cliente podrá comprar como cliente registrado en taquilla o mediante un usuario para compras en línea.
 - [ ] Ajustar el alcance según los criterios oficiales del profesor.
 
 Estado: En proceso
@@ -53,7 +53,7 @@ Estado: En proceso
 
 En esta fase se definieron las funciones que debe cumplir el sistema y las reglas que deben respetarse para que funcione correctamente.
 
-Los requerimientos y reglas de negocio deberán reflejar el nuevo enfoque del sistema, tomando en cuenta que las ventas podrán realizarse por taquilla o en línea.
+Los requerimientos y reglas de negocio reflejan el enfoque actualizado del sistema, tomando en cuenta que las ventas podrán realizarse por taquilla o en línea.
 
 Actividades principales:
 
@@ -67,7 +67,8 @@ Actividades principales:
 - [x] Verificar que los requerimientos estén alineados con el alcance definido.
 - [x] Actualizar la lógica de usuarios para permitir acceso de empleados y clientes.
 - [x] Actualizar la lógica de ventas para permitir ventas por taquilla y ventas en línea.
-- [x] Definir la lógica de cliente registrado, cliente con usuario y consumidor final.
+- [x] Definir la lógica del cliente registrado y del cliente con usuario para compras en línea.
+- [x] Establecer que toda venta debe estar asociada a un cliente.
 - [ ] Ajustar requerimientos y reglas según criterios oficiales del profesor.
 
 Estado: En proceso
@@ -76,52 +77,52 @@ Estado: En proceso
 
 ## Fase 4: Modelo conceptual
 
-En esta fase se identificarán las entidades principales del sistema y las relaciones entre ellas, considerando el enfoque actualizado del proyecto: ventas presenciales en taquilla y ventas en línea realizadas por clientes con usuario.
+En esta fase se identificaron las entidades principales del sistema y las relaciones entre ellas, considerando el enfoque actualizado del proyecto: ventas presenciales en taquilla y ventas en línea realizadas por clientes con usuario.
 
-El modelo conceptual no incluirá todavía tipos de datos, llaves primarias técnicas, llaves foráneas ni sentencias SQL. Su propósito será representar las entidades, sus atributos principales, las relaciones y las cardinalidades.
+El modelo conceptual representa las entidades, sus atributos principales, las relaciones y las cardinalidades, sin incluir todavía tipos de datos, llaves primarias técnicas, llaves foráneas ni sentencias SQL.
 
 Actividades principales:
 
 - [x] Identificar entidades candidatas a partir del análisis.
-- [x] Seleccionar las entidades principales iniciales.
+- [x] Seleccionar las entidades principales.
 - [x] Ajustar el enfoque para permitir ventas por taquilla y ventas en línea.
 - [x] Definir Usuario como entidad general de acceso para clientes y empleados.
-- [x] Definir que el cliente puede ser registrado, consumidor final o cliente con usuario.
+- [x] Definir que el cliente puede estar registrado sin usuario o contar con un usuario para realizar compras en línea.
 - [x] Definir que una venta puede tener canal TAQUILLA o EN_LINEA.
-- [ ] Definir relaciones entre entidades.
-- [ ] Establecer cardinalidades.
-- [ ] Revisar si el modelo representa correctamente la propuesta.
-- [ ] Corregir entidades o relaciones innecesarias.
-- [ ] Guardar el modelo conceptual en la carpeta correspondiente.
-- [ ] Agregar atributo canal a la entidad Venta.
-- [ ] Agregar relación Cliente-Usuario (0..1) equivalente a Empleado-Usuario.
+- [x] Definir relaciones entre entidades.
+- [x] Establecer cardinalidades.
+- [x] Revisar si el modelo representa correctamente la propuesta.
+- [x] Corregir entidades o relaciones innecesarias.
+- [x] Agregar el atributo canal a la entidad Venta.
+- [x] Agregar la relación Cliente-Usuario de cero o uno a uno.
+- [x] Guardar el modelo conceptual en la carpeta correspondiente.
 
-Estado: En proceso
+Estado: Hecho
 
 ---
 
 ## Fase 5: Modelo lógico
 
-En esta fase se transformará el modelo conceptual en una estructura relacional más formal.
+En esta fase se transformó el modelo conceptual en una estructura relacional más formal.
 
-Aquí las entidades del modelo conceptual pasarán a convertirse en tablas, y las relaciones se representarán mediante llaves primarias y llaves foráneas.
+Las entidades del modelo conceptual fueron convertidas en tablas, y las relaciones se representaron mediante llaves primarias y llaves foráneas.
 
 Actividades principales:
 
-- [ ] Convertir entidades en relaciones o tablas.
-- [ ] Definir atributos principales.
-- [ ] Definir llaves primarias.
-- [ ] Definir llaves foráneas.
-- [ ] Resolver relaciones de uno a muchos.
-- [ ] Resolver relaciones de muchos a muchos si existen.
-- [ ] Definir cómo se representará la relación Usuario-Cliente.
-- [ ] Definir cómo se representará la relación Usuario-Empleado.
-- [ ] Definir cómo se manejará el canal de venta en la tabla Venta.
-- [ ] Definir cómo se manejará el cliente consumidor final.
-- [ ] Revisar normalización básica.
-- [ ] Validar que el modelo lógico responda a las reglas de negocio.
+- [x] Convertir entidades en relaciones o tablas.
+- [x] Definir atributos principales.
+- [x] Definir llaves primarias.
+- [x] Definir llaves foráneas.
+- [x] Resolver relaciones de uno a muchos.
+- [x] Resolver relaciones de muchos a muchos.
+- [x] Definir cómo se representará la relación Usuario-Cliente.
+- [x] Definir cómo se representará la relación Usuario-Empleado.
+- [x] Definir cómo se manejará el canal de venta en la tabla Venta.
+- [x] Establecer que `id_cliente` en Venta será obligatorio.
+- [x] Revisar normalización básica.
+- [x] Validar que el modelo lógico responda a las reglas de negocio.
 
-Estado: Pendiente
+Estado: Hecho
 
 ---
 
@@ -136,6 +137,7 @@ Actividades principales:
 - [ ] Definir nombres finales de tablas y columnas.
 - [ ] Definir tipos de datos.
 - [ ] Definir restricciones.
+- [ ] Establecer `id_cliente` como `NOT NULL` en la tabla Venta.
 - [ ] Definir índices si son necesarios.
 - [ ] Definir reglas de integridad.
 - [ ] Definir restricciones para evitar duplicidad de butacas por función.
@@ -159,13 +161,13 @@ Actividades principales:
 - [ ] Insertar datos de prueba.
 - [ ] Crear usuarios de prueba para empleados.
 - [ ] Crear usuarios de prueba para clientes.
-- [ ] Crear cliente registrado.
-- [ ] Crear cliente consumidor final.
+- [ ] Crear clientes registrados para pruebas.
 - [ ] Crear funciones, salas y butacas de prueba.
 - [ ] Crear consultas de prueba.
 - [ ] Validar restricciones principales.
 - [ ] Probar ventas por taquilla.
 - [ ] Probar ventas en línea.
+- [ ] Probar que toda venta tenga un cliente asociado.
 - [ ] Probar los escenarios definidos en el análisis.
 - [ ] Documentar resultados de pruebas.
 
@@ -192,6 +194,7 @@ Actividades principales:
 - [ ] Programar selección de butacas.
 - [ ] Programar ventas por taquilla.
 - [ ] Programar ventas en línea.
+- [ ] Validar que exista un cliente antes de registrar la venta.
 - [ ] Validar que la aplicación respete las reglas de negocio.
 - [ ] Probar la comunicación entre la aplicación y la base de datos.
 
@@ -212,8 +215,9 @@ Actividades principales:
 - [ ] Probar permisos según rol.
 - [ ] Probar venta por taquilla.
 - [ ] Probar venta en línea.
-- [ ] Probar cliente registrado.
-- [ ] Probar cliente consumidor final.
+- [ ] Probar cliente registrado sin usuario.
+- [ ] Probar cliente registrado con usuario.
+- [ ] Probar que no se pueda registrar una venta sin cliente.
 - [ ] Probar acumulación de puntos.
 - [ ] Probar canje de puntos.
 - [ ] Probar entrada gratuita.
@@ -256,7 +260,7 @@ Estado: Pendiente
 
 ---
 
-## Entidades principales definidas para iniciar el modelo conceptual
+## Entidades principales definidas
 
 A partir del análisis inicial, los requerimientos, las reglas de negocio y la revisión del enfoque del sistema, el equipo trabajará con las siguientes entidades principales:
 
@@ -274,40 +278,41 @@ A partir del análisis inicial, los requerimientos, las reglas de negocio y la r
 - Entrada.
 - Historial de puntos.
 
+Además, se incluye la tabla asociativa Película_Género para resolver la relación de muchos a muchos entre Película y Género.
+
 Estas entidades responden al enfoque actualizado del sistema, el cual permite ventas presenciales en taquilla y ventas en línea.
 
-La entidad Usuario será utilizada como acceso general al sistema, tanto para empleados como para clientes, diferenciando los permisos mediante roles como ADMIN, CAJERO, SUPERVISOR y CLIENTE.
+La entidad Usuario será utilizada como acceso general al sistema, tanto para empleados como para clientes, diferenciando los permisos mediante los roles ADMINISTRADOR, CAJERO y CLIENTE.
 
-La entidad Cliente permitirá representar diferentes situaciones:
+La entidad Cliente permitirá representar dos situaciones principales:
 
-- Cliente registrado por taquilla.
-- Cliente registrado en línea.
-- Cliente con usuario para compra en línea.
-- Cliente genérico o consumidor final para compras sin registro.
+- Cliente registrado para compras en taquilla.
+- Cliente registrado con usuario para realizar compras en línea.
 
-Estas entidades podrán ajustarse si durante el modelado conceptual se identifica alguna mejora necesaria.
+Todo cliente debe existir en la base de datos antes de que se registre una venta a su nombre. Sin embargo, un cliente puede estar registrado sin tener una cuenta de usuario.
 
 ---
 
-## Relaciones principales consideradas para el modelo conceptual
+## Relaciones principales definidas
 
-Las relaciones principales que se tomarán como base para el modelo conceptual son:
+Las relaciones principales que se tomarán como base para el desarrollo son:
 
 - Un cliente puede realizar muchas ventas.
+- Toda venta debe estar asociada a un cliente.
 - Un cliente puede tener un usuario, pero no es obligatorio.
 - Un empleado puede tener un usuario, pero no es obligatorio.
 - Un empleado puede registrar muchas ventas por taquilla.
-- Una venta puede ser realizada por taquilla o en línea.
-- Una venta por taquilla debe estar asociada a un empleado.
+- Una venta puede realizarse por TAQUILLA o EN_LINEA.
+- Una venta por taquilla debe estar asociada al empleado que la registró.
 - Una venta en línea puede no tener empleado asociado.
-- Toda venta debe estar asociada a un cliente.
 - Un género puede clasificar muchas películas.
+- Una película puede pertenecer a muchos géneros.
 - Una película puede tener muchas funciones.
 - Una sala puede tener muchas funciones.
 - Una sala puede tener muchas butacas.
 - Una venta puede contener una o varias entradas.
 - Una función puede tener muchas entradas.
-- Una butaca puede aparecer en muchas entradas, siempre que sean de funciones diferentes.
+- Una butaca puede aparecer en muchas entradas, siempre que correspondan a funciones diferentes.
 - Un tipo de entrada puede aplicarse a muchas entradas.
 - Un método de pago puede usarse en muchas ventas.
 - Un cliente puede tener muchos movimientos en el historial de puntos.
@@ -317,27 +322,31 @@ Las relaciones principales que se tomarán como base para el modelo conceptual s
 
 ## Reglas clave a considerar en los modelos
 
-Durante el diseño conceptual, lógico y físico se deberán mantener las siguientes reglas principales:
+Durante el diseño físico, la implementación y el desarrollo se deberán mantener las siguientes reglas principales:
 
 - Una misma butaca no puede estar asociada a más de una entrada activa dentro de la misma función.
 - El sistema debe permitir ventas por TAQUILLA y ventas EN_LINEA.
 - El canal de venta debe quedar registrado en cada venta.
+- Toda venta debe estar asociada a un cliente.
 - Si la venta es por TAQUILLA, debe estar asociada al empleado que la registró.
 - Si la venta es EN_LINEA, puede no tener empleado asociado.
-- Toda venta debe estar asociada a un cliente.
-- Solo los clientes registrados podrán acumular y canjear puntos.
-- El consumidor final no acumula puntos.
+- Todo cliente podrá acumular y canjear puntos según las reglas del programa de fidelidad.
 - Un cliente puede estar registrado sin tener usuario.
-- El usuario solo será obligatorio para comprar en línea.
+- El usuario será obligatorio para realizar compras en línea.
 - Las entradas gratuitas por fidelidad no generan nuevos puntos.
 - Las ventas y entradas anuladas o devueltas no deben eliminarse físicamente, sino cambiar de estado.
+- Los movimientos del historial de puntos utilizarán los tipos ACUMULACIÓN y CANJE.
+- Las butacas no tendrán clasificación VIP o Regular dentro del alcance actual.
+- Los únicos roles del sistema serán ADMINISTRADOR, CAJERO y CLIENTE.
 
 ---
 
 ## Nota
 
-Este plan de trabajo es una guía inicial actualizada. El proyecto ya cuenta con análisis inicial, requerimientos, reglas de negocio y alcance base.
+Este plan de trabajo representa el estado actualizado del proyecto.
 
-Luego de la revisión del enfoque, el sistema fue ajustado para contemplar dos canales de venta: venta presencial en taquilla y venta en línea. Además, se definió que Usuario será una entidad general de acceso para clientes y empleados.
+El proyecto ya cuenta con análisis inicial, requerimientos, reglas de negocio, modelo conceptual y modelo lógico. También se definió que el sistema manejará dos canales de venta: venta presencial en taquilla y venta en línea.
 
-El siguiente paso es desarrollar el modelo conceptual del sistema, representando las entidades, relaciones y cardinalidades correspondientes.
+Usuario será una entidad general de acceso para clientes y empleados, y toda venta deberá estar asociada obligatoriamente a un cliente registrado.
+
+El siguiente paso es desarrollar el modelo físico del sistema, definiendo tipos de datos, restricciones, índices, reglas de integridad y el script SQL de creación de la base de datos.
