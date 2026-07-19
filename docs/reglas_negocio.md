@@ -56,7 +56,7 @@ Las ventas en taquilla deberán estar asociadas a un empleado.
 Las ventas en línea podrán realizarse sin empleado y estarán asociadas al cliente autenticado cuando corresponda.
 
 ## BR-13. Cliente en la venta
-Una venta podrá asociarse a un cliente registrado o realizarse sin cliente.
+Una venta podrá asociarse a un cliente registrado o si el cliente es nuevo debe registrarse para poder hacer la compra
 
 ## BR-14. Venta con múltiples entradas
 Una venta podrá contener una o varias entradas.
