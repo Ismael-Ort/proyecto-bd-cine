@@ -1,147 +1,104 @@
 # Especificación de Requerimientos del Sistema
 
-Este documento presenta los requerimientos funcionales y no funcionales del Sistema de Gestión de Cine. Los requerimientos fueron definidos a partir del análisis inicial del proyecto y servirán como base para elaborar los modelos conceptual, lógico y físico de la base de datos.
+Este documento define los requerimientos funcionales y no funcionales del Sistema de Gestión de Cine. Los requerimientos fueron elaborados a partir del análisis del problema y son consistentes con el modelo conceptual y el modelo lógico desarrollados para el proyecto.
 
 ---
 
-## Requerimientos funcionales
+# Requerimientos funcionales
 
-### RF-01: Gestión de clientes
+## RF-01. Gestión de clientes
+El sistema deberá permitir registrar, consultar y actualizar clientes, asociando sus compras y el historial del programa de fidelidad.
 
-El sistema debe permitir registrar, consultar y actualizar clientes del cine. Cada cliente tendrá un identificador único que permitirá asociarlo con sus compras y con el programa de fidelidad.
+## RF-02. Gestión de empleados
+El sistema deberá permitir registrar, consultar y actualizar empleados responsables de las operaciones del cine.
 
-Los clientes podrán ser registrados por un empleado (venta por taquilla) o registrarse ellos mismos creando un usuario (venta en línea). El sistema debe distinguir entre cliente registrado y consumidor final (cliente genérico sin datos completos, usado en ventas por taquilla sin registro).
+## RF-03. Gestión de usuarios
+El sistema deberá permitir crear cuentas de usuario asociadas a clientes o empleados. Cada usuario iniciará sesión mediante nombre de usuario y contraseña y tendrá un rol asignado.
 
-### RF-02: Gestión de empleados y usuarios
+## RF-04. Gestión de películas y géneros
+El sistema deberá permitir registrar películas, registrar géneros y asociar una película con uno o varios géneros.
 
-El sistema debe permitir registrar empleados responsables de las operaciones del cine. También debe permitir crear usuarios de acceso asociados a empleados (para operar el sistema interno) y usuarios de acceso asociados a clientes (para comprar en línea).
+## RF-05. Gestión de salas y butacas
+El sistema deberá permitir registrar salas y sus butacas, identificando cada butaca mediante su fila y número.
 
-Cada usuario podrá tener un rol asignado, como administrador, cajero o supervisor, para controlar sus permisos dentro del sistema.
+## RF-06. Programación de funciones
+El sistema deberá permitir programar funciones indicando película, sala, fecha, hora y tarifa base.
 
-### RF-02.1: Gestión de roles
+## RF-07. Consulta de disponibilidad
+El sistema deberá mostrar las butacas disponibles para cada función y evitar que una misma butaca pueda ser seleccionada dos veces para la misma función.
 
-El sistema debe permitir asociar un usuario a un cliente registrado, siendo este usuario obligatorio únicamente si el cliente desea comprar en línea.
+## RF-08. Venta de entradas
+El sistema deberá permitir registrar ventas que contengan una o varias entradas. Cada entrada deberá estar asociada a una función, una butaca y un tipo de entrada.
 
-### RF-03: Gestión de películas y géneros
+## RF-09. Tipos de entrada
+El sistema deberá permitir administrar distintos tipos de entrada y aplicar el descuento correspondiente para calcular el precio final.
 
-El sistema debe permitir registrar películas y asociarlas a un género cinematográfico. Cada película podrá ser programada en una o varias funciones.
+## RF-10. Métodos de pago
+El sistema deberá registrar el método de pago utilizado en cada venta.
 
-### RF-04: Gestión de salas y butacas
+## RF-11. Control de estados
+El sistema deberá manejar estados para ventas y entradas, permitiendo conservar el historial sin eliminar registros.
 
-El sistema debe permitir registrar salas y sus butacas físicas. Cada butaca deberá tener una fila, un número y un tipo, como Regular o VIP.
+## RF-12. Programa de fidelidad
+El sistema deberá acumular puntos por entradas pagadas y permitir el canje de beneficios cuando corresponda.
 
-### RF-05: Programación de funciones
+## RF-13. Historial de puntos
+El sistema deberá registrar todos los movimientos de acumulación y canje de puntos asociados a cada cliente y a la venta correspondiente.
 
-El sistema debe permitir programar funciones asociando una película, una sala, una fecha, una hora y una tarifa base. Una película podrá tener varias funciones en diferentes horarios o salas.
+## RF-14. Venta en taquilla y venta en línea
+El sistema deberá permitir registrar ventas realizadas en taquilla por un empleado y ventas realizadas en línea por un cliente autenticado. Cada venta deberá registrar su canal (TAQUILLA o EN_LÍNEA).
 
-### RF-06: Consulta de disponibilidad
+## RF-15. Consultas
+El sistema deberá permitir consultar funciones, películas, disponibilidad de butacas, ventas, clientes e historial de puntos.
 
-El sistema debe permitir consultar la disponibilidad de butacas para una función específica antes de realizar una venta. Las butacas vendidas no deberán aparecer como disponibles. La exclusividad de la butaca debe garantizarse independientemente del canal (taquilla o en línea) por el cual se realice la consulta o la venta.
+## RF-16. Control de acceso
+El sistema deberá controlar el acceso mediante los roles:
+- Administrador
+- Cajero
+- Cliente
 
-Si en una etapa futura se implementan reservas, las butacas reservadas también deberán considerarse no disponibles.
-
-### RF-07: Venta de entradas
-
-El sistema debe permitir registrar ventas de entradas. Una venta podrá incluir una o varias entradas, y cada entrada deberá estar asociada a una función, una butaca y un tipo de entrada.
-
-### RF-08: Tipos de entrada
-
-El sistema debe permitir manejar diferentes tipos de entrada, como Adulto, Niño, Estudiante y Adulto Mayor. El precio final de la entrada podrá variar según el tipo seleccionado.
-
-### RF-09: Métodos de pago
-
-El sistema debe permitir registrar el método de pago utilizado en cada venta, como efectivo, tarjeta u otro método definido por el equipo.
-
-### RF-10: Control de estados de venta
-
-El sistema debe permitir cambiar el estado de una venta a Activa, Anulada o Devuelta sin eliminar el registro de la base de datos.
-
-Si una venta es anulada o devuelta, las entradas asociadas deberán cambiar de estado y las butacas correspondientes deberán volver a estar disponibles para futuras consultas.
-
-### RF-11: Programa de fidelidad
-
-El sistema debe manejar un programa de fidelidad donde el cliente acumule puntos por entradas compradas y pagadas. Cuando el cliente cumpla con la regla establecida, el sistema deberá aplicar una entrada gratuita o descuento del 100%.
-
-### RF-12: Historial de puntos
-
-El sistema debe registrar los movimientos de puntos de cada cliente, incluyendo puntos ganados, puntos canjeados, fecha del movimiento y venta asociada. Esto permitirá mantener trazabilidad sobre el programa de fidelidad.
-
-### RF-13: Aplicación automática del beneficio de fidelidad
-
-Si un cliente tiene 9 puntos acumulados antes de realizar una nueva compra, el sistema deberá aplicar el beneficio de fidelidad a una entrada, registrándola con un 100% de descuento y generando el movimiento correspondiente en el historial de puntos.
-
-La entrada gratuita no deberá generar nuevos puntos.
-
-### RF-14: Reportes o consultas básicas
-
-El sistema debe permitir realizar consultas básicas relacionadas con funciones, ventas, clientes, butacas ocupadas, butacas disponibles y puntos de fidelidad.
-
-### RF-15: Acceso de usuarios
-
-El sistema debe permitir el acceso mediante usuarios y contraseñas. Los usuarios podrán estar asociados a clientes o empleados, según el rol asignado.
-
-### RF-16: Roles de usuario
-
-El sistema debe manejar roles de usuario para controlar los permisos dentro del sistema. Los roles iniciales serán ADMIN, CAJERO, SUPERVISOR y CLIENTE.
-
-### RF-17: Venta por taquilla
-
-El sistema debe permitir registrar ventas presenciales en taquilla. En este caso, la venta será registrada por un empleado autorizado.
-
-### RF-18: Venta en línea
-
-El sistema debe permitir que un cliente con usuario pueda consultar funciones, seleccionar una butaca disponible y realizar una compra en línea.
-
-### RF-19: Canal de venta
-
-El sistema debe registrar el canal por el cual se realiza cada venta (TAQUILLA o EN_LINEA) mediante un atributo obligatorio en la entidad Venta. Si el canal es TAQUILLA, la venta debe estar asociada a un empleado. Si el canal es EN_LINEA, la venta puede no tener empleado asociado, pero debe estar asociada a un cliente que haya iniciado sesión mediante su usuario.
+Cada rol tendrá permisos acordes con sus funciones.
 
 ---
 
-## Requerimientos no funcionales
+# Requerimientos no funcionales
 
-### RNF-01: Integridad de la información
+## RNF-01. Integridad de la información
+La base de datos deberá garantizar la integridad mediante llaves primarias, llaves foráneas, restricciones de unicidad y validaciones de dominio.
 
-La base de datos debe garantizar la integridad de los datos mediante llaves primarias, llaves foráneas, restricciones `NOT NULL` y restricciones únicas cuando sea necesario.
+## RNF-02. Exclusividad de butacas
+No deberá existir más de una entrada para la misma combinación de función y butaca.
 
-### RNF-02: Exclusividad de butacas
+## RNF-03. Persistencia
+La información deberá almacenarse en una base de datos relacional.
 
-La base de datos y la lógica del sistema deben impedir que una misma butaca esté asociada a más de una entrada activa dentro de la misma función.
+## RNF-04. Trazabilidad
+Las ventas, entradas y movimientos de puntos deberán conservar su historial mediante estados y registros históricos.
 
-### RNF-03: Persistencia de la información
+## RNF-05. Seguridad transaccional
+El proceso de venta deberá ejecutarse como una transacción para evitar inconsistencias.
 
-Toda la información importante del sistema deberá almacenarse en una base de datos relacional, evitando depender de registros manuales o archivos externos.
+## RNF-06. Facilidad de uso
+La interfaz deberá ser sencilla e intuitiva para empleados y clientes.
 
-### RNF-04: Trazabilidad
+## RNF-07. Escalabilidad
+El diseño deberá permitir incorporar nuevos módulos como cafetería, promociones, inventario o reservas sin modificar la estructura principal.
 
-Las ventas, devoluciones, anulaciones y movimientos de puntos deberán conservarse como historial. No se deberán eliminar registros financieros o movimientos de fidelidad de forma permanente.
-
-### RNF-05: Seguridad transaccional
-
-El proceso de venta debe realizarse de forma transaccional. La validación de disponibilidad, el registro de la venta, la asignación de butaca y la actualización de puntos deberán ejecutarse como una sola operación. Si ocurre un error, la operación completa deberá cancelarse.
-
-### RNF-06: Consistencia de estados
-
-Las ventas y entradas deberán manejar estados claros para evitar inconsistencias. Por ejemplo, una entrada asociada a una venta anulada o devuelta no debe considerarse como ocupación activa de una butaca.
-
-### RNF-07: Facilidad de uso
-
-El sistema debe tener una interfaz comprensible para el usuario, especialmente para el cajero, permitiendo registrar ventas y consultar disponibilidad de forma sencilla.
-
-### RNF-08: Escalabilidad del diseño
-
-La base de datos debe diseñarse de forma que permita agregar módulos futuros, como cafetería, promociones o reservas, sin tener que rehacer todo el modelo.
-
-### RNF-09: Escalabilidad hacia ventas presenciales y en línea
-
-El diseño de la base de datos debe permitir manejar tanto ventas presenciales como ventas en línea, sin duplicar la estructura principal de ventas, entradas, funciones, butacas y clientes.
+## RNF-08. Compatibilidad del modelo
+El sistema deberá soportar tanto ventas presenciales como ventas en línea utilizando la misma estructura de datos.
 
 ---
 
-## Estado del documento
+# Estado del documento
 
 - [x] Requerimientos funcionales definidos.
 - [x] Requerimientos no funcionales definidos.
-- [x] Lógica de clientes y empleados aclarada.
-- [x] Alcance principal definido.
-- [ ] Ajustes finales según criterios oficiales del profesor.
+- [x] Consistente con el modelo conceptual.
+- [x] Consistente con el modelo lógico.
+- [x] Documento listo para la etapa de implementación.
+
+---
+
+# Conclusión
+
+Los requerimientos definidos establecen las funcionalidades y restricciones que deberá cumplir el Sistema de Gestión de Cine. Constituyen la base para el diseño de la base de datos, el desarrollo de la aplicación y las validaciones necesarias para garantizar el correcto funcionamiento del sistema.
