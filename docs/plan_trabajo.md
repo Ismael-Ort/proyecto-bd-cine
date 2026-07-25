@@ -119,6 +119,12 @@ Actividades principales:
 - [x] Definir cómo se representará la relación Usuario-Empleado.
 - [x] Definir cómo se manejará el canal de venta en la tabla Venta.
 - [x] Establecer que `id_cliente` en Venta será obligatorio.
+- [x] Establecer que `id_empleado` en Venta será opcional (solo obligatorio para ventas TAQUILLA).
+- [x] Introducir la entidad Persona como base de Cliente, Empleado y Usuario.
+- [x] Resolver la relación Película-Género como muchos a muchos mediante Película_Género.
+- [x] Simplificar Venta eliminando `subtotal` y `descuento_total` (queda solo `total_pagado`).
+- [x] Simplificar Entrada eliminando `cargo_butaca` y `es_gratis` (se agrega `motivo`).
+- [x] Simplificar Historial_Puntos a un solo campo `cantidad_puntos`, asociado siempre a cliente y venta (sin FK a Entrada).
 - [x] Revisar normalización básica.
 - [x] Validar que el modelo lógico responda a las reglas de negocio.
 
@@ -128,25 +134,55 @@ Estado: Hecho
 
 ## Fase 6: Modelo físico
 
-En esta fase se preparará el diseño final de la base de datos para su implementación en el sistema gestor seleccionado.
+En esta fase se preparó el diseño final de la base de datos para su implementación en el sistema gestor seleccionado (MariaDB/MySQL), a partir del modelo conceptual y lógico actualizados (con la entidad Persona y las simplificaciones de Venta, Entrada e Historial_Puntos).
 
-El modelo físico incluirá nombres finales de tablas, columnas, tipos de datos, restricciones, índices y reglas de integridad.
+El modelo físico incluye nombres finales de tablas, columnas, tipos de datos, restricciones y reglas de integridad, definidos en `database/schema.sql`.
 
 Actividades principales:
 
-- [ ] Definir nombres finales de tablas y columnas.
-- [ ] Definir tipos de datos.
-- [ ] Definir restricciones.
-- [ ] Establecer `id_cliente` como `NOT NULL` en la tabla Venta.
-- [ ] Definir índices si son necesarios.
-- [ ] Definir reglas de integridad.
-- [ ] Definir restricciones para evitar duplicidad de butacas por función.
-- [ ] Definir restricciones relacionadas con usuarios, roles y canales de venta.
-- [ ] Preparar el script SQL de creación de la base de datos.
-- [ ] Probar el script en el gestor de base de datos.
-- [ ] Corregir errores del modelo físico.
+- [x] Definir nombres finales de tablas y columnas.
+- [x] Definir tipos de datos.
+- [x] Definir restricciones (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`, `DEFAULT`).
+- [x] Establecer `id_cliente` como `NOT NULL` en la tabla Venta.
+- [x] Establecer `id_empleado` como opcional en Venta, obligatorio solo para canal `TAQUILLA` (`chk_venta_canal_empleado`).
+- [x] Definir restricciones para evitar duplicidad de butacas por función (`uq_entrada_funcion_butaca`).
+- [x] Definir restricciones relacionadas con usuarios, roles y canales de venta.
+- [x] Definir la tabla `persona` y las llaves únicas de `documento` y `correo`.
+- [x] Definir la tabla asociativa `pelicula_genero`.
+- [x] Preparar el script SQL de creación de la base de datos (`database/schema.sql`).
+- [x] Revisar checklist de constraints por tabla en `docs/reglas_negocio.md`.
+- [ ] Definir índices adicionales si el rendimiento lo requiere (más allá de los implícitos en PK/UNIQUE).
+- [ ] Probar el script en el gestor de base de datos (Aiven MySQL/MariaDB).
+- [ ] Corregir errores del modelo físico detectados al probarlo.
 
-Estado: Pendiente
+Estado: En proceso
+
+---
+
+## Fase 6.1: Programabilidad de la base de datos (procedimientos, funciones y triggers)
+
+El profesor exige, como mínimo, un procedimiento almacenado, un trigger y una transacción. En esta fase se diseñó e implementó esa capa en `database/procedimientos_triggers.sql`, documentada en detalle en `docs/procedimientos_bd.md`.
+
+Se implementó más del mínimo exigido: 2 funciones, 3 triggers y 5 procedimientos (todos transaccionales).
+
+Actividades principales:
+
+- [x] Definir qué reglas de negocio conviene mover de "solo Java" a procedimientos/triggers (BR-28, BR-29, BR-35, entre otras).
+- [x] Implementar `fn_funcion_disponible` y `fn_puntos_disponibles`.
+- [x] Implementar `trg_entrada_bi_valida_funcion` (BEFORE INSERT).
+- [x] Implementar `trg_entrada_bu_valida_reventa` (BEFORE UPDATE).
+- [x] Implementar `trg_entrada_au_acumula_puntos` (AFTER UPDATE): acumulación automática de puntos y cierre automático de la venta.
+- [x] Implementar `sp_registrar_venta_simple` como transacción completa (`START TRANSACTION`/`COMMIT`/`ROLLBACK`).
+- [x] Implementar `sp_agregar_entrada_a_venta` (venta con múltiples entradas).
+- [x] Implementar `sp_marcar_entrada_pagada`.
+- [x] Implementar `sp_cancelar_entrada` (libera la butaca reutilizando la fila, por `uq_entrada_funcion_butaca`).
+- [x] Implementar `sp_canjear_puntos`.
+- [x] Documentar cada objeto (para qué sirve, ejemplo de `CALL`, guion de pruebas) en `docs/procedimientos_bd.md`.
+- [x] Actualizar `docs/reglas_negocio.md` y `docs/validaciones_en_java.md` para reflejar qué pasó de Java a la base de datos.
+- [ ] Ejecutar el guion de pruebas de `docs/procedimientos_bd.md` (sección 5) contra la base de datos real.
+- [ ] Ajustar la base de datos si las pruebas revelan algún cambio necesario (ver Fase 7).
+
+Estado: En proceso
 
 ---
 
@@ -157,17 +193,26 @@ En esta fase se implementará la base de datos de acuerdo con el modelo físico 
 Actividades principales:
 
 - [ ] Crear la base de datos.
-- [ ] Ejecutar el script de creación de tablas.
+- [ ] Ejecutar `database/schema.sql`.
+- [ ] Ejecutar `database/procedimientos_triggers.sql`.
 - [ ] Insertar datos de prueba.
+- [ ] Crear personas de prueba (base para clientes y empleados).
 - [ ] Crear usuarios de prueba para empleados.
 - [ ] Crear usuarios de prueba para clientes.
 - [ ] Crear clientes registrados para pruebas.
 - [ ] Crear funciones, salas y butacas de prueba.
 - [ ] Crear consultas de prueba.
-- [ ] Validar restricciones principales.
+- [ ] Validar restricciones principales (incluyendo el checklist de `docs/reglas_negocio.md`).
+- [ ] Probar `sp_registrar_venta_simple` y `sp_agregar_entrada_a_venta` (venta por taquilla y en línea).
+- [ ] Probar que `sp_registrar_venta_simple` rechace una butaca ya ocupada.
+- [ ] Probar `sp_marcar_entrada_pagada` y confirmar que se generó el punto de fidelidad automáticamente.
+- [ ] Probar `sp_cancelar_entrada` y confirmar que la butaca puede revenderse para la misma función.
+- [ ] Probar `sp_canjear_puntos` con un cliente que tenga 9 puntos o más.
+- [ ] Probar que las funciones canceladas/finalizadas rechacen nuevas entradas (triggers).
 - [ ] Probar ventas por taquilla.
-- [ ] Probar ventas en línea.
+- [ ] Probar ventas en línea sin empleado asociado.
 - [ ] Probar que toda venta tenga un cliente asociado.
+- [ ] Probar que una persona no pueda tener dos registros de Cliente ni de Empleado.
 - [ ] Probar los escenarios definidos en el análisis.
 - [ ] Documentar resultados de pruebas.
 
@@ -192,8 +237,11 @@ Actividades principales:
 - [ ] Programar módulos de compra para clientes.
 - [ ] Programar consulta de funciones disponibles.
 - [ ] Programar selección de butacas.
+- [ ] Invocar `sp_registrar_venta_simple` / `sp_agregar_entrada_a_venta` mediante `CallableStatement` (no armar INSERT/UPDATE manuales, ver `docs/procedimientos_bd.md` sección 6).
 - [ ] Programar ventas por taquilla.
 - [ ] Programar ventas en línea.
+- [ ] Programar pantalla/acción para canjear puntos (`sp_canjear_puntos`).
+- [ ] Programar pantalla/acción para cancelar una entrada (`sp_cancelar_entrada`).
 - [ ] Validar que exista un cliente antes de registrar la venta.
 - [ ] Validar que la aplicación respete las reglas de negocio.
 - [ ] Probar la comunicación entre la aplicación y la base de datos.
@@ -264,6 +312,7 @@ Estado: Pendiente
 
 A partir del análisis inicial, los requerimientos, las reglas de negocio y la revisión del enfoque del sistema, el equipo trabajará con las siguientes entidades principales:
 
+- Persona.
 - Cliente.
 - Empleado.
 - Usuario.
@@ -282,7 +331,9 @@ Además, se incluye la tabla asociativa Película_Género para resolver la relac
 
 Estas entidades responden al enfoque actualizado del sistema, el cual permite ventas presenciales en taquilla y ventas en línea.
 
-La entidad Usuario será utilizada como acceso general al sistema, tanto para empleados como para clientes, diferenciando los permisos mediante los roles ADMINISTRADOR, CAJERO y CLIENTE.
+La entidad **Persona** centraliza los datos personales (nombres, apellidos, documento, teléfono, correo) y es la base sobre la que se registran Cliente, Empleado y Usuario, evitando duplicar esa información en cada tabla.
+
+La entidad Usuario será utilizada como acceso general al sistema, tanto para empleados como para clientes, diferenciando los permisos mediante los roles ADMINISTRADOR, CAJERO y CLIENTE. Una persona puede tener más de una cuenta de usuario.
 
 La entidad Cliente permitirá representar dos situaciones principales:
 
@@ -335,9 +386,13 @@ Durante el diseño físico, la implementación y el desarrollo se deberán mante
 - El usuario será obligatorio para realizar compras en línea.
 - Las entradas gratuitas por fidelidad no generan nuevos puntos.
 - Las ventas y entradas anuladas o devueltas no deben eliminarse físicamente, sino cambiar de estado.
-- Los movimientos del historial de puntos utilizarán los tipos ACUMULACIÓN y CANJE.
+- Los movimientos del historial de puntos utilizarán los tipos ACUMULACIÓN y CANJE, y siempre estarán asociados a un cliente y a una venta.
 - Las butacas no tendrán clasificación VIP o Regular dentro del alcance actual.
 - Los únicos roles del sistema serán ADMINISTRADOR, CAJERO y CLIENTE.
+- Los datos personales (nombres, documento, teléfono, correo) se almacenan una sola vez en Persona; Cliente, Empleado y Usuario solo la referencian.
+- Una misma persona no puede tener más de un registro de Cliente ni de Empleado, pero sí puede tener varios usuarios.
+- El registro de una venta (y de cada operación crítica) se ejecuta como una transacción dentro de un procedimiento almacenado; la aplicación llama a esos procedimientos en lugar de escribir SQL directo sobre `venta`, `entrada` e `historial_puntos`.
+- La acumulación de puntos y el cierre de la venta (`COMPLETADA`/`CANCELADA`) se disparan automáticamente mediante triggers, no desde Java.
 
 ---
 
@@ -345,8 +400,8 @@ Durante el diseño físico, la implementación y el desarrollo se deberán mante
 
 Este plan de trabajo representa el estado actualizado del proyecto.
 
-El proyecto ya cuenta con análisis inicial, requerimientos, reglas de negocio, modelo conceptual y modelo lógico. También se definió que el sistema manejará dos canales de venta: venta presencial en taquilla y venta en línea.
+El proyecto ya cuenta con análisis inicial, requerimientos, reglas de negocio, modelo conceptual, modelo lógico, un primer modelo físico (`database/schema.sql`) y su capa de programabilidad (`database/procedimientos_triggers.sql`, documentada en `docs/procedimientos_bd.md`). También se definió que el sistema manejará dos canales de venta: venta presencial en taquilla y venta en línea, y que los datos personales se centralizan en la entidad Persona.
 
-Usuario será una entidad general de acceso para clientes y empleados, y toda venta deberá estar asociada obligatoriamente a un cliente registrado.
+Usuario será una entidad general de acceso para clientes y empleados (referenciando siempre a Persona), y toda venta deberá estar asociada obligatoriamente a un cliente registrado, con empleado obligatorio solo para el canal TAQUILLA.
 
-El siguiente paso es desarrollar el modelo físico del sistema, definiendo tipos de datos, restricciones, índices, reglas de integridad y el script SQL de creación de la base de datos.
+El siguiente paso es ejecutar `database/schema.sql` y `database/procedimientos_triggers.sql` en el gestor de base de datos (Fase 7), correr el guion de pruebas de `docs/procedimientos_bd.md`, verificar el checklist de constraints de `docs/reglas_negocio.md` contra la implementación real, y ajustar la base de datos si las pruebas revelan algún cambio necesario, antes de iniciar el desarrollo de la aplicación en Java (Fase 8).

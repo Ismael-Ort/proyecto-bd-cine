@@ -8,19 +8,21 @@ El proyecto consiste en el análisis, diseño e implementación de un sistema pa
 
 # Estado del proyecto
 
-El proyecto se encuentra actualmente en la fase de diseño e implementación de la base de datos.
+El proyecto se encuentra actualmente en la fase de implementación de la base de datos.
 
 Hasta el momento se han completado:
 
 - Análisis inicial.
 - Definición del alcance.
 - Requerimientos funcionales y no funcionales.
-- Reglas de negocio.
+- Reglas de negocio (incluye checklist de correspondencia con `database/schema.sql`).
 - Plan de trabajo.
 - Modelo conceptual.
 - Modelo lógico.
+- Modelo físico y script de creación (`database/schema.sql`), con la entidad `Persona` como base de `Cliente`, `Empleado` y `Usuario`.
+- Procedimientos almacenados, funciones y triggers (`database/procedimientos_triggers.sql`), documentados en `docs/procedimientos_bd.md`.
 
-El siguiente paso consiste en desarrollar el modelo físico, implementar la base de datos y comenzar el desarrollo de la aplicación.
+El siguiente paso consiste en ejecutar y probar `database/schema.sql` y `database/procedimientos_triggers.sql` en el gestor de base de datos, cargar datos de prueba y comenzar el desarrollo de la aplicación en Java.
 
 ---
 
@@ -71,6 +73,7 @@ Como posibles extensiones futuras, el sistema podrá incorporar módulos como ca
 - Gestión de métodos de pago.
 - Programa de fidelidad basado en acumulación y canje de puntos.
 - Historial de movimientos de puntos.
+- Reglas críticas resueltas con procedimientos almacenados, funciones y triggers (registro de venta, disponibilidad/reventa de butacas, acumulación automática de puntos, canje de puntos).
 
 ---
 
@@ -96,9 +99,9 @@ lib/
 
 Descripción:
 
-- **docs/**: análisis inicial, requerimientos, reglas de negocio y plan de trabajo.
+- **docs/**: análisis inicial, requerimientos, reglas de negocio, plan de trabajo y guía de procedimientos/triggers.
 - **modelos/**: modelos conceptual, lógico y físico.
-- **database/**: scripts SQL, datos de prueba y consultas.
+- **database/**: scripts SQL (`schema.sql`, `procedimientos_triggers.sql`), datos de prueba y consultas.
 - **src/**: código fuente de la aplicación.
 - **lib/**: librerías externas del proyecto.
 
@@ -116,10 +119,12 @@ Descripción:
 - [x] Plan de trabajo.
 - [x] Modelo conceptual.
 - [x] Modelo lógico.
-- [ ] Modelo físico.
-- [ ] Script SQL de creación de la base de datos.
+- [x] Modelo físico.
+- [x] Script SQL de creación de la base de datos (`database/schema.sql`).
+- [x] Procedimientos almacenados, funciones y triggers (`database/procedimientos_triggers.sql`).
 - [ ] Datos de prueba.
 - [ ] Consultas de prueba.
+- [ ] Ejecutar y validar `database/schema.sql` y `database/procedimientos_triggers.sql` en el gestor de base de datos.
 - [ ] Desarrollo de la aplicación en Java.
 - [ ] Pruebas del sistema.
 - [ ] Documentación final.
@@ -128,13 +133,11 @@ Descripción:
 
 # Próximo paso
 
-El siguiente paso del proyecto consiste en desarrollar el modelo físico de la base de datos, definiendo:
+El siguiente paso del proyecto consiste en:
 
-- Tipos de datos.
-- Restricciones.
-- Claves primarias y foráneas.
-- Índices.
-- Reglas de integridad.
-- Script SQL de creación de la base de datos.
+- Ejecutar `database/schema.sql` y luego `database/procedimientos_triggers.sql` en el gestor de base de datos y corregir errores si surgen.
+- Cargar datos de prueba (personas, clientes, empleados, usuarios, salas, butacas, funciones).
+- Verificar, uno a uno, el checklist de constraints por tabla definido en `docs/reglas_negocio.md`.
+- Ejecutar el guion de pruebas de `docs/procedimientos_bd.md` (venta simple, venta con varias entradas, butaca duplicada, cancelación/reventa, canje de puntos, función cancelada).
 
-Posteriormente se implementará la base de datos y se iniciará el desarrollo de la aplicación en Java.
+Posteriormente se iniciará el desarrollo de la aplicación en Java, apoyándose en `docs/validaciones_en_java.md` para las reglas que no se expresan como restricciones de la base de datos y en `docs/procedimientos_bd.md` para invocar los procedimientos desde `CallableStatement`.

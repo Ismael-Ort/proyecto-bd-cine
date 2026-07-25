@@ -45,7 +45,7 @@ Diseñar un sistema de gestión para un cine basado en una base de datos relacio
 
 ## Alcance del proyecto
 
-El sistema administrará clientes, empleados, usuarios, películas, géneros, salas, butacas, funciones, ventas, entradas, tipos de entrada, métodos de pago e historial de puntos.
+El sistema administrará personas, clientes, empleados, usuarios, películas, géneros, salas, butacas, funciones, ventas, entradas, tipos de entrada, métodos de pago e historial de puntos.
 
 Se contemplan dos canales de venta:
 
@@ -76,7 +76,7 @@ Las ventas y entradas utilizarán estados para representar su ciclo de vida sin 
 
 ### Separación de responsabilidades
 
-El sistema diferencia entre clientes, empleados y usuarios. Tanto clientes como empleados podrán tener una cuenta de usuario con permisos definidos por su rol.
+El sistema diferencia entre clientes, empleados y usuarios, pero centraliza los datos personales (nombres, documento, teléfono, correo) en una entidad **Persona** común. Tanto clientes como empleados se registran a partir de una persona existente, y una persona puede tener una o varias cuentas de usuario con permisos definidos por su rol.
 
 ## Lógica de acceso
 
@@ -95,6 +95,7 @@ Al elegir una butaca, el sistema verifica que no haya sido asignada previamente,
 
 ## Entidades principales
 
+- Persona
 - Cliente
 - Empleado
 - Usuario
@@ -112,6 +113,9 @@ Al elegir una butaca, el sistema verifica que no haya sido asignada previamente,
 
 ## Reglas de negocio
 
+- Toda persona tiene documento y correo únicos.
+- Cliente, Empleado y Usuario se registran a partir de una persona existente y no duplican sus datos personales.
+- Una misma persona no puede tener más de un registro de Cliente ni más de un registro de Empleado.
 - Una película puede pertenecer a varios géneros.
 - Un género puede asociarse a varias películas.
 - Una película puede tener múltiples funciones.
@@ -122,14 +126,14 @@ Al elegir una butaca, el sistema verifica que no haya sido asignada previamente,
 - Cada entrada pertenece a una venta.
 - Cada entrada corresponde a una función y una butaca.
 - Una misma butaca no puede venderse dos veces para la misma función.
-- Una venta puede asociarse a un cliente o realizarse sin cliente.
-- Una venta puede ser realizada por un empleado o mediante compra en línea.
-- Un cliente y un empleado pueden tener una cuenta de usuario.
+- Toda venta debe estar asociada a un cliente.
+- Una venta puede ser realizada por un empleado (taquilla) o sin empleado asociado (en línea).
+- Una persona puede tener una o varias cuentas de usuario.
 - Cada usuario posee un rol.
 - El precio final depende de la tarifa base y del descuento del tipo de entrada.
 - Los clientes acumulan puntos únicamente por entradas pagadas.
 - Las entradas gratuitas no generan nuevos puntos.
-- Todo movimiento de puntos debe registrarse.
+- Todo movimiento de puntos debe registrarse y asociarse a un cliente y a una venta.
 - Las ventas y entradas cambian de estado en lugar de eliminarse.
 
 ## Consideraciones técnicas
