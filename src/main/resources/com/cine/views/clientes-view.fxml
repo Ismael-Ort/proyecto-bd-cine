@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Clientes (tablas `persona` + `cliente`).
+
+    Un cliente se registra a partir de una persona (BR-02). Por eso el
+    formulario primero busca si la persona ya existe por documento
+    (txtClienteBuscarDocumento + btnBuscarPersonaCliente) antes de llenar los
+    datos personales a mano. Una misma persona no puede tener dos registros
+    de Cliente (uq_cliente_persona), asi que si ya es cliente el programa
+    debe avisarlo en vez de duplicarlo.
+
+    Datos de Persona: nombres, apellidos, fecha_nacimiento, sexo (M/F),
+    documento, telefono, correo.
+    Datos propios de Cliente: fecha_registro, estado (ACTIVO/INACTIVO).
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Clientes" />
+        <Label styleClass="page-subtitle" text="Personas registradas como clientes del cine" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="clientes-layout">
+        <VBox fx:id="clienteForm" maxWidth="340" minWidth="320" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label fx:id="lblClienteFormTitulo" styleClass="panel-title" text="Nuevo cliente" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Buscar persona existente por documento" />
+                <HBox spacing="8">
+                    <TextField fx:id="txtClienteBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnBuscarPersonaCliente" styleClass="secondary-button" text="Buscar" />
+                </HBox>
+            </VBox>
+
+            <Separator />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Nombres" />
+                <TextField fx:id="txtClienteNombres" promptText="Nombres" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Apellidos" />
+                <TextField fx:id="txtClienteApellidos" promptText="Apellidos" styleClass="form-input" />
+            </VBox>
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Fecha de nacimiento" />
+                    <DatePicker fx:id="dpClienteFechaNacimiento" maxWidth="Infinity" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8">
+                    <Label styleClass="form-label" text="Sexo" />
+                    <ComboBox fx:id="cmbClienteSexo" prefWidth="90" styleClass="form-input">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="M" />
+                                <String fx:value="F" />
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Documento" />
+                <TextField fx:id="txtClienteDocumento" promptText="Cedula / documento de identidad" styleClass="form-input" />
+            </VBox>
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Telefono" />
+                    <TextField fx:id="txtClienteTelefono" promptText="Ej: 71234567" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Correo" />
+                    <TextField fx:id="txtClienteCorreo" promptText="correo@ejemplo.com" styleClass="form-input" />
+                </VBox>
+            </HBox>
+
+            <Separator />
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Fecha de registro" />
+                    <DatePicker fx:id="dpClienteFechaRegistro" maxWidth="Infinity" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Estado" />
+                    <ComboBox fx:id="cmbClienteEstado" maxWidth="Infinity" styleClass="form-input">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="ACTIVO" />
+                                <String fx:value="INACTIVO" />
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="10">
+                <Button fx:id="btnGuardarCliente" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar cliente" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnCancelarEdicionCliente" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+
+        <VBox spacing="16" HBox.hgrow="ALWAYS">
+            <TextField fx:id="txtClienteBuscarLista" promptText="Buscar en la lista por nombre o documento..." styleClass="form-input" />
+
+            <FlowPane fx:id="clientesCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
+                <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
+                     `cliente` (unida con `persona`), mostrando ademas el saldo de
+                     puntos (fn equivalente: suma de ACUMULACION menos CANJE en
+                     historial_puntos). -->
+                <VBox spacing="10" styleClass="item-card">
+                    <HBox alignment="TOP_LEFT" spacing="10">
+                        <Label styleClass="movie-title" text="Nombre completo" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="status-pill, status-activa" text="ACTIVO" />
+                    </HBox>
+                    <Label styleClass="movie-meta" text="Documento: 00000000" />
+                    <Label styleClass="movie-meta" text="Telefono: 00000000" />
+                    <Label styleClass="movie-meta" text="Correo: correo@ejemplo.com" />
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label styleClass="movie-genre-pill" text="0 pts" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button styleClass="icon-button" text="Editar" />
+                        <Button styleClass="icon-button" text="X" />
+                    </HBox>
+                </VBox>
+            </FlowPane>
+        </VBox>
+    </HBox>
+</VBox>

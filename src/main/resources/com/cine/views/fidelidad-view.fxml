@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Fidelidad (tabla `historial_puntos`).
+
+    Aqui NO se puede elegir libremente el tipo de movimiento: los
+    movimientos ACUMULACION se generan solos (trigger trg_acumula_puntos
+    cuando sp_confirmar_pago paga una entrada no gratuita) y jamas se
+    capturan a mano, por eso el formulario de esta pantalla solo sirve
+    para registrar un CANJE, con la cantidad de puntos fija en 9 (regla de
+    negocio BR-30/BR-31), no editable. Los ACUMULACION solo aparecen en el
+    historial de la derecha, generados automaticamente.
+
+    id_cliente e id_venta son obligatorios en `historial_puntos`: el CANJE
+    debe quedar asociado a la venta de la entrada gratuita que se genero
+    con sp_registrar_venta usando un tipo de entrada al 100% de descuento
+    (ver database/datos_iniciales.sql y docs/procedimientos_bd.md seccion 4).
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Fidelidad" />
+        <Label styleClass="page-subtitle" text="Historial de puntos y canje de beneficios" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="fidelidad-layout">
+        <VBox fx:id="fidelidadForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label styleClass="panel-title" text="Canjear puntos" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Cliente" />
+                <ComboBox fx:id="cmbFidelidadCliente" maxWidth="Infinity" promptText="Selecciona un cliente" styleClass="form-input" />
+            </VBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
+                <Label styleClass="form-label" text="Saldo disponible:" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="lblFidelidadSaldo" styleClass="saldo-valor" text="-- pts" />
+            </HBox>
+            <Button fx:id="btnConsultarSaldo" maxWidth="Infinity" styleClass="secondary-button" text="Consultar saldo" />
+
+            <!--
+                No hay selector de "tipo de movimiento": esta pantalla solo
+                registra CANJE. ACUMULACION nunca se captura a mano (la crea
+                el trigger trg_acumula_puntos).
+            -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
+                <Label styleClass="form-label" text="Tipo de movimiento:" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="status-pill, status-canje" text="CANJE" />
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
+                <Label styleClass="form-label" text="Costo fijo del canje:" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="saldo-valor" text="9 pts" />
+            </HBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Venta de la entrada gratuita" />
+                <ComboBox fx:id="cmbFidelidadVenta" maxWidth="Infinity" promptText="Selecciona la venta generada con sp_registrar_venta" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Descripcion" />
+                <TextArea fx:id="txtFidelidadDescripcion" prefRowCount="2" promptText="Ej: Canje de puntos por entrada gratuita" styleClass="form-textarea" wrapText="true" />
+            </VBox>
+
+            <Button fx:id="btnRegistrarMovimiento" disable="true" maxWidth="Infinity" styleClass="primary-button" text="+  Registrar canje (9 pts)" />
+            <Label styleClass="form-hint" text="Se habilita solo cuando el saldo del cliente es 9 pts o mas." wrapText="true" />
+        </VBox>
+
+        <VBox fx:id="panelFidelidadLista" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                <Label styleClass="panel-icon" text="*" />
+                <Label styleClass="panel-title" text="Historial de puntos" />
+                <Region HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="cmbFidelidadFiltroTipo" promptText="Filtrar por tipo" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ACUMULACIÓN" />
+                            <String fx:value="CANJE" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </HBox>
+            <VBox fx:id="fidelidadListaContainer" spacing="0" styleClass="list-container">
+                <!-- Fila de ejemplo; el programa debe generar una por cada fila de
+                     `historial_puntos` (unida con `cliente`/`persona` y `venta`). -->
+                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                    <VBox spacing="2">
+                        <Label styleClass="row-title" text="Nombre del cliente" />
+                        <Label styleClass="row-subtitle" text="Venta #001 - dd/mm/aaaa" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label styleClass="row-amount" text="+1 pt" />
+                        <Label styleClass="status-pill, status-activa" text="ACUMULACIÓN" />
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>

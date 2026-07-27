@@ -76,7 +76,7 @@ Las ventas y entradas utilizarán estados para representar su ciclo de vida sin 
 
 ### Separación de responsabilidades
 
-El sistema diferencia entre clientes, empleados y usuarios, pero centraliza los datos personales (nombres, documento, teléfono, correo) en una entidad **Persona** común. Tanto clientes como empleados se registran a partir de una persona existente, y una persona puede tener una o varias cuentas de usuario con permisos definidos por su rol.
+El sistema diferencia entre clientes, empleados y usuarios, pero centraliza los datos personales (nombres, apellidos, fecha de nacimiento, sexo, documento, teléfono, correo) en una entidad **Persona** común. Tanto clientes como empleados se registran a partir de una persona existente, y una persona puede tener una o varias cuentas de usuario con permisos definidos por su rol.
 
 ## Lógica de acceso
 

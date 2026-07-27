@@ -2,9 +2,20 @@ package com.cine;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
+/**
+ * Controlador del shell principal (main-shell.fxml).
+ *
+ * Unica responsabilidad: mostrar la pagina correspondiente al boton de
+ * navegacion presionado. No contiene logica de negocio: la logica propia
+ * de cada pagina (peliculas, ventas, etc.) se agrega en el controlador que
+ * se le asigne a cada archivo dentro de views/ cuando se programe.
+ *
+ * Tipos de entrada y Metodos de pago no tienen pagina propia: son catalogos
+ * fijos (ver database/datos_iniciales.sql) que solo se seleccionan desde
+ * Ventas, no se administran desde el menu.
+ */
 public class DashboardController {
 
     @FXML private Button navPanel;
@@ -14,7 +25,9 @@ public class DashboardController {
     @FXML private Button navVentas;
     @FXML private Button navClientes;
     @FXML private Button navEmpleados;
+    @FXML private Button navUsuarios;
     @FXML private Button navFidelidad;
+    @FXML private Button navGeneros;
 
     @FXML private VBox dashboardView;
     @FXML private VBox peliculasView;
@@ -23,69 +36,25 @@ public class DashboardController {
     @FXML private VBox ventasView;
     @FXML private VBox clientesView;
     @FXML private VBox empleadosView;
+    @FXML private VBox usuariosView;
     @FXML private VBox fidelidadView;
-
-    @FXML private Label lblIngresosActivosValor;
-    @FXML private Label lblEntradasVendidasValor;
-    @FXML private Label lblPeliculasCarteleraValor;
-    @FXML private Label lblClientesRegistradosValor;
-
-    @FXML private VBox ventasListContainer;
-    @FXML private VBox funcionesListContainer;
+    @FXML private VBox generosView;
 
     @FXML
     private void initialize() {
-        navPanel.setOnAction(event -> showDashboard());
-        navPeliculas.setOnAction(event -> showPeliculas());
-        navSalas.setOnAction(event -> showSalas());
-        navFunciones.setOnAction(event -> showFunciones());
-        navVentas.setOnAction(event -> showVentas());
-        navClientes.setOnAction(event -> showClientes());
-        navEmpleados.setOnAction(event -> showEmpleados());
-        navFidelidad.setOnAction(event -> showFidelidad());
+        navPanel.setOnAction(event -> showView(dashboardView, navPanel));
+        navPeliculas.setOnAction(event -> showView(peliculasView, navPeliculas));
+        navSalas.setOnAction(event -> showView(salasView, navSalas));
+        navFunciones.setOnAction(event -> showView(funcionesView, navFunciones));
+        navVentas.setOnAction(event -> showView(ventasView, navVentas));
+        navClientes.setOnAction(event -> showView(clientesView, navClientes));
+        navEmpleados.setOnAction(event -> showView(empleadosView, navEmpleados));
+        navUsuarios.setOnAction(event -> showView(usuariosView, navUsuarios));
+        navFidelidad.setOnAction(event -> showView(fidelidadView, navFidelidad));
+        navGeneros.setOnAction(event -> showView(generosView, navGeneros));
     }
 
-    private void showDashboard() {
-        showView(dashboardView);
-        selectNav(navPanel);
-    }
-
-    private void showPeliculas() {
-        showView(peliculasView);
-        selectNav(navPeliculas);
-    }
-
-    private void showSalas() {
-        showView(salasView);
-        selectNav(navSalas);
-    }
-
-    private void showFunciones() {
-        showView(funcionesView);
-        selectNav(navFunciones);
-    }
-
-    private void showVentas() {
-        showView(ventasView);
-        selectNav(navVentas);
-    }
-
-    private void showClientes() {
-        showView(clientesView);
-        selectNav(navClientes);
-    }
-
-    private void showEmpleados() {
-        showView(empleadosView);
-        selectNav(navEmpleados);
-    }
-
-    private void showFidelidad() {
-        showView(fidelidadView);
-        selectNav(navFidelidad);
-    }
-
-    private void showView(VBox selectedView) {
+    private void showView(VBox selectedView, Button selectedNav) {
         VBox[] views = {
                 dashboardView,
                 peliculasView,
@@ -94,16 +63,16 @@ public class DashboardController {
                 ventasView,
                 clientesView,
                 empleadosView,
-                fidelidadView
+                usuariosView,
+                fidelidadView,
+                generosView
         };
         for (VBox view : views) {
             boolean selected = view == selectedView;
             view.setVisible(selected);
             view.setManaged(selected);
         }
-    }
 
-    private void selectNav(Button selectedButton) {
         Button[] buttons = {
                 navPanel,
                 navPeliculas,
@@ -112,15 +81,15 @@ public class DashboardController {
                 navVentas,
                 navClientes,
                 navEmpleados,
-                navFidelidad
+                navUsuarios,
+                navFidelidad,
+                navGeneros
         };
-
         for (Button button : buttons) {
             button.getStyleClass().remove("nav-item-selected");
         }
-
-        if (!selectedButton.getStyleClass().contains("nav-item-selected")) {
-            selectedButton.getStyleClass().add("nav-item-selected");
+        if (!selectedNav.getStyleClass().contains("nav-item-selected")) {
+            selectedNav.getStyleClass().add("nav-item-selected");
         }
     }
 }

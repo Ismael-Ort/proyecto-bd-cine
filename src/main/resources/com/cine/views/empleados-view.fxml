@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Empleados (tablas `persona` + `empleado`).
+
+    Un empleado se registra a partir de una persona (BR-02), igual que
+    Cliente: primero se busca si la persona ya existe por documento. Una
+    misma persona no puede tener dos registros de Empleado
+    (uq_empleado_persona).
+
+    Datos de Persona: nombres, apellidos, fecha_nacimiento, sexo (M/F),
+    documento, telefono, correo.
+    Datos propios de Empleado: cargo, fecha_contratacion, estado
+    (ACTIVO/INACTIVO).
+
+    El usuario de acceso al sistema (nombre_usuario, contrasena, rol) se
+    crea aparte, en la pagina "Usuarios", porque una persona puede tener
+    varias cuentas de usuario y el rol vive en `usuario`, no en `empleado`.
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Empleados" />
+        <Label styleClass="page-subtitle" text="Personal interno del cine" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="empleados-layout">
+        <VBox fx:id="empleadoForm" maxWidth="340" minWidth="320" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label fx:id="lblEmpleadoFormTitulo" styleClass="panel-title" text="Nuevo empleado" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Buscar persona existente por documento" />
+                <HBox spacing="8">
+                    <TextField fx:id="txtEmpleadoBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnBuscarPersonaEmpleado" styleClass="secondary-button" text="Buscar" />
+                </HBox>
+            </VBox>
+
+            <Separator />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Nombres" />
+                <TextField fx:id="txtEmpleadoNombres" promptText="Nombres" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Apellidos" />
+                <TextField fx:id="txtEmpleadoApellidos" promptText="Apellidos" styleClass="form-input" />
+            </VBox>
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Fecha de nacimiento" />
+                    <DatePicker fx:id="dpEmpleadoFechaNacimiento" maxWidth="Infinity" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8">
+                    <Label styleClass="form-label" text="Sexo" />
+                    <ComboBox fx:id="cmbEmpleadoSexo" prefWidth="90" styleClass="form-input">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="M" />
+                                <String fx:value="F" />
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Documento" />
+                <TextField fx:id="txtEmpleadoDocumento" promptText="Cedula / documento de identidad" styleClass="form-input" />
+            </VBox>
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Telefono" />
+                    <TextField fx:id="txtEmpleadoTelefono" promptText="Ej: 71234567" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Correo" />
+                    <TextField fx:id="txtEmpleadoCorreo" promptText="correo@ejemplo.com" styleClass="form-input" />
+                </VBox>
+            </HBox>
+
+            <Separator />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Cargo" />
+                <TextField fx:id="txtEmpleadoCargo" promptText="Ej: Cajero, Supervisor" styleClass="form-input" />
+            </VBox>
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Fecha de contratacion" />
+                    <DatePicker fx:id="dpEmpleadoFechaContratacion" maxWidth="Infinity" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Estado" />
+                    <ComboBox fx:id="cmbEmpleadoEstado" maxWidth="Infinity" styleClass="form-input">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="ACTIVO" />
+                                <String fx:value="INACTIVO" />
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="10">
+                <Button fx:id="btnGuardarEmpleado" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar empleado" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnCancelarEdicionEmpleado" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+
+        <VBox spacing="16" HBox.hgrow="ALWAYS">
+            <TextField fx:id="txtEmpleadoBuscarLista" promptText="Buscar en la lista por nombre o documento..." styleClass="form-input" />
+
+            <FlowPane fx:id="empleadosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
+                <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
+                     `empleado` (unida con `persona`). -->
+                <VBox spacing="10" styleClass="item-card">
+                    <HBox alignment="TOP_LEFT" spacing="10">
+                        <Label styleClass="movie-title" text="Nombre completo" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="status-pill, status-activa" text="ACTIVO" />
+                    </HBox>
+                    <Label styleClass="movie-meta" text="Cargo: Cajero" />
+                    <Label styleClass="movie-meta" text="Documento: 00000000" />
+                    <Label styleClass="movie-meta" text="Contratado: 01/01/2026" />
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button styleClass="icon-button" text="Editar" />
+                        <Button styleClass="icon-button" text="X" />
+                    </HBox>
+                </VBox>
+            </FlowPane>
+        </VBox>
+    </HBox>
+</VBox>

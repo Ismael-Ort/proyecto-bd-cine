@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Generos (tabla `genero`).
+    Catalogo simple usado por Peliculas (relacion muchos a muchos via
+    pelicula_genero). Campos: nombre_genero, descripcion, estado.
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Generos" />
+        <Label styleClass="page-subtitle" text="Catalogo de generos para clasificar peliculas" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="generos-layout">
+        <VBox fx:id="generoForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label fx:id="lblGeneroFormTitulo" styleClass="panel-title" text="Nuevo genero" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Nombre" />
+                <TextField fx:id="txtGeneroNombre" promptText="Ej: Accion, Drama, Comedia" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Descripcion" />
+                <TextArea fx:id="txtGeneroDescripcion" prefRowCount="3" promptText="Descripcion opcional" styleClass="form-textarea" wrapText="true" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Estado" />
+                <ComboBox fx:id="cmbGeneroEstado" maxWidth="Infinity" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ACTIVO" />
+                            <String fx:value="INACTIVO" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <HBox spacing="10">
+                <Button fx:id="btnGuardarGenero" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnCancelarEdicionGenero" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+
+        <FlowPane fx:id="generosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18" HBox.hgrow="ALWAYS">
+            <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de `genero`. -->
+            <VBox spacing="10" styleClass="item-card, item-card-small">
+                <Label styleClass="movie-title" text="Nombre del genero" />
+                <Label styleClass="movie-description" text="Descripcion del genero." wrapText="true" />
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label styleClass="status-pill, status-activa" text="ACTIVO" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button styleClass="icon-button" text="Editar" />
+                    <Button styleClass="icon-button" text="X" />
+                </HBox>
+            </VBox>
+        </FlowPane>
+    </HBox>
+</VBox>

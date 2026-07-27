@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Salas y butacas (tablas `sala` y `butaca`).
+
+    Sala: nombre_sala, capacidad, estado (ACTIVA/INACTIVA).
+    Butaca: fila, numero, estado (ACTIVA/INACTIVA), id_sala.
+    Ya no existe distincion VIP/Regular en butacas (se elimino del modelo).
+
+    El formulario de la derecha ("Filas" x "Butacas por fila") es solo para
+    generar visualmente la cuadricula de botones de butaca; el programa debe
+    encargarse de crear/leer las filas reales en la tabla `butaca`.
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Salas y butacas" />
+        <Label styleClass="page-subtitle" text="Configuracion fisica de las salas del cine" />
+    </VBox>
+
+    <HBox alignment="CENTER_LEFT" spacing="18" styleClass="seat-legend">
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Region styleClass="legend-dot, legend-dot-regular" />
+            <Label styleClass="legend-text" text="Activa" />
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Region styleClass="legend-dot, legend-dot-inactiva" />
+            <Label styleClass="legend-text" text="Inactiva" />
+        </HBox>
+    </HBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="salas-layout">
+        <VBox fx:id="salaForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label fx:id="lblSalaFormTitulo" styleClass="panel-title" text="Nueva sala" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Nombre" />
+                <TextField fx:id="txtSalaNombre" promptText="Ej: Sala 3" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Capacidad" />
+                <TextField fx:id="txtSalaCapacidad" promptText="48" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Estado" />
+                <ComboBox fx:id="cmbSalaEstado" maxWidth="Infinity" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ACTIVA" />
+                            <String fx:value="INACTIVA" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <Label styleClass="form-section-label" text="Generar butacas (fila x numero)" />
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Filas" />
+                    <TextField fx:id="txtSalaFilas" promptText="6" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Butacas por fila" />
+                    <TextField fx:id="txtSalaColumnas" promptText="8" styleClass="form-input" />
+                </VBox>
+            </HBox>
+
+            <Button fx:id="btnGenerarButacas" maxWidth="Infinity" styleClass="secondary-button" text="Generar butacas" />
+
+            <HBox spacing="10">
+                <Button fx:id="btnGuardarSala" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar sala" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnCancelarEdicionSala" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+
+        <VBox fx:id="salasListContainer" spacing="20" HBox.hgrow="ALWAYS">
+            <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
+                 `sala`, y dentro de ella un boton por cada fila de `butaca`
+                 asociada a esa sala (agrupadas por columna "fila"). -->
+            <VBox spacing="18" styleClass="room-card">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <VBox spacing="2">
+                        <Label styleClass="room-title" text="Nombre de la sala" />
+                        <Label styleClass="room-meta" text="48 butacas" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label styleClass="status-pill, status-activa" text="ACTIVA" />
+                    <Button styleClass="icon-button" text="Editar" />
+                    <Button styleClass="icon-button" text="X" />
+                </HBox>
+
+                <VBox alignment="CENTER" spacing="6">
+                    <Label styleClass="screen-label" text="PANTALLA" />
+                    <Region styleClass="screen-bar" />
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="8" styleClass="seat-grid">
+                    <HBox alignment="CENTER" spacing="8">
+                        <Label styleClass="seat-row-label" text="A" />
+                        <HBox spacing="6">
+                            <ToggleButton styleClass="seat-btn" text="1" />
+                            <ToggleButton styleClass="seat-btn" text="2" />
+                            <ToggleButton styleClass="seat-btn" text="3" />
+                            <ToggleButton styleClass="seat-btn" text="4" />
+                            <ToggleButton styleClass="seat-btn, seat-inactiva" text="5" />
+                            <ToggleButton styleClass="seat-btn" text="6" />
+                            <ToggleButton styleClass="seat-btn" text="7" />
+                            <ToggleButton styleClass="seat-btn" text="8" />
+                        </HBox>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="8">
+                        <Label styleClass="seat-row-label" text="B" />
+                        <HBox spacing="6">
+                            <ToggleButton styleClass="seat-btn" text="1" />
+                            <ToggleButton styleClass="seat-btn" text="2" />
+                            <ToggleButton styleClass="seat-btn" text="3" />
+                            <ToggleButton styleClass="seat-btn" text="4" />
+                            <ToggleButton styleClass="seat-btn" text="5" />
+                            <ToggleButton styleClass="seat-btn" text="6" />
+                            <ToggleButton styleClass="seat-btn" text="7" />
+                            <ToggleButton styleClass="seat-btn" text="8" />
+                        </HBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>

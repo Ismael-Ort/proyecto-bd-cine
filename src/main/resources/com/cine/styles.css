@@ -47,8 +47,24 @@
     -fx-padding: 0;
 }
 
+.nav-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.nav-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
 .nav-menu {
     -fx-padding: 0 0 10 0;
+}
+
+.nav-section-label {
+    -fx-text-fill: #6b6b6b;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 16 12 4 12;
 }
 
 .nav-item {
@@ -88,9 +104,27 @@
     -fx-background-color: #f97316;
 }
 
+.sidebar-user-box {
+    -fx-padding: 12 4;
+    -fx-border-color: #3a1d16 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.sidebar-user-name {
+    -fx-text-fill: #f5f5f5;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+}
+
+.sidebar-user-role {
+    -fx-text-fill: #8a8a8a;
+    -fx-font-size: 11px;
+}
+
 .sidebar-footer {
     -fx-text-fill: #6b6b6b;
     -fx-font-size: 10.5px;
+    -fx-padding: 6 0 0 0;
 }
 
 /* ===================== CONTENIDO PRINCIPAL ===================== */
@@ -201,16 +235,27 @@
     -fx-font-weight: bold;
 }
 
-.status-activa {
+/* Estados de venta: PENDIENTE, COMPLETADA, CANCELADA */
+/* Estados de entrada: RESERVADA, PAGADA, CANCELADA, UTILIZADA */
+/* Estados ACTIVO/ACTIVA se reutilizan para genero/sala/butaca/tipoentrada/metodopago/persona-empleado-cliente-usuario */
+
+.status-activa,
+.status-completada,
+.status-pagada,
+.status-utilizada,
+.status-acumulacion {
     -fx-text-fill: #4ade80;
 }
 
-.status-anulada {
-    -fx-text-fill: #f87171;
+.status-pendiente,
+.status-reservada {
+    -fx-text-fill: #fbbf24;
 }
 
-.status-devuelta {
-    -fx-text-fill: #fbbf24;
+.status-cancelada,
+.status-inactiva,
+.status-canje {
+    -fx-text-fill: #f87171;
 }
 
 /* --- Filas de función --- */
@@ -228,7 +273,16 @@
 
 /* ===================== PESTANA DE PELICULAS ===================== */
 
-.peliculas-layout {
+.peliculas-layout,
+.generos-layout,
+.funciones-layout,
+.tipos-entrada-layout,
+.metodos-pago-layout,
+.ventas-layout,
+.clientes-layout,
+.empleados-layout,
+.usuarios-layout,
+.fidelidad-layout {
     -fx-fill-height: true;
 }
 
@@ -289,6 +343,39 @@
     -fx-background-color: #fb8a34;
 }
 
+.secondary-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-border-color: #f97316;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-text-fill: #f97316;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 14;
+    -fx-cursor: hand;
+}
+
+.secondary-button:hover {
+    -fx-background-color: rgba(249, 115, 22, 0.12);
+}
+
+.form-section-label {
+    -fx-text-fill: #f97316;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.form-hint {
+    -fx-text-fill: #8a8a8a;
+    -fx-font-size: 12px;
+}
+
+.file-name-label {
+    -fx-text-fill: #7f6d68;
+    -fx-font-size: 11px;
+}
+
 .cards-grid {
     -fx-padding: 0;
 }
@@ -297,6 +384,55 @@
     -fx-pref-width: 300px;
     -fx-min-width: 300px;
     -fx-max-width: 300px;
+}
+
+/* Marco de la imagen (imagen_portada) de la pelicula: mismo tamano
+   (160x220) en el formulario y en cada tarjeta de la cartelera, sin
+   importar el tamano original del archivo que se suba. */
+.poster-frame {
+    -fx-min-width: 160;
+    -fx-min-height: 220;
+    -fx-max-width: 160;
+    -fx-max-height: 220;
+    -fx-background-color: #160807;
+    -fx-background-radius: 10;
+    -fx-border-color: #3a1d16;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-alignment: CENTER;
+}
+
+.poster-frame-small {
+    -fx-alignment: TOP_CENTER;
+}
+
+.poster-image {
+    -fx-background-radius: 10;
+}
+
+.poster-placeholder-text {
+    -fx-text-fill: #7f6d68;
+    -fx-font-size: 12px;
+}
+
+.multi-select-list {
+    -fx-pref-height: 110px;
+    -fx-padding: 0;
+}
+
+.multi-select-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5f5f5;
+    -fx-padding: 6 10;
+}
+
+.multi-select-list .list-cell:filled:selected {
+    -fx-background-color: #f97316;
+    -fx-text-fill: #ffffff;
+}
+
+.multi-select-list .list-cell:filled:hover {
+    -fx-background-color: #25100d;
 }
 
 .movie-genre-pill {
@@ -349,9 +485,9 @@
     -fx-border-color: #3a1d16;
 }
 
-.legend-dot-vip {
-    -fx-background-color: rgba(249, 115, 22, 0.16);
-    -fx-border-color: #f97316;
+.legend-dot-inactiva {
+    -fx-background-color: #2a1512;
+    -fx-border-color: #6b3a30;
 }
 
 .legend-dot-selected {
@@ -427,16 +563,26 @@
     -fx-text-fill: #f5f5f5;
 }
 
-.seat-vip {
-    -fx-background-color: rgba(249, 115, 22, 0.16);
-    -fx-border-color: #f97316;
-    -fx-text-fill: #f3b17d;
+.seat-inactiva {
+    -fx-background-color: #2a1512;
+    -fx-border-color: #6b3a30;
+    -fx-text-fill: #6b6b6b;
+    -fx-cursor: default;
 }
 
 .seat-btn:selected {
     -fx-background-color: #f97316;
     -fx-border-color: #f97316;
     -fx-text-fill: #ffffff;
+}
+
+.seat-grid-compact {
+    -fx-padding: 10;
+    -fx-background-color: #160807;
+    -fx-background-radius: 10;
+    -fx-border-color: #3a1d16;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
 }
 
 .icon-button {
@@ -460,7 +606,12 @@
     -fx-border-width: 0 0 1 0;
 }
 
-/* ===================== TARJETAS DE ITEM (clientes / empleados) ===================== */
+/* Sub-fila de una entrada dentro de una venta (views/ventas-view.fxml) */
+.entrada-subrow {
+    -fx-padding: 0 0 6 18;
+}
+
+/* ===================== TARJETAS DE ITEM (clientes / empleados / generos / catalogos) ===================== */
 
 .item-card {
     -fx-background-color: #1a0d0b;
@@ -472,4 +623,27 @@
     -fx-pref-width: 280px;
     -fx-min-width: 280px;
     -fx-max-width: 280px;
+}
+
+.item-card-small {
+    -fx-pref-width: 240px;
+    -fx-min-width: 240px;
+    -fx-max-width: 240px;
+}
+
+/* ===================== FIDELIDAD (saldo de puntos) ===================== */
+
+.saldo-box {
+    -fx-background-color: #160807;
+    -fx-background-radius: 10;
+    -fx-border-color: #3a1d16;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;
+}
+
+.saldo-valor {
+    -fx-text-fill: #f97316;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
 }

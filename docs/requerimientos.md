@@ -7,7 +7,7 @@ Este documento define los requerimientos funcionales y no funcionales del Sistem
 # Requerimientos funcionales
 
 ## RF-01. Gestión de personas
-El sistema deberá permitir registrar los datos personales (nombres, apellidos, documento, teléfono, correo) de cualquier individuo que participe como cliente, empleado o usuario, mediante una entidad Persona común.
+El sistema deberá permitir registrar los datos personales (nombres, apellidos, fecha de nacimiento, sexo, documento, teléfono, correo) de cualquier individuo que participe como cliente, empleado o usuario, mediante una entidad Persona común.
 
 ## RF-02. Gestión de clientes
 El sistema deberá permitir registrar, consultar y actualizar clientes a partir de una persona existente, asociando sus compras y el historial del programa de fidelidad.
@@ -25,7 +25,7 @@ El sistema deberá permitir registrar películas, registrar géneros y asociar u
 El sistema deberá permitir registrar salas y sus butacas, identificando cada butaca mediante su fila y número.
 
 ## RF-07. Programación de funciones
-El sistema deberá permitir programar funciones indicando película, sala, fecha, hora de inicio y tarifa base, e indicar opcionalmente el idioma de audio y de subtítulos.
+El sistema deberá permitir programar funciones indicando película, sala, fecha, hora de inicio, hora de fin y tarifa base, e indicar opcionalmente el idioma de audio y de subtítulos.
 
 ## RF-08. Consulta de disponibilidad
 El sistema deberá mostrar las butacas disponibles para cada función y evitar que una misma butaca pueda ser seleccionada dos veces para la misma función.
@@ -99,13 +99,13 @@ El sistema deberá evitar la duplicación de datos personales, manteniéndolos �
 
 | Requerimiento | Restricción(es) en `schema.sql` | Estado |
 |---|---|---|
-| RF-01 Gestión de personas | `persona` (PK, `uq_persona_documento`, `uq_persona_correo`) | [x] |
+| RF-01 Gestión de personas | `persona` (PK, `uq_persona_documento`, `uq_persona_correo`, `chk_persona_sexo`) | [x] |
 | RF-02 Gestión de clientes | `cliente` (`uq_cliente_persona`, `fk_cliente_persona`) | [x] |
 | RF-03 Gestión de empleados | `empleado` (`uq_empleado_persona`, `fk_empleado_persona`) | [x] |
 | RF-04 Gestión de usuarios | `usuario` (`chk_usuario_rol`, `fk_usuario_persona`) | [x] DB parcial / [ ] validación de rol en Java |
 | RF-05 Películas y géneros | `pelicula_genero` (PK compuesta, FKs) | [x] |
 | RF-06 Salas y butacas | `butaca` (`uq_butaca_sala_fila_numero`) | [x] |
-| RF-07 Programación de funciones | `funcion` (`chk_funcion_tarifa`, `chk_funcion_estado`) | [x] |
+| RF-07 Programación de funciones | `funcion` (`chk_funcion_tarifa`, `chk_funcion_estado`, `chk_funcion_horario`) | [x] |
 | RF-08 Disponibilidad de butacas | `entrada` (`uq_entrada_funcion_butaca`) | [x] |
 | RF-09 Venta de entradas | `entrada` (FKs a `venta`, `funcion`, `butaca`, `tipoentrada`) | [x] |
 | RF-10 Tipos de entrada | `tipoentrada` (`chk_tipoentrada_descuento`) | [x] |

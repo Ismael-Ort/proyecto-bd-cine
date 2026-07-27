@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Ventas (tablas `venta` y `entrada`).
+
+    Refleja EXACTAMENTE los 2 procedimientos de
+    database/procedimientos_triggers.sql (ver docs/procedimientos_bd.md):
+    no hay mas procedimientos que estos dos, asi que la pantalla no ofrece
+    nada que la base de datos no pueda cumplir.
+
+      1) "Registrar venta" llama a sp_registrar_venta: crea la venta y su
+         (unica) entrada en un solo paso (cliente, empleado opcional segun
+         canal, canal_venta, metodopago, observacion, funcion, butaca,
+         tipoentrada). El precio lo calcula el procedimiento, no se
+         captura aqui. Cada clic registra una venta nueva.
+      2) En la lista de abajo, "Confirmar pago" llama a sp_confirmar_pago
+         sobre una entrada RESERVADA (dispara el punto de fidelidad
+         automatico via trg_acumula_puntos).
+      3) "Cancelar" en la lista NO llama a un procedimiento (no existe uno
+         para esto): el programa debe hacer un UPDATE simple
+         (`estado = 'CANCELADA'`) directo sobre esa entrada, que libera la
+         butaca para poder revenderse en esa misma funcion.
+
+    canal_venta = TAQUILLA exige empleado; canal_venta = EN_LINEA no
+    (chk_venta_canal_empleado).
+
+    Nota: el modelo permite varias entradas por venta (BR-19), pero como
+    todavia no existe un procedimiento para agregar una segunda entrada a
+    una venta ya creada, esta pantalla solo cubre una butaca por venta. Si
+    mas adelante se necesita vender varias butacas en una sola venta, hay
+    que agregar ese procedimiento primero y luego ampliar esta pantalla.
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Ventas" />
+        <Label styleClass="page-subtitle" text="Registro de entradas, pagos y estados de venta" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="ventas-layout">
+
+        <VBox fx:id="ventaForm" maxWidth="340" minWidth="320" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label styleClass="panel-title" text="Nueva venta" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Cliente" />
+                <ComboBox fx:id="cmbVentaCliente" maxWidth="Infinity" promptText="Selecciona un cliente" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Canal de venta" />
+                <ComboBox fx:id="cmbVentaCanal" maxWidth="Infinity" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="TAQUILLA" />
+                            <String fx:value="EN_LINEA" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Empleado (obligatorio solo en TAQUILLA)" />
+                <ComboBox fx:id="cmbVentaEmpleado" maxWidth="Infinity" promptText="Selecciona un empleado" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Metodo de pago" />
+                <ComboBox fx:id="cmbVentaMetodoPago" maxWidth="Infinity" promptText="Selecciona un metodo de pago (catalogo fijo)" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Observacion" />
+                <TextArea fx:id="txtVentaObservacion" prefRowCount="2" promptText="Opcional" styleClass="form-textarea" wrapText="true" />
+            </VBox>
+
+            <Separator />
+
+            <Label styleClass="panel-title" text="Butaca" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Funcion" />
+                <ComboBox fx:id="cmbVentaFuncion" maxWidth="Infinity" promptText="Pelicula - sala - horario" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Butaca seleccionada" />
+                <VBox fx:id="ventaSeatGridContainer" alignment="CENTER" spacing="8" styleClass="seat-grid, seat-grid-compact">
+                    <!-- El programa debe generar aqui la cuadricula de butacas de la
+                         sala de la funcion elegida (un ToggleButton seat-btn por
+                         butaca ACTIVA, seleccion unica), marcando como ocupadas las
+                         que ya tengan entrada RESERVADA/PAGADA/UTILIZADA para esa
+                         funcion. -->
+                    <HBox alignment="CENTER" spacing="8">
+                        <Label styleClass="seat-row-label" text="A" />
+                        <HBox spacing="6">
+                            <ToggleButton styleClass="seat-btn" text="1" />
+                            <ToggleButton styleClass="seat-btn" text="2" />
+                            <ToggleButton styleClass="seat-btn" text="3" />
+                            <ToggleButton styleClass="seat-btn" text="4" />
+                        </HBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Tipo de entrada" />
+                <ComboBox fx:id="cmbVentaTipoEntrada" maxWidth="Infinity" promptText="Selecciona un tipo de entrada (catalogo fijo)" styleClass="form-input" />
+            </VBox>
+
+            <Button fx:id="btnRegistrarVenta" maxWidth="Infinity" styleClass="primary-button" text="+  Registrar venta" />
+        </VBox>
+
+        <VBox spacing="20" HBox.hgrow="ALWAYS">
+            <VBox fx:id="panelUltimaVenta" spacing="10" styleClass="panel-card">
+                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                    <Label styleClass="panel-icon" text="\$" />
+                    <Label styleClass="panel-title" text="Ultima venta registrada" />
+                </HBox>
+                <Label fx:id="lblUltimaVentaResumen" styleClass="form-hint" text="Aun no se ha registrado ninguna venta en esta sesion." wrapText="true" />
+            </VBox>
+
+            <VBox fx:id="panelVentasLista" spacing="18" styleClass="panel-card" VBox.vgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                    <Label styleClass="panel-icon" text="\$" />
+                    <Label styleClass="panel-title" text="Ventas registradas" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ComboBox fx:id="cmbVentaFiltroEstado" promptText="Filtrar por estado" styleClass="form-input">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="PENDIENTE" />
+                                <String fx:value="COMPLETADA" />
+                                <String fx:value="CANCELADA" />
+                            </FXCollections>
+                        </items>
+                    </ComboBox>
+                </HBox>
+                <VBox fx:id="ventasListaContainer" spacing="0" styleClass="list-container">
+                    <!-- Fila de ejemplo; el programa debe generar una por cada
+                         `venta` (unida a su unica `entrada`), con botones para
+                         sp_confirmar_pago (procedimiento) y cancelar (UPDATE
+                         directo) segun el estado. -->
+                    <VBox spacing="10" styleClass="list-row">
+                        <HBox alignment="CENTER_LEFT" spacing="14">
+                            <VBox spacing="2">
+                                <Label styleClass="row-title" text="Venta #001" />
+                                <Label styleClass="row-subtitle" text="Cliente - TAQUILLA - Empleado" />
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label styleClass="row-amount" text="Bs 45.00" />
+                            <Label styleClass="status-pill, status-pendiente" text="PENDIENTE" />
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="entrada-subrow">
+                            <Label styleClass="funcion-subtitle" text="Butaca A1 - Adulto - Bs 45.00" />
+                            <Label styleClass="status-pill, status-reservada" text="RESERVADA" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button fx:id="btnConfirmarPagoDemo" styleClass="secondary-button" text="Confirmar pago" />
+                            <Button fx:id="btnCancelarEntradaDemo" styleClass="icon-button" text="Cancelar" />
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>

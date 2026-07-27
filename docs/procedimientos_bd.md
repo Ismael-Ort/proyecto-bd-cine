@@ -1,123 +1,79 @@
-# Procedimientos, Funciones, Triggers y Transacciones
+# Procedimientos Almacenados, Trigger y Transacciones
 
-Este documento explica, paso a paso, los objetos de programación que agrega `database/procedimientos_triggers.sql` sobre el esquema de `database/schema.sql`. La idea es que cualquiera del equipo pueda leer este documento, entender **por qué** existe cada objeto y **cómo probarlo**, sin depender de que alguien más (o una IA) se lo explique de nuevo.
+Este documento explica, paso a paso, el archivo `database/procedimientos_triggers.sql`. La idea es que cualquiera del equipo pueda leerlo y entender **por qué** existe cada objeto y **cómo probarlo**, antes de ejecutarlo.
 
-El proyecto requiere, como mínimo, un procedimiento almacenado, un trigger y una transacción. Aquí se implementan **2 funciones, 3 triggers y 5 procedimientos**, y **todos los procedimientos que escriben datos usan una transacción explícita** (`START TRANSACTION` / `COMMIT` / `ROLLBACK`).
+**Este archivo no se ejecuta al crear la base de datos.** `database/schema.sql` (que incluye su propio `DROP DATABASE` / `CREATE DATABASE`) solo crea las tablas. `database/procedimientos_triggers.sql` se ejecuta **aparte**, más adelante, cuando en el programa Java lleguemos a la parte de registrar ventas y confirmar pagos. Así evitamos correr algo que todavía no hemos terminado de entender.
+
+El proyecto pide, como mínimo, un procedimiento almacenado, un trigger y una transacción. Aquí hay exactamente eso — ni más ni menos — porque no vimos funciones almacenadas en clase y no tiene sentido meter cosas de más solo por meterlas:
+
+- **1 trigger:** `trg_acumula_puntos`
+- **2 procedimientos almacenados**, cada uno con su propia transacción (`START TRANSACTION` / `COMMIT` / `ROLLBACK`): `sp_registrar_venta` y `sp_confirmar_pago`.
+
+No se usan funciones almacenadas (`CREATE FUNCTION`) en ningún lado.
 
 ---
 
 ## 0. Orden de ejecución
 
-1. `database/schema.sql` (crea las tablas).
-2. `database/procedimientos_triggers.sql` (crea funciones, triggers y procedimientos).
+1. `database/schema.sql` (crea la base de datos `cine` y sus tablas).
+2. `database/procedimientos_triggers.sql` — **solo cuando estemos listos para programar esa parte**, no antes.
 
-Si tu cliente de base de datos (DBeaver, HeidiSQL, la extensión "Database Client" de VS Code, `mysql` por consola, etc.) **no entiende el comando `DELIMITER`**, ejecuta cada bloque `CREATE FUNCTION` / `CREATE TRIGGER` / `CREATE PROCEDURE` por separado (selecciona el bloque completo, desde `CREATE` hasta el `END` final, y ejecútalo solo). Con el cliente de línea de comandos `mysql` puedes ejecutar el archivo completo tal cual:
+Si tu cliente de base de datos no entiende el comando `DELIMITER` (algunos clientes gráficos no lo necesitan porque ya saben separar bloques `CREATE TRIGGER`/`CREATE PROCEDURE` por su cuenta), ejecuta cada bloque completo (desde `CREATE` hasta el `END$$` final) por separado. Con el cliente de línea de comandos `mysql` se puede correr el archivo entero tal cual:
 
 ```bash
-mysql -h <host> -P <puerto> -u <usuario> -p cine < database/schema.sql
 mysql -h <host> -P <puerto> -u <usuario> -p cine < database/procedimientos_triggers.sql
 ```
 
 ---
 
-## 1. ¿Por qué existen estos objetos? (mapa a las reglas de negocio)
+## 1. ¿Por qué un trigger aquí?
 
-| Objeto | Tipo | Regla de negocio que resuelve |
-|---|---|---|
-| `fn_funcion_disponible` | Función | Apoyo de BR-09/validación de estados |
-| `fn_puntos_disponibles` | Función | BR-30, BR-31 (saldo de puntos) |
-| `trg_entrada_bi_valida_funcion` | Trigger | No vender entradas de funciones canceladas/finalizadas o butacas inactivas |
-| `trg_entrada_bu_valida_reventa` | Trigger | Misma validación, pero al revender una butaca que estaba `CANCELADA` |
-| `trg_entrada_au_acumula_puntos` | Trigger | BR-28 (acumulación automática), BR-29 (gratis no acumula) y cierre automático de la venta |
-| `sp_registrar_venta_simple` | Procedimiento + Transacción | BR-35 (venta como transacción única), BR-20 (cálculo del monto) |
-| `sp_agregar_entrada_a_venta` | Procedimiento + Transacción | BR-19 (venta con múltiples entradas) |
-| `sp_marcar_entrada_pagada` | Procedimiento + Transacción | Cambia estado de entrada; dispara la acumulación de puntos |
-| `sp_cancelar_entrada` | Procedimiento + Transacción | BR-24 (liberación de butacas) |
-| `sp_canjear_puntos` | Procedimiento + Transacción | BR-29, BR-31 (canje de puntos por entrada gratuita) |
+Un trigger es código que la base de datos ejecuta **sola**, automáticamente, cuando pasa algo en una tabla (un `INSERT`, `UPDATE` o `DELETE`). No lo llama Java: se dispara solo.
+
+### `trg_acumula_puntos` (`AFTER UPDATE ON entrada`)
+
+Se ejecuta **después** de cada `UPDATE` sobre la tabla `entrada`. Revisa dos cosas:
+
+1. ¿El estado de la entrada acaba de cambiar a `PAGADA` (antes no lo era)?
+2. ¿El `precio_final` es mayor que cero? (si es una entrada gratuita por canje de puntos, no debe generar un punto nuevo).
+
+Si ambas se cumplen, inserta una fila en `historial_puntos` con `tipo_movimiento = 'ACUMULACIÓN'` y `cantidad_puntos = 1`, asociada al cliente y a la venta de esa entrada.
+
+```sql
+-- Dentro del trigger, NEW representa la fila DESPUÉS del UPDATE
+-- y OLD representa la fila ANTES del UPDATE.
+IF NEW.estado = 'PAGADA' AND OLD.estado <> 'PAGADA' AND NEW.precio_final > 0 THEN
+    ...
+END IF;
+```
+
+Gracias a este trigger, el procedimiento `sp_confirmar_pago` (sección 3) **no tiene que insertar el punto manualmente**: le basta con cambiar el estado de la entrada a `PAGADA`, y el trigger hace el resto solo.
+
+**Cómo comprobarlo manualmente**, después de correr `sp_confirmar_pago` sobre una entrada:
+
+```sql
+SELECT * FROM historial_puntos WHERE id_venta = @id_venta;
+```
+
+Debe aparecer una fila nueva con `ACUMULACIÓN` y `cantidad_puntos = 1`.
 
 ---
 
-## 2. Funciones
+## 2. ¿Por qué dos procedimientos y no uno solo?
 
-### 2.1. `fn_funcion_disponible(p_id_funcion INT) RETURNS BOOLEAN`
+Porque una venta real de cine tiene dos momentos distintos:
 
-Devuelve `TRUE` si la función todavía admite ventas, es decir, si su `estado` es `PROGRAMADA` o `EN_CURSO` (no `FINALIZADA` ni `CANCELADA`).
+1. **Reservar la butaca** (elegir función, butaca y tipo de entrada) → `sp_registrar_venta`.
+2. **Confirmar que se pagó** (cuando el cliente paga en caja, o cuando se confirma el pago en línea) → `sp_confirmar_pago`.
 
-```sql
-SELECT fn_funcion_disponible(3);
-```
+Separarlos en dos procedimientos refleja el flujo real y además nos deja un `UPDATE` claro (RESERVADA → PAGADA) para que el trigger de la sección 1 tenga algo a qué reaccionar.
 
-> Nota técnica: se declaró como `DETERMINISTIC` a propósito, aunque su resultado puede cambiar si el estado de la función cambia en la base de datos. Esto es una convención común para funciones de solo lectura: evita el error `binary logging is enabled` que MySQL lanza al crear funciones en servidores gestionados (como Aiven) que tienen el binary log activado. La función no escribe datos, así que no hay riesgo real de inconsistencia en la réplica.
+### 2.1. `sp_registrar_venta`
 
-### 2.2. `fn_puntos_disponibles(p_id_cliente INT) RETURNS INT`
-
-Calcula el saldo de puntos de fidelidad de un cliente: suma los movimientos `ACUMULACIÓN` y resta los `CANJE` de `historial_puntos`.
+Registra una venta con su entrada. Calcula el precio automáticamente a partir de `funcion.tarifa_base` y `tipoentrada.descuento_porcentaje`, así Java no tiene que repetir esa cuenta.
 
 ```sql
-SELECT fn_puntos_disponibles(5);
-```
-
-Java puede usar esta misma consulta (`SELECT fn_puntos_disponibles(?)`) en lugar de reimplementar la suma en la aplicación (ver `docs/validaciones_en_java.md`, sección 6).
-
----
-
-## 3. Triggers
-
-### 3.1. `trg_entrada_bi_valida_funcion` (`BEFORE INSERT ON entrada`)
-
-Antes de insertar una entrada nueva, verifica:
-- que `fn_funcion_disponible(NEW.id_funcion)` sea verdadero;
-- que la butaca (`NEW.id_butaca`) esté en estado `ACTIVA`.
-
-Si algo falla, lanza un error personalizado con `SIGNAL SQLSTATE '45000'` y el `INSERT` completo se cancela.
-
-### 3.2. `trg_entrada_bu_valida_reventa` (`BEFORE UPDATE ON entrada`)
-
-La tabla `entrada` tiene la restricción `uq_entrada_funcion_butaca` (única por `id_funcion, id_butaca`). Esto significa que **una butaca cancelada para una función no se vuelve a insertar como fila nueva: se reutiliza la misma fila** (se hace `UPDATE`, no `INSERT`). Este trigger repite, en ese caso puntual (`OLD.estado = 'CANCELADA'` y `NEW.estado` cambia a otra cosa), las mismas validaciones que `trg_entrada_bi_valida_funcion`.
-
-### 3.3. `trg_entrada_au_acumula_puntos` (`AFTER UPDATE ON entrada`)
-
-Tiene dos responsabilidades:
-
-1. **Acumulación automática de puntos (BR-28/BR-29):** si `NEW.estado = 'PAGADA'` y antes no lo estaba, y el `precio_final` es mayor que cero (o sea, no es una entrada gratuita), inserta un movimiento `ACUMULACIÓN` de 1 punto en `historial_puntos`, asociado al cliente y a la venta.
-2. **Cierre automático de la venta:** cada vez que una entrada cambia a un estado final (`PAGADA`, `UTILIZADA` o `CANCELADA`), revisa si **todas** las entradas de esa venta ya están en un estado final. Si es así, marca la venta como `COMPLETADA` (si al menos una entrada fue pagada o utilizada) o como `CANCELADA` (si todas las entradas de la venta terminaron canceladas).
-
-Esto significa que la aplicación Java **no necesita** actualizar manualmente `historial_puntos` ni el estado de `venta` cuando se paga o cancela una entrada: solo llama a `sp_marcar_entrada_pagada` o `sp_cancelar_entrada`, y el trigger hace el resto.
-
----
-
-## 4. Procedimientos almacenados (todos son transacciones)
-
-Los cinco procedimientos siguen el mismo patrón:
-
-```sql
-CREATE PROCEDURE sp_algo(...)
-BEGIN
-    DECLARE ... ;
-
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        RESIGNAL;
-    END;
-
-    -- validaciones que no requieren bloquear filas
-    START TRANSACTION;
-    -- lecturas con FOR UPDATE + escrituras
-    COMMIT;
-END
-```
-
-Si cualquier sentencia dentro de la transacción falla (una restricción `CHECK`, una `SIGNAL`, una llave foránea inexistente, etc.), el `EXIT HANDLER` ejecuta `ROLLBACK` y vuelve a lanzar el error original con `RESIGNAL`, para que la aplicación Java se entere de qué salió mal. Esto cumple **BR-35: "el registro de una venta deberá ejecutarse como una única transacción; si ocurre un error, todas las operaciones deben revertirse."**
-
-> Gotcha clásico de MySQL: si un parámetro o variable local se llama igual que una columna (por ejemplo, un parámetro `estado`), dentro de un `WHERE estado = estado` MySQL no siempre sabe si te refieres a la columna o al parámetro, y el resultado puede ser silenciosamente incorrecto. Por eso **todos** los parámetros usan el prefijo `p_` y las variables locales `v_`: nunca coinciden con un nombre de columna real.
-
-### 4.1. `sp_registrar_venta_simple`
-
-Registra una venta con su **primera** entrada. Calcula el precio automáticamente a partir de `funcion.tarifa_base` y `tipoentrada.descuento_porcentaje` (BR-26), en lugar de recibirlo como parámetro.
-
-```sql
-CALL sp_registrar_venta_simple(
+CALL sp_registrar_venta(
     5,              -- p_id_cliente
     NULL,           -- p_id_empleado (NULL porque es EN_LINEA)
     'EN_LINEA',     -- p_canal_venta
@@ -126,7 +82,6 @@ CALL sp_registrar_venta_simple(
     3,              -- p_id_funcion
     12,             -- p_id_butaca
     1,              -- p_id_tipoentrada
-    NULL,           -- p_motivo
     @id_venta,      -- OUT
     @id_entrada     -- OUT
 );
@@ -134,87 +89,100 @@ SELECT @id_venta, @id_entrada;
 ```
 
 Qué hace, en orden:
-1. Valida que si `canal_venta = 'TAQUILLA'` haya un empleado.
-2. Busca la tarifa de la función y el descuento del tipo de entrada; si alguno no existe, aborta con un mensaje claro.
-3. Calcula `precio_base`, `descuento` y `precio_final`.
-4. Abre la transacción, crea la fila de `venta` con `total_pagado = 0`.
-5. Bloquea (`FOR UPDATE`) la fila de `entrada` para esa `(id_funcion, id_butaca)`, si existe. Si existe y no está `CANCELADA`, aborta ("butaca ya ocupada"). Si no existe, la inserta; si existe y está `CANCELADA`, la reutiliza con `UPDATE`.
-6. Actualiza `venta.total_pagado` con el precio final calculado.
+
+1. Si `canal_venta = 'TAQUILLA'`, exige que haya un empleado.
+2. Busca la función: si no existe, o si está `CANCELADA`/`FINALIZADA`, aborta con un mensaje claro.
+3. Busca el tipo de entrada: si no existe, aborta.
+4. Calcula `precio_base`, `descuento` y `precio_final`.
+5. Abre la transacción (`START TRANSACTION`), crea la fila de `venta`.
+6. Revisa si esa butaca ya tiene una entrada para esa función (`SELECT ... FOR UPDATE`, para evitar que dos personas la reserven al mismo tiempo):
+   - Si existe y **no** está `CANCELADA` → aborta ("butaca ya ocupada").
+   - Si no existe → la crea (`INSERT`).
+   - Si existe y está `CANCELADA` → la reutiliza (`UPDATE`), porque `uq_entrada_funcion_butaca` no permite dos filas para el mismo `(id_funcion, id_butaca)`. Esto es lo que hace posible "revender" una butaca que alguien canceló.
 7. `COMMIT`.
 
-### 4.2. `sp_agregar_entrada_a_venta`
+### 2.2. `sp_confirmar_pago`
 
-Agrega otra entrada a una venta que ya existe y sigue `PENDIENTE` (para vender varias butacas en la misma compra, BR-19). Al final, recalcula `total_pagado` sumando **todas** las entradas no canceladas de esa venta.
-
-```sql
-CALL sp_agregar_entrada_a_venta(
-    @id_venta,      -- la venta abierta por sp_registrar_venta_simple
-    3,              -- p_id_funcion (debe ser la misma función)
-    13,             -- p_id_butaca (otra butaca)
-    1,              -- p_id_tipoentrada
-    NULL,           -- p_motivo
-    @id_entrada_2   -- OUT
-);
-```
-
-### 4.3. `sp_marcar_entrada_pagada`
-
-Confirma el pago de una entrada `RESERVADA`. Dispara `trg_entrada_au_acumula_puntos`.
+Confirma el pago de una entrada `RESERVADA`.
 
 ```sql
-CALL sp_marcar_entrada_pagada(@id_entrada);
+CALL sp_confirmar_pago(@id_entrada);
 ```
 
-### 4.4. `sp_cancelar_entrada`
+Qué hace:
 
-Cancela una entrada (libera la butaca para esa función) y recalcula `total_pagado` de la venta. También dispara `trg_entrada_au_acumula_puntos`, que puede cerrar la venta como `CANCELADA` si todas sus entradas terminan canceladas.
-
-```sql
-CALL sp_cancelar_entrada(@id_entrada);
-```
-
-### 4.5. `sp_canjear_puntos`
-
-Implementa el canje de puntos de fidelidad (9 puntos = 1 entrada gratis). Valida el saldo con `fn_puntos_disponibles`, crea la venta y la entrada gratuita (`precio_final = 0`), marca la venta como `COMPLETADA` y registra el movimiento `CANJE` de 9 puntos.
-
-```sql
-CALL sp_canjear_puntos(
-    5,              -- p_id_cliente
-    2,              -- p_id_empleado
-    'TAQUILLA',     -- p_canal_venta
-    1,              -- p_id_metodopago
-    3,              -- p_id_funcion
-    14,             -- p_id_butaca
-    1,              -- p_id_tipoentrada
-    @id_venta_gratis,
-    @id_entrada_gratis
-);
-```
+1. Busca la entrada (bloqueándola con `FOR UPDATE`): si no existe, o si no está `RESERVADA`, aborta.
+2. Cambia su estado a `PAGADA` (esto dispara `trg_acumula_puntos`).
+3. Marca la venta como `COMPLETADA`.
+4. `COMMIT`.
 
 ---
 
-## 5. Cómo probar cada objeto manualmente
+## 3. Transacciones: ¿dónde están y por qué?
 
-Antes de conectar la aplicación Java, prueba cada objeto directamente en la base de datos. Sugerencia de guion de pruebas (asumiendo que ya insertaste datos base: al menos una película, sala, butacas, función, tipo de entrada, método de pago, persona+cliente y persona+empleado):
+Los dos procedimientos siguen el mismo patrón:
 
-1. **Venta simple:** llama a `sp_registrar_venta_simple` y confirma con `SELECT * FROM venta; SELECT * FROM entrada;` que los montos son correctos.
-2. **Butaca duplicada:** vuelve a llamar a `sp_registrar_venta_simple` con la **misma** `id_funcion`/`id_butaca` y confirma que lanza el error "La butaca ya esta ocupada para esta funcion."
-3. **Venta con varias entradas:** usa `sp_agregar_entrada_a_venta` sobre la venta anterior con otra butaca y revisa que `venta.total_pagado` sume ambas entradas.
-4. **Pago y acumulación:** llama a `sp_marcar_entrada_pagada` y verifica con `SELECT * FROM historial_puntos WHERE id_venta = @id_venta;` que se creó un movimiento `ACUMULACIÓN`.
-5. **Cancelación y reventa:** llama a `sp_cancelar_entrada` sobre una entrada `RESERVADA`, confirma que su estado pasa a `CANCELADA`, y luego llama de nuevo a `sp_registrar_venta_simple` (o `sp_agregar_entrada_a_venta`) con la misma butaca/función: debe reutilizar la fila (mismo `id_entrada`) en lugar de fallar por duplicado.
-6. **Función inactiva:** cambia el estado de una función a `CANCELADA` (`UPDATE funcion SET estado = 'CANCELADA' WHERE id_funcion = ...`) e intenta vender una entrada para ella: debe fallar por el trigger `trg_entrada_bi_valida_funcion`.
-7. **Canje de puntos:** acumula al menos 9 puntos pagando 9 entradas de un mismo cliente y luego llama a `sp_canjear_puntos`; confirma que la entrada resultante tiene `precio_final = 0` y que se registró el movimiento `CANJE`.
+```sql
+CREATE PROCEDURE sp_algo(...)
+BEGIN
+    DECLARE ...;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    -- validaciones que no necesitan bloquear filas
+    START TRANSACTION;
+    -- lecturas con FOR UPDATE + escrituras
+    COMMIT;
+END
+```
+
+`START TRANSACTION` marca el inicio de un bloque de operaciones que deben ocurrir **todas juntas o ninguna**. Si cualquier sentencia dentro falla (una restricción `CHECK`, una `SIGNAL`, una llave foránea inexistente, etc.), el `EXIT HANDLER` ejecuta `ROLLBACK` — deshace todo lo que se había hecho desde el `START TRANSACTION` — y vuelve a lanzar el error original con `RESIGNAL`, para que Java sepa qué pasó. Si todo sale bien, `COMMIT` hace permanentes los cambios.
+
+Ejemplo de por qué importa: si en `sp_registrar_venta` el `INSERT INTO venta` se ejecuta pero luego el `INSERT INTO entrada` falla (por ejemplo, porque la butaca ya estaba ocupada), **no queremos** que quede una venta "huérfana" sin ninguna entrada. Gracias a la transacción, ese `INSERT INTO venta` también se revierte.
+
+---
+
+## 4. ¿Y el canje de puntos? (sin procedimiento aparte)
+
+No hace falta un tercer procedimiento para vender una entrada gratis por canje de puntos. La tabla `tipoentrada` ya tiene `descuento_porcentaje` (0 a 100). Basta con:
+
+1. Registrar un tipo de entrada, por ejemplo `'Canje de puntos'`, con `descuento_porcentaje = 100`.
+2. Llamar a `sp_registrar_venta` normal, usando ese `id_tipoentrada`: el procedimiento calculará `descuento = precio_base` y `precio_final = 0` automáticamente.
+3. Como `precio_final` queda en `0`, el trigger `trg_acumula_puntos` **no** generará un punto nuevo cuando se confirme el pago (esto es justamente la regla de negocio: una entrada gratis no debe generar más puntos).
+4. Desde Java, después de confirmar el pago, se inserta el descuento de puntos con un `INSERT` simple:
+
+```sql
+INSERT INTO historial_puntos (tipo_movimiento, cantidad_puntos, descripcion, id_cliente, id_venta)
+VALUES ('CANJE', 9, 'Canje de puntos por entrada gratuita', ?, ?);
+```
+
+Antes de hacer ese `INSERT`, Java debe comprobar que el cliente tiene 9 puntos o más disponibles (ver `docs/validaciones_en_java.md`).
+
+---
+
+## 5. Cómo probar todo manualmente (antes de conectar Java)
+
+Con datos base ya cargados (al menos una película, sala, butacas, función, tipo de entrada, método de pago, una persona+cliente y una persona+empleado):
+
+1. **Venta simple:** llama a `sp_registrar_venta` y revisa `SELECT * FROM venta; SELECT * FROM entrada;`.
+2. **Butaca duplicada:** llama de nuevo a `sp_registrar_venta` con la misma `id_funcion`/`id_butaca` → debe fallar con "La butaca ya esta ocupada para esta funcion."
+3. **Confirmar pago:** llama a `sp_confirmar_pago(@id_entrada)` y confirma que `entrada.estado = 'PAGADA'`, `venta.estado = 'COMPLETADA'` y que apareció un movimiento `ACUMULACIÓN` en `historial_puntos`.
+4. **Función cancelada:** cambia el estado de una función a `CANCELADA` (`UPDATE funcion SET estado = 'CANCELADA' WHERE id_funcion = ...`) e intenta llamar a `sp_registrar_venta` para ella → debe fallar.
+5. **Canje de puntos:** crea un `tipoentrada` con `descuento_porcentaje = 100`, llama a `sp_registrar_venta` con ese tipo, confirma el pago con `sp_confirmar_pago` y verifica que `entrada.precio_final = 0` y que **no** se generó un punto nuevo.
 
 ---
 
 ## 6. Cómo se conecta esto con la aplicación Java
 
-La aplicación **no** debe reconstruir esta lógica con INSERT/UPDATE sueltos: debe invocar estos procedimientos con `CallableStatement`, dentro de su propia transacción JDBC quando encadene varias llamadas (por ejemplo, `sp_registrar_venta_simple` + varias `sp_agregar_entrada_a_venta` antes de mostrarle el resumen al cliente):
+La aplicación **no** debe construir a mano los `INSERT`/`UPDATE` de `venta` y `entrada`: debe llamar a estos dos procedimientos con `CallableStatement`.
 
 ```java
-connection.setAutoCommit(false);
 try (CallableStatement cs = connection.prepareCall(
-        "{call sp_registrar_venta_simple(?,?,?,?,?,?,?,?,?,?,?)}")) {
+        "{call sp_registrar_venta(?,?,?,?,?,?,?,?,?,?)}")) {
     cs.setInt(1, idCliente);
     cs.setNull(2, Types.INTEGER); // sin empleado (EN_LINEA)
     cs.setString(3, "EN_LINEA");
@@ -223,27 +191,33 @@ try (CallableStatement cs = connection.prepareCall(
     cs.setInt(6, idFuncion);
     cs.setInt(7, idButaca);
     cs.setInt(8, idTipoEntrada);
-    cs.setNull(9, Types.VARCHAR);
+    cs.registerOutParameter(9, Types.INTEGER);
     cs.registerOutParameter(10, Types.INTEGER);
-    cs.registerOutParameter(11, Types.INTEGER);
     cs.execute();
-    int idVenta = cs.getInt(10);
-    // ... llamar sp_agregar_entrada_a_venta por cada butaca adicional ...
-    connection.commit();
-} catch (SQLException e) {
-    connection.rollback();
-    throw e;
+
+    int idVenta = cs.getInt(9);
+    int idEntrada = cs.getInt(10);
 }
 ```
 
-Ver `docs/validaciones_en_java.md` para el detalle de qué queda del lado de Java (elegir butacas, armar el carrito, mostrar mensajes de error) y qué ya cubre la base de datos (cálculo de montos, exclusividad de butaca, acumulación de puntos, cierre automático de la venta).
+```java
+try (CallableStatement cs = connection.prepareCall("{call sp_confirmar_pago(?)}")) {
+    cs.setInt(1, idEntrada);
+    cs.execute();
+}
+```
+
+Cada `CALL` ya es, por sí solo, una transacción completa (el `START TRANSACTION`/`COMMIT` vive dentro del procedimiento), así que **no** hace falta que Java abra su propia transacción JDBC solo para esto. Si más adelante se agrega una venta con varias entradas (llamando a `sp_registrar_venta` varias veces seguidas), ahí sí conviene envolver esa secuencia de llamadas en `connection.setAutoCommit(false)` / `commit()` / `rollback()`.
+
+Ver `docs/validaciones_en_java.md` para el resto de validaciones que siguen siendo responsabilidad de Java (elegir butacas en pantalla, choque de horarios, coherencia de roles, saldo de puntos, etc.).
 
 ---
 
 ## 7. Estado del documento
 
-- [x] Objeto por objeto: para qué sirve y qué regla de negocio resuelve.
-- [x] Ejemplos de `CALL` para cada procedimiento.
-- [x] Guion de pruebas manuales paso a paso.
-- [x] Ejemplo de integración con Java (`CallableStatement` + transacción JDBC).
-- [ ] Ejecutar el guion de pruebas contra la base de datos real y documentar resultados (Fase 7 de `plan_trabajo.md`).
+- [x] Explicación del trigger y de los dos procedimientos.
+- [x] Ejemplos de `CALL`.
+- [x] Guion de pruebas manuales.
+- [x] Ejemplo de integración con Java (`CallableStatement`).
+- [ ] Ejecutar el guion de pruebas de la sección 5 contra la base de datos real.
+- [ ] Ejecutar `database/procedimientos_triggers.sql` cuando el equipo esté listo para programar esa parte.

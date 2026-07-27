@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Usuarios (tabla `usuario`).
+
+    Un usuario es una cuenta de acceso al sistema, vinculada a una persona
+    (id_persona) que YA debe existir (buscarla por documento primero). Una
+    persona puede tener varias cuentas de usuario (no hay restriccion unica
+    sobre usuario.id_persona), aunque en el uso normal cada persona suele
+    tener una sola.
+
+    Segun el rol (ADMINISTRADOR/CAJERO/CLIENTE), el programa debe validar
+    que la persona tenga el registro correspondiente (Empleado para
+    ADMINISTRADOR/CAJERO, Cliente para CLIENTE) antes de guardar (BR-12).
+
+    Campos propios: nombre_usuario, hash_contrasena (aqui se captura la
+    contrasena en texto plano; el programa debe convertirla a hash antes de
+    guardar), rol, estado.
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Usuarios" />
+        <Label styleClass="page-subtitle" text="Cuentas de acceso al sistema" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="usuarios-layout">
+        <VBox fx:id="usuarioForm" maxWidth="340" minWidth="320" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label fx:id="lblUsuarioFormTitulo" styleClass="panel-title" text="Nuevo usuario" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Buscar persona por documento" />
+                <HBox spacing="8">
+                    <TextField fx:id="txtUsuarioBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnBuscarPersonaUsuario" styleClass="secondary-button" text="Buscar" />
+                </HBox>
+                <Label fx:id="lblUsuarioPersonaEncontrada" styleClass="form-hint" text="Persona: (sin seleccionar)" wrapText="true" />
+            </VBox>
+
+            <Separator />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Nombre de usuario" />
+                <TextField fx:id="txtUsuarioNombreUsuario" promptText="Ej: jperez" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Contrasena" />
+                <PasswordField fx:id="txtUsuarioContrasena" promptText="Contrasena" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Rol" />
+                <ComboBox fx:id="cmbUsuarioRol" maxWidth="Infinity" promptText="Selecciona un rol" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ADMINISTRADOR" />
+                            <String fx:value="CAJERO" />
+                            <String fx:value="CLIENTE" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Estado" />
+                <ComboBox fx:id="cmbUsuarioEstado" maxWidth="Infinity" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ACTIVO" />
+                            <String fx:value="INACTIVO" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <HBox spacing="10">
+                <Button fx:id="btnGuardarUsuario" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar usuario" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnCancelarEdicionUsuario" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+
+        <VBox spacing="16" HBox.hgrow="ALWAYS">
+            <TextField fx:id="txtUsuarioBuscarLista" promptText="Buscar en la lista por nombre de usuario o persona..." styleClass="form-input" />
+
+            <FlowPane fx:id="usuariosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
+                <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
+                     `usuario` (unida con `persona`). -->
+                <VBox spacing="10" styleClass="item-card">
+                    <HBox alignment="TOP_LEFT" spacing="10">
+                        <Label styleClass="movie-title" text="nombre_usuario" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="status-pill, status-activa" text="ACTIVO" />
+                    </HBox>
+                    <Label styleClass="movie-meta" text="Persona: Nombre completo" />
+                    <Label styleClass="movie-genre-pill" text="ADMINISTRADOR" />
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button styleClass="icon-button" text="Editar" />
+                        <Button styleClass="icon-button" text="X" />
+                    </HBox>
+                </VBox>
+            </FlowPane>
+        </VBox>
+    </HBox>
+</VBox>

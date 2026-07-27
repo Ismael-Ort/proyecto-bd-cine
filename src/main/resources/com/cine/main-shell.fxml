@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Ventana principal (shell) del sistema: barra lateral de navegacion +
+    contenedor donde se muestra una pagina a la vez.
+
+    Cada pagina real vive en su propio archivo dentro de views/ y se trae
+    aqui con <fx:include>. Esto es solo la estructura visual: el controlador
+    (DashboardController) unicamente debe encargarse de mostrar/ocultar la
+    pagina segun el boton de navegacion presionado, nunca de la logica propia
+    de cada pagina (esa logica va en el controlador de cada vista, cuando se
+    programe).
+-->
+
+<BorderPane fx:id="rootPane" prefHeight="820" prefWidth="1500" styleClass="root-pane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.DashboardController">
+
+    <left>
+        <VBox fx:id="sidebar" minWidth="230" prefWidth="250" styleClass="sidebar">
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="sidebar-logo-box">
+                <VBox.margin>
+                    <Insets bottom="24" />
+                </VBox.margin>
+                <Label styleClass="brand-mark" text="C" />
+                <VBox spacing="2">
+                    <Label fx:id="brandTitle" styleClass="brand-title" text="CinemaHUB" />
+                    <Label fx:id="brandBadge" styleClass="brand-badge" text="ROL" />
+                </VBox>
+            </HBox>
+
+            <ScrollPane fx:id="navScroll" fitToWidth="true" styleClass="nav-scroll" VBox.vgrow="ALWAYS">
+                <VBox fx:id="navMenu" spacing="4" styleClass="nav-menu">
+                    <Button fx:id="navPanel" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item, nav-item-selected" text="Panel">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="[]" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navPeliculas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Peliculas">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="##" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navSalas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Salas y butacas">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="S" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navFunciones" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Funciones">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="F" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navVentas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Ventas">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="\$" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navClientes" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Clientes">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="CL" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navEmpleados" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Empleados">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="EM" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navUsuarios" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Usuarios">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="US" />
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="navFidelidad" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Fidelidad">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="*" />
+                        </graphic>
+                    </Button>
+
+                    <!--
+                        Seccion aparte para catalogos de configuracion poco frecuente.
+                        Tipos de entrada y Metodos de pago NO tienen pantalla propia:
+                        son listas fijas que se cargan una sola vez con
+                        database/datos_iniciales.sql y solo se SELECCIONAN (no se crean)
+                        desde el ComboBox correspondiente en Ventas. Generos si puede
+                        crecer con el tiempo (puede surgir un genero nuevo), por eso
+                        conserva su pantalla de alta/edicion, pero separada aqui porque
+                        es una tarea de administracion, no de uso diario.
+                    -->
+                    <Label styleClass="nav-section-label" text="ADMINISTRACION" />
+
+                    <Button fx:id="navGeneros" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Generos">
+                        <graphic>
+                            <Label styleClass="nav-icon" text="G" />
+                        </graphic>
+                    </Button>
+                </VBox>
+            </ScrollPane>
+
+            <Region VBox.vgrow="NEVER" />
+
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="sidebar-user-box">
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label fx:id="lblUsuarioActivo" styleClass="sidebar-user-name" text="Nombre del usuario" />
+                    <Label fx:id="lblRolActivo" styleClass="sidebar-user-role" text="Rol" />
+                </VBox>
+                <Button fx:id="btnCerrarSesion" styleClass="icon-button" text="Salir" />
+            </HBox>
+
+            <Label fx:id="sidebarFooter" styleClass="sidebar-footer" text="Sistema de gestion de cine - v1.0" />
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fx:id="mainScroll" fitToHeight="true" fitToWidth="true" styleClass="main-scroll">
+            <StackPane fx:id="viewsContainer" styleClass="views-container">
+
+                <fx:include fx:id="dashboardView" source="views/dashboard-view.fxml" />
+                <fx:include fx:id="peliculasView" source="views/peliculas-view.fxml" />
+                <fx:include fx:id="salasView" source="views/salas-view.fxml" />
+                <fx:include fx:id="funcionesView" source="views/funciones-view.fxml" />
+                <fx:include fx:id="ventasView" source="views/ventas-view.fxml" />
+                <fx:include fx:id="clientesView" source="views/clientes-view.fxml" />
+                <fx:include fx:id="empleadosView" source="views/empleados-view.fxml" />
+                <fx:include fx:id="usuariosView" source="views/usuarios-view.fxml" />
+                <fx:include fx:id="fidelidadView" source="views/fidelidad-view.fxml" />
+                <fx:include fx:id="generosView" source="views/generos-view.fxml" />
+
+            </StackPane>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

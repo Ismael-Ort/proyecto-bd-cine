@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Peliculas (tabla `pelicula` + `pelicula_genero`).
+
+    Campos de pelicula: titulo, duracion_minutos, clasificacion, sinopsis,
+    estado (ACTIVA/INACTIVA), imagen_portada (BLOB).
+    Generos: relacion muchos a muchos via pelicula_genero -> se elige con
+    una lista de seleccion multiple (listPeliculaGeneros), cargada desde la
+    tabla `genero` (pantalla "Generos" en el menu).
+
+    La imagen se muestra siempre al mismo tamano (imgPeliculaPreview, marco
+    posterFrame de 160x220) tanto en el formulario como en cada tarjeta de la
+    cartelera, para que toda pelicula se vea uniforme sin importar el tamano
+    original del archivo que se suba.
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Peliculas" />
+        <Label styleClass="page-subtitle" text="Cartelera del cine" />
+    </VBox>
+
+    <HBox alignment="TOP_LEFT" spacing="24" styleClass="peliculas-layout">
+
+        <VBox fx:id="peliculaForm" maxWidth="340" minWidth="320" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+            <Label fx:id="lblPeliculaFormTitulo" styleClass="panel-title" text="Nueva pelicula" />
+
+            <StackPane fx:id="posterFrame" styleClass="poster-frame">
+                <ImageView fx:id="imgPeliculaPreview" fitHeight="220" fitWidth="160" preserveRatio="false" styleClass="poster-image" />
+                <Label fx:id="lblPosterPlaceholder" styleClass="poster-placeholder-text" text="Sin imagen" />
+            </StackPane>
+            <Button fx:id="btnSeleccionarImagenPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Seleccionar imagen..." />
+            <Label fx:id="lblPeliculaImagenNombre" styleClass="file-name-label" text="Ningun archivo seleccionado" wrapText="true" />
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Titulo" />
+                <TextField fx:id="txtPeliculaTitulo" promptText="Nombre de la pelicula" styleClass="form-input" />
+            </VBox>
+
+            <HBox spacing="12">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Duracion (min)" />
+                    <TextField fx:id="txtPeliculaDuracion" promptText="120" styleClass="form-input" />
+                </VBox>
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label styleClass="form-label" text="Clasificacion" />
+                    <ComboBox fx:id="cmbPeliculaClasificacion" editable="true" maxWidth="Infinity" promptText="PG-13" styleClass="form-input" />
+                </VBox>
+            </HBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Generos (Ctrl+clic para varios)" />
+                <ListView fx:id="listPeliculaGeneros" prefHeight="110" styleClass="form-input, multi-select-list" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Sinopsis" />
+                <TextArea fx:id="txtPeliculaSinopsis" prefRowCount="4" promptText="Resumen breve para la cartelera" styleClass="form-textarea" wrapText="true" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Estado" />
+                <ComboBox fx:id="cmbPeliculaEstado" maxWidth="Infinity" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ACTIVA" />
+                            <String fx:value="INACTIVA" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </VBox>
+
+            <HBox spacing="10">
+                <Button fx:id="btnGuardarPelicula" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar pelicula" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnCancelarEdicionPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+
+        <VBox spacing="16" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <TextField fx:id="txtPeliculaBuscar" promptText="Buscar por titulo..." styleClass="form-input" HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="cmbPeliculaFiltroGenero" promptText="Filtrar por genero" styleClass="form-input" />
+                <ComboBox fx:id="cmbPeliculaFiltroEstado" promptText="Filtrar por estado" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ACTIVA" />
+                            <String fx:value="INACTIVA" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </HBox>
+
+            <FlowPane fx:id="peliculasCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
+                <!-- Tarjeta de ejemplo; el programa debe generar una tarjeta como esta
+                     por cada fila de `pelicula` (con sus generos desde pelicula_genero). -->
+                <VBox spacing="12" styleClass="movie-card">
+                    <StackPane styleClass="poster-frame, poster-frame-small">
+                        <ImageView fitHeight="220" fitWidth="160" preserveRatio="false" styleClass="poster-image" />
+                        <Label styleClass="poster-placeholder-text" text="Sin imagen" />
+                    </StackPane>
+                    <Label styleClass="movie-title" text="Titulo de pelicula" />
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label styleClass="movie-meta" text="PG-13" />
+                        <Label styleClass="movie-meta" text="120 min" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label styleClass="status-pill, status-activa" text="ACTIVA" />
+                    </HBox>
+                    <FlowPane hgap="6" vgap="6">
+                        <Label styleClass="movie-genre-pill" text="Genero" />
+                    </FlowPane>
+                    <Label styleClass="movie-description" text="Sinopsis breve de la pelicula." wrapText="true" />
+                    <HBox spacing="8">
+                        <Button styleClass="secondary-button" text="Editar" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                        <Button styleClass="icon-button" text="X" />
+                    </HBox>
+                </VBox>
+            </FlowPane>
+        </VBox>
+    </HBox>
+</VBox>

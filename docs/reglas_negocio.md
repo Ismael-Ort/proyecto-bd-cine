@@ -2,14 +2,14 @@
 
 Este documento establece las reglas de negocio que deben cumplirse para garantizar el correcto funcionamiento del Sistema de Gestión de Cine. Estas reglas son consistentes con el modelo conceptual, el modelo lógico y el script `database/schema.sql` del proyecto.
 
-> Nota de actualización: el modelo lógico introdujo la entidad **Persona** como base de Cliente, Empleado y Usuario, y simplificó varias tablas (Venta, Entrada, Historial_Puntos). Esta versión del documento refleja esos cambios.
+> Nota de actualización: el modelo lógico introdujo la entidad **Persona** como base de Cliente, Empleado y Usuario, y simplificó varias tablas (Venta, Entrada, Historial_Puntos). Después, por indicación del profesor, se agregaron `fecha_nacimiento` y `sexo` a Persona, se restauró `hora_fin` en Función y se quitó el campo `motivo` de Entrada. Esta versión del documento refleja el estado actual de `database/schema.sql`.
 
 ---
 
 # 1. Personas y catálogo base
 
 ## BR-01. Registro de personas
-Toda persona deberá registrar nombres, apellidos, documento, teléfono y correo. El documento y el correo serán únicos en el sistema (`uq_persona_documento`, `uq_persona_correo`).
+Toda persona deberá registrar nombres, apellidos, fecha de nacimiento, sexo (`M` o `F`), documento, teléfono y correo. El documento y el correo serán únicos en el sistema (`uq_persona_documento`, `uq_persona_correo`).
 
 ## BR-02. Persona como base de Cliente, Empleado y Usuario
 Cliente, Empleado y Usuario no almacenarán datos personales propios (nombres, documento, teléfono, correo); estos se obtienen siempre a través de la Persona asociada mediante `id_persona`.
@@ -34,7 +34,7 @@ Toda función deberá programarse en una sala previamente registrada.
 Una sala deberá tener butacas registradas antes de poder programar funciones. Las butacas no manejan clasificación VIP/Regular en el alcance actual, solo fila, número y estado.
 
 ## BR-08. Programación de funciones
-Toda función deberá estar asociada a una película, una sala, una fecha, una hora de inicio y una tarifa base. El idioma de audio y de subtítulos son opcionales.
+Toda función deberá estar asociada a una película, una sala, una fecha, una hora de inicio y una hora de fin (`hora_fin > hora_inicio`, `chk_funcion_horario`), además de una tarifa base. La hora de fin permite reservar tiempo para anuncios, limpieza y preparación de la sala, no solo la duración de la película. El idioma de audio y de subtítulos son opcionales.
 
 ## BR-09. Solapamiento de funciones
 No podrán existir dos funciones programadas simultáneamente en la misma sala. Esta regla se valida desde la aplicación (ver `validaciones_en_java.md`), ya que depende de comparar horarios entre varias filas.
@@ -78,7 +78,7 @@ Toda venta deberá estar asociada a un cliente registrado (`id_cliente` es oblig
 Una venta podrá contener una o varias entradas.
 
 ## BR-20. Monto de la venta
-La tabla Venta ya no almacena `subtotal` ni `descuento_total`: `total_pagado` se calcula en la aplicación como la suma de los `precio_final` de las entradas asociadas a la venta.
+La tabla Venta ya no almacena `subtotal` ni `descuento_total`. `total_pagado` se calcula automáticamente dentro del procedimiento `sp_registrar_venta` (ver `docs/procedimientos_bd.md`) a partir de la tarifa base de la función y el descuento del tipo de entrada.
 
 ---
 
@@ -94,7 +94,7 @@ Una misma butaca no podrá venderse dos veces para una misma función (`uq_entra
 Solo podrán seleccionarse butacas disponibles para la función correspondiente.
 
 ## BR-24. Liberación de butacas
-Cuando una entrada pase a estado `CANCELADA` (mediante `sp_cancelar_entrada`), la butaca volverá a estar disponible para esa función. Como `uq_entrada_funcion_butaca` impide insertar una segunda fila para la misma `(id_funcion, id_butaca)`, "revender" una butaca cancelada significa reutilizar (`UPDATE`) la misma fila de `entrada`, no crear una nueva. Los procedimientos `sp_registrar_venta_simple` y `sp_agregar_entrada_a_venta` ya implementan este comportamiento (ver `docs/procedimientos_bd.md`, sección 4).
+Cuando una entrada pase a estado `CANCELADA`, la butaca volverá a estar disponible para esa función. Como `uq_entrada_funcion_butaca` impide insertar una segunda fila para la misma `(id_funcion, id_butaca)`, "revender" una butaca cancelada significa reutilizar (`UPDATE`) la misma fila de `entrada`, no crear una nueva. El procedimiento `sp_registrar_venta` ya implementa este comportamiento (ver `docs/procedimientos_bd.md`, sección 2.1).
 
 ---
 
@@ -104,60 +104,54 @@ Cuando una entrada pase a estado `CANCELADA` (mediante `sp_cancelar_entrada`), l
 Toda entrada deberá tener un tipo de entrada.
 
 ## BR-26. Precio final
-El precio final de una entrada se calcula como `precio_base - descuento` (`chk_entrada_precio_final`). El modelo ya no maneja un cargo adicional por butaca.
-
-## BR-27. Motivo de la entrada
-El campo `motivo` describe la razón de un descuento o de una entrada sin costo (por ejemplo, canje de puntos o cortesía). Reemplaza al antiguo indicador booleano `es_gratis`.
+El precio final de una entrada se calcula como `precio_base - descuento` (`chk_entrada_precio_final`). El modelo ya no maneja un cargo adicional por butaca ni un campo `motivo`: el precio se calcula siempre a partir de `funcion.tarifa_base` y `tipoentrada.descuento_porcentaje` dentro de `sp_registrar_venta`.
 
 ---
 
 # 7. Programa de fidelidad
 
-## BR-28. Acumulación de puntos
-Solo las entradas pagadas generarán un movimiento de tipo `ACUMULACIÓN` en el historial de puntos, asociado a la venta correspondiente. Esta regla se aplica automáticamente mediante el trigger `trg_entrada_au_acumula_puntos`: la aplicación no necesita insertar el movimiento manualmente, solo debe llamar a `sp_marcar_entrada_pagada`.
+## BR-27. Acumulación de puntos
+Solo las entradas pagadas generarán un movimiento de tipo `ACUMULACIÓN` en el historial de puntos, asociado a la venta correspondiente. Esta regla se aplica automáticamente mediante el trigger `trg_acumula_puntos`: la aplicación no necesita insertar el movimiento manualmente, solo debe llamar a `sp_confirmar_pago`.
 
-## BR-29. Entradas gratuitas por canje
-Una entrada obtenida mediante canje de puntos (`sp_canjear_puntos`) tendrá `precio_final` igual a cero (el `descuento` cubre el total del `precio_base`) y no generará un nuevo movimiento de `ACUMULACIÓN`: el trigger `trg_entrada_au_acumula_puntos` solo acumula puntos cuando `precio_final > 0`.
+## BR-28. Entradas gratuitas por canje
+Una entrada obtenida mediante canje de puntos tendrá `precio_final` igual a cero. No se necesita un procedimiento aparte: basta con registrar un `tipoentrada` con `descuento_porcentaje = 100` y usar el mismo `sp_registrar_venta`. El trigger `trg_acumula_puntos` solo acumula puntos cuando `precio_final > 0`, así que una entrada gratuita nunca genera un punto nuevo. El descuento de los 9 puntos se registra desde Java con un `INSERT` directo en `historial_puntos` (ver `docs/procedimientos_bd.md`, sección 4).
 
-## BR-30. Historial de puntos
+## BR-29. Historial de puntos
 Todo movimiento de `ACUMULACIÓN` o `CANJE` deberá registrar obligatoriamente el cliente y la venta relacionados (`id_cliente` e `id_venta` son `NOT NULL` en `historial_puntos`) y una `cantidad_puntos` mayor que cero.
 
-## BR-31. Aplicación del beneficio
-Cuando un cliente cumpla la condición establecida por el programa de fidelidad, el sistema aplicará automáticamente el beneficio correspondiente.
+## BR-30. Aplicación del beneficio
+Cuando un cliente cumpla la condición establecida por el programa de fidelidad (9 puntos disponibles), el sistema permitirá aplicar el beneficio correspondiente (una entrada gratuita).
 
 ---
 
 # 8. Estados y transacciones
 
-## BR-32. Estados de venta
+## BR-31. Estados de venta
 Las ventas manejarán los estados: `PENDIENTE`, `COMPLETADA`, `CANCELADA`.
 
-## BR-33. Estados de entrada
+## BR-32. Estados de entrada
 Las entradas manejarán los estados: `RESERVADA`, `PAGADA`, `CANCELADA`, `UTILIZADA`.
 
-## BR-34. Conservación del historial
+## BR-33. Conservación del historial
 Las ventas, entradas y movimientos de puntos no deberán eliminarse físicamente de la base de datos.
 
-## BR-35. Transacciones
-El registro de una venta deberá ejecutarse como una única transacción. Si ocurre un error durante el proceso, todas las operaciones deberán revertirse. Esta regla está implementada en `database/procedimientos_triggers.sql`: cada procedimiento que escribe datos (`sp_registrar_venta_simple`, `sp_agregar_entrada_a_venta`, `sp_marcar_entrada_pagada`, `sp_cancelar_entrada`, `sp_canjear_puntos`) abre una transacción con `START TRANSACTION`, hace `COMMIT` al final, y tiene un `EXIT HANDLER FOR SQLEXCEPTION` que ejecuta `ROLLBACK` ante cualquier error.
+## BR-34. Transacciones
+El registro de una venta y la confirmación de un pago deberán ejecutarse cada uno como una única transacción. Si ocurre un error durante el proceso, todas las operaciones deberán revertirse. Esta regla está implementada en `database/procedimientos_triggers.sql`: `sp_registrar_venta` y `sp_confirmar_pago` abren una transacción con `START TRANSACTION`, hacen `COMMIT` al final, y tienen un `EXIT HANDLER FOR SQLEXCEPTION` que ejecuta `ROLLBACK` ante cualquier error.
 
 ---
 
-# 9. Procedimientos, funciones y triggers
+# 9. Procedimientos almacenados y trigger
 
-Además de las restricciones declarativas (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`), el proyecto exige implementar procedimientos almacenados, triggers y transacciones. Todo esto vive en `database/procedimientos_triggers.sql` y está explicado en detalle, con ejemplos de uso y un guion de pruebas, en **`docs/procedimientos_bd.md`**.
+Además de las restricciones declarativas (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`), el proyecto exige, como mínimo, un procedimiento almacenado, un trigger y una transacción. Esto vive en `database/procedimientos_triggers.sql` (que se ejecuta aparte, no al crear la base de datos) y está explicado en detalle, con ejemplos de uso y un guion de pruebas, en **`docs/procedimientos_bd.md`**. A propósito **no se usan funciones almacenadas** (no se vieron en clase) y se implementó solo lo mínimo necesario para no complicar de más el proyecto.
 
-## BR-36. Funciones auxiliares
-`fn_funcion_disponible` y `fn_puntos_disponibles` son funciones de solo lectura reutilizables tanto por los triggers/procedimientos como por consultas directas desde Java.
+## BR-35. Validación de función al registrar una venta
+No podrá registrarse una entrada para una función que no exista o que esté `CANCELADA`/`FINALIZADA`. Esta validación vive dentro de `sp_registrar_venta` (no en un trigger aparte).
 
-## BR-37. Validación de función y butaca activas
-No podrá crearse ni reactivarse (revender) una entrada para una función `CANCELADA`/`FINALIZADA` o para una butaca que no esté `ACTIVA` (`trg_entrada_bi_valida_funcion`, `trg_entrada_bu_valida_reventa`).
+## BR-36. Cierre de la venta al confirmar el pago
+Al confirmar el pago de una entrada (`sp_confirmar_pago`), la venta correspondiente se marca como `COMPLETADA` en la misma transacción.
 
-## BR-38. Cierre automático de la venta
-Cuando todas las entradas de una venta llegan a un estado final (`PAGADA`, `UTILIZADA` o `CANCELADA`), la venta se actualiza automáticamente a `COMPLETADA` (si al menos una entrada fue honrada) o `CANCELADA` (si todas se cancelaron), sin intervención de la aplicación (`trg_entrada_au_acumula_puntos`).
-
-## BR-39. Procedimientos como única puerta de entrada a las operaciones críticas
-La aplicación Java no deberá construir manualmente las sentencias `INSERT`/`UPDATE` para registrar ventas, agregar entradas, marcar pagos, cancelar entradas o canjear puntos: deberá invocar siempre los procedimientos correspondientes, para garantizar que las validaciones, los cálculos y la atomicidad se apliquen de forma consistente.
+## BR-37. Procedimientos como única puerta de entrada a las operaciones críticas
+La aplicación Java no deberá construir manualmente las sentencias `INSERT`/`UPDATE` para registrar una venta o confirmar un pago: deberá invocar siempre `sp_registrar_venta` y `sp_confirmar_pago`, para garantizar que las validaciones, los cálculos y la atomicidad se apliquen de forma consistente.
 
 ---
 
@@ -169,12 +163,14 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] PK `id_persona`.
 - [x] `documento` único (`uq_persona_documento`).
 - [x] `correo` único (`uq_persona_correo`).
-- [x] `nombres`, `apellidos`, `documento`, `telefono`, `correo` obligatorios.
+- [x] `nombres`, `apellidos`, `fecha_nacimiento`, `sexo`, `documento`, `telefono`, `correo` obligatorios.
+- [x] `sexo` restringido a `M`/`F` (`chk_persona_sexo`).
 
 ## genero
 - [x] PK `id_genero`.
 - [x] `nombre_genero` único.
 - [x] `estado` restringido a `ACTIVO`/`INACTIVO`.
+- [x] Catálogo que sí crece con el tiempo (puede surgir un género nuevo): mantiene su propia pantalla de alta/edición en la aplicación, agrupada bajo "Administración" en el menú (no es una operación diaria como Ventas).
 
 ## sala
 - [x] PK `id_sala`.
@@ -186,12 +182,14 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] PK `id_metodopago`.
 - [x] `nombre_metodo` único.
 - [x] `estado` restringido a `ACTIVO`/`INACTIVO`.
+- [x] Catálogo fijo: se carga una sola vez con `database/datos_iniciales.sql`. La aplicación **no** tiene pantalla para crear/editar métodos de pago; en Ventas solo se **selecciona** uno existente (`ComboBox`), nunca se inventa uno nuevo desde ahí.
 
 ## tipoentrada
 - [x] PK `id_tipoentrada`.
 - [x] `nombre_tipo` único.
 - [x] `descuento_porcentaje` entre 0 y 100.
 - [x] `estado` restringido a `ACTIVO`/`INACTIVO`.
+- [x] Catálogo fijo: se carga una sola vez con `database/datos_iniciales.sql` (incluye el tipo "Canje de puntos" al 100% de descuento usado en BR-28). La aplicación **no** tiene pantalla para crear/editar tipos de entrada; en Ventas solo se **selecciona** uno existente.
 
 ## pelicula
 - [x] PK `id_pelicula`.
@@ -217,7 +215,7 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] FK a `pelicula` y a `sala`.
 - [x] `tarifa_base > 0`.
 - [x] `estado` restringido a `PROGRAMADA`/`EN_CURSO`/`FINALIZADA`/`CANCELADA`.
-- [x] Sin `hora_fin` (solo `hora_inicio`).
+- [x] `hora_fin > hora_inicio` (`chk_funcion_horario`).
 - [x] `idioma_audio` e `idioma_subtitulos` opcionales.
 - [ ] Validar en Java que no exista solapamiento de horario en la misma sala (no se puede expresar como `CHECK` de una sola fila).
 
@@ -255,7 +253,7 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] `precio_base >= 0`, `descuento >= 0`, `precio_final >= 0`.
 - [x] `precio_final = precio_base - descuento`.
 - [x] `estado` restringido a `RESERVADA`/`PAGADA`/`CANCELADA`/`UTILIZADA`.
-- [x] Sin `cargo_butaca` ni `es_gratis` (reemplazado por `motivo`).
+- [x] Sin `cargo_butaca`, `es_gratis` ni `motivo`.
 
 ## historial_puntos
 - [x] PK `id_historial`.
@@ -264,17 +262,12 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] `cantidad_puntos > 0`.
 - [x] `tipo_movimiento` restringido a `ACUMULACIÓN`/`CANJE`.
 
-## Procedimientos, funciones y triggers (`database/procedimientos_triggers.sql`)
-- [x] `fn_funcion_disponible` implementada.
-- [x] `fn_puntos_disponibles` implementada.
-- [x] `trg_entrada_bi_valida_funcion` implementado (BEFORE INSERT).
-- [x] `trg_entrada_bu_valida_reventa` implementado (BEFORE UPDATE).
-- [x] `trg_entrada_au_acumula_puntos` implementado (AFTER UPDATE): acumulación de puntos + cierre automático de venta.
-- [x] `sp_registrar_venta_simple` implementado, con transacción (`START TRANSACTION`/`COMMIT`/`ROLLBACK`).
-- [x] `sp_agregar_entrada_a_venta` implementado, con transacción.
-- [x] `sp_marcar_entrada_pagada` implementado, con transacción.
-- [x] `sp_cancelar_entrada` implementado, con transacción.
-- [x] `sp_canjear_puntos` implementado, con transacción.
+## Procedimientos y trigger (`database/procedimientos_triggers.sql`)
+- [x] `trg_acumula_puntos` implementado (AFTER UPDATE ON entrada).
+- [x] `sp_registrar_venta` implementado, con transacción (`START TRANSACTION`/`COMMIT`/`ROLLBACK`).
+- [x] `sp_confirmar_pago` implementado, con transacción.
+- [x] Sin funciones almacenadas (a propósito).
+- [ ] Ejecutar `database/procedimientos_triggers.sql` cuando el equipo esté listo para programar esa parte (no antes).
 - [ ] Guion de pruebas de `docs/procedimientos_bd.md` (sección 5) ejecutado contra la base de datos real.
 
 ---
@@ -288,7 +281,7 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] Reglas de entradas y butacas definidas.
 - [x] Reglas del programa de fidelidad definidas.
 - [x] Reglas de estados y transacciones definidas.
-- [x] Reglas de procedimientos, funciones y triggers definidas.
+- [x] Reglas de procedimientos y trigger definidas.
 - [x] Checklist de correspondencia con `database/schema.sql` definido.
 - [x] Documento consistente con el modelo conceptual.
 - [x] Documento consistente con el modelo lógico.

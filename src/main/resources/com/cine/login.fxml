@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pantalla de inicio de sesion. Es una ventana/escena aparte de main-shell.fxml
+    (se muestra primero; al autenticar, el programa debe cargar main-shell.fxml).
+
+    Roles validos del sistema (usuario.rol): ADMINISTRADOR, CAJERO, CLIENTE.
+    Esta pantalla NO distingue el rol visualmente: el programa debe consultar
+    el rol despues de validar el usuario/contrasena contra la tabla `usuario`
+    (a traves de persona) y decidir que puede ver cada quien.
+-->
+
+<StackPane fx:id="loginRoot" styleClass="login-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+
+    <VBox fx:id="loginCard" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="380" spacing="22" styleClass="login-card">
+        <padding>
+            <Insets bottom="40" left="40" right="40" top="40" />
+        </padding>
+
+        <VBox alignment="CENTER" spacing="6" styleClass="login-brand-box">
+            <Label styleClass="login-brand-mark" text="C" />
+            <Label fx:id="lblLoginTitulo" styleClass="login-title" text="CinemaHUB" />
+            <Label fx:id="lblLoginSubtitulo" styleClass="login-subtitle" text="Sistema de Gestion de Cine" />
+        </VBox>
+
+        <VBox spacing="8">
+            <Label styleClass="form-label" text="Usuario" />
+            <TextField fx:id="txtLoginUsuario" promptText="nombre_usuario" styleClass="form-input" />
+        </VBox>
+
+        <VBox spacing="8">
+            <Label styleClass="form-label" text="Contrasena" />
+            <PasswordField fx:id="txtLoginContrasena" promptText="Contrasena" styleClass="form-input" />
+        </VBox>
+
+        <Label fx:id="lblLoginError" managed="false" styleClass="login-error" text="Usuario o contrasena incorrectos." visible="false" wrapText="true" />
+
+        <Button fx:id="btnLoginIngresar" defaultButton="true" maxWidth="Infinity" styleClass="primary-button" text="Iniciar sesion" />
+
+        <Label fx:id="lblLoginFooter" styleClass="login-footer" text="Sistema de gestion de cine - v1.0" />
+    </VBox>
+
+</StackPane>

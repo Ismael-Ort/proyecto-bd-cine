@@ -123,7 +123,7 @@ Actividades principales:
 - [x] Introducir la entidad Persona como base de Cliente, Empleado y Usuario.
 - [x] Resolver la relación Película-Género como muchos a muchos mediante Película_Género.
 - [x] Simplificar Venta eliminando `subtotal` y `descuento_total` (queda solo `total_pagado`).
-- [x] Simplificar Entrada eliminando `cargo_butaca` y `es_gratis` (se agrega `motivo`).
+- [x] Simplificar Entrada eliminando `cargo_butaca` y `es_gratis` (el precio se calcula siempre a partir de la tarifa de la función y el descuento del tipo de entrada).
 - [x] Simplificar Historial_Puntos a un solo campo `cantidad_puntos`, asociado siempre a cliente y venta (sin FK a Entrada).
 - [x] Revisar normalización básica.
 - [x] Validar que el modelo lógico responda a las reglas de negocio.
@@ -149,36 +149,37 @@ Actividades principales:
 - [x] Definir restricciones relacionadas con usuarios, roles y canales de venta.
 - [x] Definir la tabla `persona` y las llaves únicas de `documento` y `correo`.
 - [x] Definir la tabla asociativa `pelicula_genero`.
-- [x] Preparar el script SQL de creación de la base de datos (`database/schema.sql`).
+- [x] Preparar el script SQL de creación de la base de datos (`database/schema.sql`), incluyendo su propio `DROP DATABASE`/`CREATE DATABASE cine`.
 - [x] Revisar checklist de constraints por tabla en `docs/reglas_negocio.md`.
+- [x] Ajustes pedidos por el profesor sobre la tabla ya diseñada: agregar `fecha_nacimiento` y `sexo` (`CHECK` `M`/`F`) a `persona`, restaurar `hora_fin` en `funcion` (con `chk_funcion_horario`), y quitar el campo `motivo` de `entrada`.
+- [x] Volver a crear la base de datos (`DROP DATABASE` + `CREATE DATABASE`) con `database/schema.sql` actualizado.
 - [ ] Definir índices adicionales si el rendimiento lo requiere (más allá de los implícitos en PK/UNIQUE).
-- [ ] Probar el script en el gestor de base de datos (Aiven MySQL/MariaDB).
+- [x] Probar el script en el gestor de base de datos (Aiven MySQL/MariaDB).
 - [ ] Corregir errores del modelo físico detectados al probarlo.
 
 Estado: En proceso
 
 ---
 
-## Fase 6.1: Programabilidad de la base de datos (procedimientos, funciones y triggers)
+## Fase 6.1: Programabilidad de la base de datos (procedimiento, trigger y transacción)
 
-El profesor exige, como mínimo, un procedimiento almacenado, un trigger y una transacción. En esta fase se diseñó e implementó esa capa en `database/procedimientos_triggers.sql`, documentada en detalle en `docs/procedimientos_bd.md`.
+El profesor exige, como mínimo, un procedimiento almacenado, un trigger y una transacción. En esta fase se diseñó esa capa en `database/procedimientos_triggers.sql`, documentada en detalle en `docs/procedimientos_bd.md`.
 
-Se implementó más del mínimo exigido: 2 funciones, 3 triggers y 5 procedimientos (todos transaccionales).
+A propósito se implementó **solo lo mínimo necesario** (el equipo recién está aprendiendo el tema, así que no conviene meter objetos de más): **1 trigger** y **2 procedimientos almacenados**, ambos con su propia transacción. No se usan funciones almacenadas (no se vieron en clase).
+
+**Importante:** `database/procedimientos_triggers.sql` es un archivo aparte que **no** se ejecuta al crear la base de datos. Se ejecutará más adelante, cuando el equipo llegue a programar la parte de Java que registra ventas y confirma pagos, y solo después de que todos entiendan cómo funciona cada bloque.
 
 Actividades principales:
 
-- [x] Definir qué reglas de negocio conviene mover de "solo Java" a procedimientos/triggers (BR-28, BR-29, BR-35, entre otras).
-- [x] Implementar `fn_funcion_disponible` y `fn_puntos_disponibles`.
-- [x] Implementar `trg_entrada_bi_valida_funcion` (BEFORE INSERT).
-- [x] Implementar `trg_entrada_bu_valida_reventa` (BEFORE UPDATE).
-- [x] Implementar `trg_entrada_au_acumula_puntos` (AFTER UPDATE): acumulación automática de puntos y cierre automático de la venta.
-- [x] Implementar `sp_registrar_venta_simple` como transacción completa (`START TRANSACTION`/`COMMIT`/`ROLLBACK`).
-- [x] Implementar `sp_agregar_entrada_a_venta` (venta con múltiples entradas).
-- [x] Implementar `sp_marcar_entrada_pagada`.
-- [x] Implementar `sp_cancelar_entrada` (libera la butaca reutilizando la fila, por `uq_entrada_funcion_butaca`).
-- [x] Implementar `sp_canjear_puntos`.
+- [x] Definir qué reglas de negocio conviene mover de "solo Java" a procedimiento/trigger (BR-27, BR-28, BR-34, entre otras — ver `docs/reglas_negocio.md`).
+- [x] Implementar `trg_acumula_puntos` (AFTER UPDATE ON entrada): acumulación automática de 1 punto cuando una entrada pagada no es gratuita.
+- [x] Implementar `sp_registrar_venta` como transacción completa (`START TRANSACTION`/`COMMIT`/`ROLLBACK`): valida función activa, calcula el precio, registra venta y entrada, y reutiliza (`UPDATE`) una butaca previamente cancelada en vez de duplicarla.
+- [x] Implementar `sp_confirmar_pago` como transacción completa: marca la entrada como `PAGADA` (dispara el trigger) y la venta como `COMPLETADA`.
+- [x] Explicar cómo resolver el canje de puntos sin un tercer procedimiento (tipo de entrada con 100% de descuento + `INSERT` directo del `CANJE` desde Java).
 - [x] Documentar cada objeto (para qué sirve, ejemplo de `CALL`, guion de pruebas) en `docs/procedimientos_bd.md`.
 - [x] Actualizar `docs/reglas_negocio.md` y `docs/validaciones_en_java.md` para reflejar qué pasó de Java a la base de datos.
+- [ ] Como equipo, leer `docs/procedimientos_bd.md` completo y entender cada bloque antes de ejecutar `database/procedimientos_triggers.sql`.
+- [ ] Ejecutar `database/procedimientos_triggers.sql` (solo cuando el punto anterior esté listo).
 - [ ] Ejecutar el guion de pruebas de `docs/procedimientos_bd.md` (sección 5) contra la base de datos real.
 - [ ] Ajustar la base de datos si las pruebas revelan algún cambio necesario (ver Fase 7).
 
@@ -192,23 +193,22 @@ En esta fase se implementará la base de datos de acuerdo con el modelo físico 
 
 Actividades principales:
 
-- [ ] Crear la base de datos.
-- [ ] Ejecutar `database/schema.sql`.
-- [ ] Ejecutar `database/procedimientos_triggers.sql`.
+- [x] Crear la base de datos (`database/schema.sql` ya incluye `DROP DATABASE`/`CREATE DATABASE cine`).
+- [x] Ejecutar `database/schema.sql`.
+- [ ] Ejecutar `database/procedimientos_triggers.sql` (solo cuando el equipo esté listo para esa parte, ver Fase 6.1).
 - [ ] Insertar datos de prueba.
-- [ ] Crear personas de prueba (base para clientes y empleados).
+- [ ] Crear personas de prueba, incluyendo `fecha_nacimiento` y `sexo` (base para clientes y empleados).
 - [ ] Crear usuarios de prueba para empleados.
 - [ ] Crear usuarios de prueba para clientes.
 - [ ] Crear clientes registrados para pruebas.
-- [ ] Crear funciones, salas y butacas de prueba.
+- [ ] Crear funciones de prueba (con `hora_inicio` y `hora_fin`), salas y butacas.
 - [ ] Crear consultas de prueba.
 - [ ] Validar restricciones principales (incluyendo el checklist de `docs/reglas_negocio.md`).
-- [ ] Probar `sp_registrar_venta_simple` y `sp_agregar_entrada_a_venta` (venta por taquilla y en línea).
-- [ ] Probar que `sp_registrar_venta_simple` rechace una butaca ya ocupada.
-- [ ] Probar `sp_marcar_entrada_pagada` y confirmar que se generó el punto de fidelidad automáticamente.
-- [ ] Probar `sp_cancelar_entrada` y confirmar que la butaca puede revenderse para la misma función.
-- [ ] Probar `sp_canjear_puntos` con un cliente que tenga 9 puntos o más.
-- [ ] Probar que las funciones canceladas/finalizadas rechacen nuevas entradas (triggers).
+- [ ] Probar `sp_registrar_venta` (venta por taquilla y en línea).
+- [ ] Probar que `sp_registrar_venta` rechace una butaca ya ocupada.
+- [ ] Probar `sp_confirmar_pago` y confirmar que se generó el punto de fidelidad automáticamente (`trg_acumula_puntos`).
+- [ ] Probar el canje de puntos con un tipo de entrada al 100% de descuento y confirmar que no genera un punto nuevo.
+- [ ] Probar que `sp_registrar_venta` rechace una función `CANCELADA`/`FINALIZADA`.
 - [ ] Probar ventas por taquilla.
 - [ ] Probar ventas en línea sin empleado asociado.
 - [ ] Probar que toda venta tenga un cliente asociado.
@@ -237,11 +237,10 @@ Actividades principales:
 - [ ] Programar módulos de compra para clientes.
 - [ ] Programar consulta de funciones disponibles.
 - [ ] Programar selección de butacas.
-- [ ] Invocar `sp_registrar_venta_simple` / `sp_agregar_entrada_a_venta` mediante `CallableStatement` (no armar INSERT/UPDATE manuales, ver `docs/procedimientos_bd.md` sección 6).
+- [ ] Invocar `sp_registrar_venta` y `sp_confirmar_pago` mediante `CallableStatement` (no armar INSERT/UPDATE manuales, ver `docs/procedimientos_bd.md` sección 6).
 - [ ] Programar ventas por taquilla.
 - [ ] Programar ventas en línea.
-- [ ] Programar pantalla/acción para canjear puntos (`sp_canjear_puntos`).
-- [ ] Programar pantalla/acción para cancelar una entrada (`sp_cancelar_entrada`).
+- [ ] Programar pantalla/acción para canjear puntos (llama a `sp_registrar_venta` con un tipo de entrada al 100% de descuento + `INSERT` del `CANJE`).
 - [ ] Validar que exista un cliente antes de registrar la venta.
 - [ ] Validar que la aplicación respete las reglas de negocio.
 - [ ] Probar la comunicación entre la aplicación y la base de datos.
@@ -389,10 +388,13 @@ Durante el diseño físico, la implementación y el desarrollo se deberán mante
 - Los movimientos del historial de puntos utilizarán los tipos ACUMULACIÓN y CANJE, y siempre estarán asociados a un cliente y a una venta.
 - Las butacas no tendrán clasificación VIP o Regular dentro del alcance actual.
 - Los únicos roles del sistema serán ADMINISTRADOR, CAJERO y CLIENTE.
-- Los datos personales (nombres, documento, teléfono, correo) se almacenan una sola vez en Persona; Cliente, Empleado y Usuario solo la referencian.
+- Los datos personales (nombres, apellidos, fecha de nacimiento, sexo, documento, teléfono, correo) se almacenan una sola vez en Persona; Cliente, Empleado y Usuario solo la referencian.
 - Una misma persona no puede tener más de un registro de Cliente ni de Empleado, pero sí puede tener varios usuarios.
-- El registro de una venta (y de cada operación crítica) se ejecuta como una transacción dentro de un procedimiento almacenado; la aplicación llama a esos procedimientos en lugar de escribir SQL directo sobre `venta`, `entrada` e `historial_puntos`.
-- La acumulación de puntos y el cierre de la venta (`COMPLETADA`/`CANCELADA`) se disparan automáticamente mediante triggers, no desde Java.
+- Toda función tiene `hora_inicio` y `hora_fin` (`hora_fin > hora_inicio`).
+- La entrada ya no tiene un campo `motivo`: el precio (`precio_base`, `descuento`, `precio_final`) se calcula siempre dentro de `sp_registrar_venta` a partir de la tarifa de la función y el descuento del tipo de entrada.
+- El registro de una venta y la confirmación de un pago se ejecutan como transacciones dentro de `sp_registrar_venta` y `sp_confirmar_pago`; la aplicación llama a esos procedimientos en lugar de escribir SQL directo sobre `venta` y `entrada`.
+- La acumulación de puntos se dispara automáticamente mediante `trg_acumula_puntos`, no desde Java.
+- No se usan funciones almacenadas (`CREATE FUNCTION`) en la base de datos: solo el trigger y los dos procedimientos mencionados arriba.
 
 ---
 
@@ -400,8 +402,8 @@ Durante el diseño físico, la implementación y el desarrollo se deberán mante
 
 Este plan de trabajo representa el estado actualizado del proyecto.
 
-El proyecto ya cuenta con análisis inicial, requerimientos, reglas de negocio, modelo conceptual, modelo lógico, un primer modelo físico (`database/schema.sql`) y su capa de programabilidad (`database/procedimientos_triggers.sql`, documentada en `docs/procedimientos_bd.md`). También se definió que el sistema manejará dos canales de venta: venta presencial en taquilla y venta en línea, y que los datos personales se centralizan en la entidad Persona.
+El proyecto ya cuenta con análisis inicial, requerimientos, reglas de negocio, modelo conceptual, modelo lógico y un modelo físico ya creado en la base de datos (`database/schema.sql`, con los ajustes pedidos por el profesor: `fecha_nacimiento`/`sexo` en Persona, `hora_fin` en Función, sin `motivo` en Entrada). También se diseñó su capa de programabilidad (`database/procedimientos_triggers.sql`: 1 trigger + 2 procedimientos, documentada en `docs/procedimientos_bd.md`), aunque **todavía no se ha ejecutado** — se ejecutará cuando el equipo esté listo para programar esa parte en Java.
 
 Usuario será una entidad general de acceso para clientes y empleados (referenciando siempre a Persona), y toda venta deberá estar asociada obligatoriamente a un cliente registrado, con empleado obligatorio solo para el canal TAQUILLA.
 
-El siguiente paso es ejecutar `database/schema.sql` y `database/procedimientos_triggers.sql` en el gestor de base de datos (Fase 7), correr el guion de pruebas de `docs/procedimientos_bd.md`, verificar el checklist de constraints de `docs/reglas_negocio.md` contra la implementación real, y ajustar la base de datos si las pruebas revelan algún cambio necesario, antes de iniciar el desarrollo de la aplicación en Java (Fase 8).
+El siguiente paso es terminar de revisar `docs/procedimientos_bd.md` como equipo, ejecutar `database/procedimientos_triggers.sql` cuando quede claro, correr el guion de pruebas de esa misma guía, verificar el checklist de constraints de `docs/reglas_negocio.md` contra la implementación real, y ajustar la base de datos si las pruebas revelan algún cambio necesario, antes de iniciar el desarrollo de la aplicación en Java (Fase 8).

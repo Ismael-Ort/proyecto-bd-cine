@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Pagina: Panel principal (dashboard).
+    Vista general del cine: tarjetas de indicadores + ultimas ventas y
+    proximas funciones. Puramente informativa (solo lectura).
+-->
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content">
+    <padding>
+        <Insets bottom="36" left="40" right="40" top="36" />
+    </padding>
+
+    <VBox spacing="4" styleClass="page-header">
+        <Label styleClass="page-title" text="Panel de control" />
+        <Label styleClass="page-subtitle" text="Vista general del cine" />
+    </VBox>
+
+    <HBox fx:id="statsRow" spacing="20" styleClass="stats-row">
+        <VBox fx:id="cardIngresosActivos" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                <Label styleClass="stat-card-label" text="INGRESOS (VENTAS COMPLETADAS)" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="stat-card-icon" text="\$" />
+            </HBox>
+            <Label fx:id="lblIngresosActivosValor" styleClass="stat-card-value" text="Bs 0.00" />
+        </VBox>
+
+        <VBox fx:id="cardEntradasVendidas" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                <Label styleClass="stat-card-label" text="ENTRADAS PAGADAS/UTILIZADAS" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="stat-card-icon" text="#" />
+            </HBox>
+            <Label fx:id="lblEntradasVendidasValor" styleClass="stat-card-value" text="0" />
+        </VBox>
+
+        <VBox fx:id="cardPeliculasCartelera" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                <Label styleClass="stat-card-label" text="PELICULAS ACTIVAS" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="stat-card-icon" text="P" />
+            </HBox>
+            <Label fx:id="lblPeliculasCarteleraValor" styleClass="stat-card-value" text="0" />
+        </VBox>
+
+        <VBox fx:id="cardClientesRegistrados" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" styleClass="stat-card-top">
+                <Label styleClass="stat-card-label" text="CLIENTES REGISTRADOS" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="stat-card-icon" text="CL" />
+            </HBox>
+            <Label fx:id="lblClientesRegistradosValor" styleClass="stat-card-value" text="0" />
+        </VBox>
+    </HBox>
+
+    <HBox fx:id="panelsRow" spacing="20" styleClass="panels-row" VBox.vgrow="ALWAYS">
+        <VBox fx:id="panelVentas" spacing="18" styleClass="panel-card" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                <Label styleClass="panel-icon" text="\$" />
+                <Label styleClass="panel-title" text="Ultimas ventas" />
+            </HBox>
+            <VBox fx:id="ventasListContainer" spacing="0" styleClass="list-container">
+                <!-- Fila de ejemplo; el programa debe llenar este contenedor con las
+                     ventas reales (id_venta, cliente, canal_venta, total_pagado, estado). -->
+                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
+                    <VBox spacing="2">
+                        <Label styleClass="row-title" text="Venta #001" />
+                        <Label styleClass="row-subtitle" text="Cliente - TAQUILLA" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label styleClass="row-amount" text="Bs 45.00" />
+                        <Label styleClass="status-pill, status-completada" text="COMPLETADA" />
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <VBox fx:id="panelFunciones" prefWidth="380" spacing="18" styleClass="panel-card" HBox.hgrow="NEVER">
+            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="panel-header">
+                <Label styleClass="panel-icon" text="F" />
+                <Label styleClass="panel-title" text="Proximas funciones" />
+            </HBox>
+            <VBox fx:id="funcionesListContainer" spacing="18" styleClass="list-container">
+                <!-- Fila de ejemplo; el programa debe llenar esto con funciones
+                     PROGRAMADA/EN_CURSO ordenadas por fecha_funcion/hora_inicio. -->
+                <VBox spacing="2">
+                    <Label styleClass="funcion-title" text="Titulo de pelicula" />
+                    <Label styleClass="funcion-subtitle" text="Sala 1 - 20:00 a 22:15" />
+                </VBox>
+            </VBox>
+        </VBox>
+    </HBox>
+</VBox>
