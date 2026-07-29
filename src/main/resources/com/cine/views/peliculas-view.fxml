@@ -12,7 +12,6 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -92,7 +91,7 @@
             </VBox>
 
             <HBox spacing="10">
-                <Button fx:id="btnGuardarPelicula" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar pelicula" HBox.hgrow="ALWAYS" onAction="#registrarPelicula" />
+                <Button fx:id="btnGuardarPelicula" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar pelicula" HBox.hgrow="ALWAYS" onAction="#guardarPelicula" />
                 <Button fx:id="btnCancelarEdicionPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" onAction="#limpiarFormulario" />
             </HBox>
         </VBox>
@@ -111,31 +110,10 @@
                 </ComboBox>
             </HBox>
 
-            <FlowPane fx:id="peliculasCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
-                <!-- Tarjeta de ejemplo; el programa debe generar una tarjeta como esta
-                     por cada fila de `pelicula` (con sus generos desde pelicula_genero). -->
-                <VBox spacing="12" styleClass="movie-card">
-                    <StackPane styleClass="poster-frame, poster-frame-small">
-                        <ImageView fitHeight="220" fitWidth="160" preserveRatio="false" styleClass="poster-image" />
-                        <Label styleClass="poster-placeholder-text" text="Sin imagen" />
-                    </StackPane>
-                    <Label styleClass="movie-title" text="Titulo de pelicula" />
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Label styleClass="movie-meta" text="PG-13" />
-                        <Label styleClass="movie-meta" text="120 min" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Label styleClass="status-pill, status-activa" text="ACTIVA" />
-                    </HBox>
-                    <FlowPane hgap="6" vgap="6">
-                        <Label styleClass="movie-genre-pill" text="Genero" />
-                    </FlowPane>
-                    <Label styleClass="movie-description" text="Sinopsis breve de la pelicula." wrapText="true" />
-                    <HBox spacing="8">
-                        <Button styleClass="secondary-button" text="Editar" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-                        <Button styleClass="icon-button" text="X" />
-                    </HBox>
-                </VBox>
-            </FlowPane>
+            <!-- Las tarjetas de cada pelicula se generan por codigo en
+                 PeliculaControl (metodo cargarPeliculas), una por cada fila
+                 que haya en la tabla `pelicula`. Este contenedor arranca vacio. -->
+            <FlowPane fx:id="peliculasCardsContainer" hgap="18" styleClass="cards-grid" vgap="18" />
         </VBox>
     </HBox>
 </VBox>

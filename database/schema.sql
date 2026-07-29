@@ -150,10 +150,13 @@ CREATE TABLE pelicula (
                           clasificacion VARCHAR(10) NOT NULL,
                           sinopsis TEXT NULL,
                           estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVA',
-                          imagen_portada LONGBLOB NULL,
+                          imagen_portada LONGBLOB NOT NULL,
 
                           CONSTRAINT pk_pelicula
                               PRIMARY KEY (id_pelicula),
+
+                          CONSTRAINT uq_pelicula_titulo
+                              UNIQUE (titulo),
 
                           CONSTRAINT chk_pelicula_duracion
                               CHECK (duracion_minutos > 0),

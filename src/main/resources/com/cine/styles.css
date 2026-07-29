@@ -417,6 +417,7 @@
 
 .multi-select-list {
     -fx-pref-height: 110px;
+    -fx-min-height: 110px;
     -fx-padding: 0;
 }
 

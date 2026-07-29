@@ -128,7 +128,7 @@
     </left>
 
     <center>
-        <ScrollPane fx:id="mainScroll" fitToHeight="true" fitToWidth="true" styleClass="main-scroll">
+        <ScrollPane fx:id="mainScroll" fitToWidth="true" styleClass="main-scroll">
             <StackPane fx:id="viewsContainer" styleClass="views-container">
 
                 <fx:include fx:id="dashboardView" source="views/dashboard-view.fxml" />
