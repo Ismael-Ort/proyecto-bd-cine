@@ -31,7 +31,7 @@
     original del archivo que se suba.
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.PeliculaControl" spacing="24" styleClass="main-content" visible="false" managed="false">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -50,7 +50,7 @@
                 <ImageView fx:id="imgPeliculaPreview" fitHeight="220" fitWidth="160" preserveRatio="false" styleClass="poster-image" />
                 <Label fx:id="lblPosterPlaceholder" styleClass="poster-placeholder-text" text="Sin imagen" />
             </StackPane>
-            <Button fx:id="btnSeleccionarImagenPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Seleccionar imagen..." />
+            <Button fx:id="btnSeleccionarImagenPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Seleccionar imagen..." onAction="#seleccionarImagenPelicula" />
             <Label fx:id="lblPeliculaImagenNombre" styleClass="file-name-label" text="Ningun archivo seleccionado" wrapText="true" />
 
             <VBox spacing="8">
@@ -92,8 +92,8 @@
             </VBox>
 
             <HBox spacing="10">
-                <Button fx:id="btnGuardarPelicula" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar pelicula" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnCancelarEdicionPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnGuardarPelicula" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar pelicula" HBox.hgrow="ALWAYS" onAction="#registrarPelicula" />
+                <Button fx:id="btnCancelarEdicionPelicula" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" onAction="#limpiarFormulario" />
             </HBox>
         </VBox>
 
