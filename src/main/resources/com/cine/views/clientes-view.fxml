@@ -10,7 +10,6 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
@@ -29,7 +28,7 @@
     Datos propios de Cliente: fecha_registro, estado (ACTIVO/INACTIVO).
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.ClienteControl" spacing="24" styleClass="main-content" visible="false" managed="false">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -47,7 +46,7 @@
                 <Label styleClass="form-label" text="Buscar persona existente por documento" />
                 <HBox spacing="8">
                     <TextField fx:id="txtClienteBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnBuscarPersonaCliente" styleClass="secondary-button" text="Buscar" />
+                    <Button fx:id="btnBuscarPersonaCliente" styleClass="secondary-button" text="Buscar" onAction="#buscarPersonaCliente" />
                 </HBox>
             </VBox>
 
@@ -82,8 +81,13 @@
             </HBox>
 
             <VBox spacing="8">
-                <Label styleClass="form-label" text="Documento" />
-                <TextField fx:id="txtClienteDocumento" promptText="Cedula / documento de identidad" styleClass="form-input" />
+                <Label styleClass="form-label" text="Tipo de documento" />
+                <ComboBox fx:id="cmbClienteTipoDocumento" maxWidth="Infinity" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Numero de documento" />
+                <TextField fx:id="txtClienteDocumento" styleClass="form-input" />
             </VBox>
 
             <HBox spacing="12">
@@ -118,36 +122,18 @@
             </HBox>
 
             <HBox spacing="10">
-                <Button fx:id="btnGuardarCliente" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar cliente" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnCancelarEdicionCliente" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnGuardarCliente" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar cliente" HBox.hgrow="ALWAYS" onAction="#guardarCliente" />
+                <Button fx:id="btnCancelarEdicionCliente" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" onAction="#limpiarFormulario" />
             </HBox>
         </VBox>
 
         <VBox spacing="16" HBox.hgrow="ALWAYS">
             <TextField fx:id="txtClienteBuscarLista" promptText="Buscar en la lista por nombre o documento..." styleClass="form-input" />
 
-            <FlowPane fx:id="clientesCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
-                <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
-                     `cliente` (unida con `persona`), mostrando ademas el saldo de
-                     puntos (fn equivalente: suma de ACUMULACION menos CANJE en
-                     historial_puntos). -->
-                <VBox spacing="10" styleClass="item-card">
-                    <HBox alignment="TOP_LEFT" spacing="10">
-                        <Label styleClass="movie-title" text="Nombre completo" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Label styleClass="status-pill, status-activa" text="ACTIVO" />
-                    </HBox>
-                    <Label styleClass="movie-meta" text="Documento: 00000000" />
-                    <Label styleClass="movie-meta" text="Telefono: 00000000" />
-                    <Label styleClass="movie-meta" text="Correo: correo@ejemplo.com" />
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Label styleClass="movie-genre-pill" text="0 pts" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button styleClass="icon-button" text="Editar" />
-                        <Button styleClass="icon-button" text="X" />
-                    </HBox>
-                </VBox>
-            </FlowPane>
+            <!-- Las tarjetas de cada cliente se generan por codigo en
+                 ClienteControl (metodo cargarClientes), una por cada fila
+                 que haya en la tabla `cliente`. Este contenedor arranca vacio. -->
+            <FlowPane fx:id="clientesCardsContainer" hgap="18" styleClass="cards-grid" vgap="18" />
         </VBox>
     </HBox>
 </VBox>

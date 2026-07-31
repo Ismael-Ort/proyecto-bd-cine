@@ -245,7 +245,7 @@ public class PeliculaControl {
             }
 
             if (imagenSeleccionada == null) {
-                System.out.println("Debe seleccionar una imagen de portada.");
+                Alertas.mostrarAviso("Debe seleccionar una imagen de portada.");
                 return;
             }
 

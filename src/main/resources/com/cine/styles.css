@@ -329,6 +329,83 @@
     -fx-background-radius: 10;
 }
 
+/* ===================== COMBOBOX (todos los formularios) =====================
+   Por defecto un ComboBox se ve blanco porque el fondo/flecha/lista
+   desplegable no toman el color de .form-input automaticamente: hay que
+   pintar cada parte por separado (boton de flecha, flecha, y la lista
+   emergente cuando se abre). Aplica a cualquier ComboBox del programa,
+   incluidos los editables (los que dejan escribir, como Clasificacion). */
+
+.combo-box {
+    -fx-background-color: #160807;
+}
+
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0 10 10 0;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #f97316;
+}
+
+.combo-box .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5f5f5;
+    -fx-prompt-text-fill: #7f6d68;
+    -fx-highlight-fill: #f97316;
+    -fx-highlight-text-fill: #0a0a0a;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5f5f5;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #160807;
+    -fx-border-color: #3a1d16;
+    -fx-border-width: 1;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: #160807;
+    -fx-text-fill: #f5f5f5;
+    -fx-padding: 6 10;
+}
+
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #f97316;
+    -fx-text-fill: #ffffff;
+}
+
+/* ===================== DATEPICKER (fechas en los formularios) =====================
+   Mismo problema que el ComboBox: el campo se ve blanco si no se pinta a
+   mano. El calendario emergente que se abre al hacer clic se deja con su
+   estilo por defecto (no hace falta rehacer todo el calendario). */
+
+.date-picker {
+    -fx-background-color: #160807;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0 10 10 0;
+}
+
+.date-picker .arrow-button .arrow {
+    -fx-background-color: #f97316;
+}
+
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5f5f5;
+    -fx-prompt-text-fill: #7f6d68;
+    -fx-highlight-fill: #f97316;
+    -fx-highlight-text-fill: #0a0a0a;
+}
+
 .primary-button {
     -fx-background-color: #f97316;
     -fx-background-radius: 10;

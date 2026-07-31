@@ -30,6 +30,10 @@ public class DashboardController {
     @FXML private Button navGeneros;
 
     @FXML private VBox dashboardView;
+    // Convencion de fx:include: fx:id="dashboardView" tambien inyecta el
+    // controlador de esa vista en un campo llamado "dashboardViewController".
+    // Se usa para refrescar las estadisticas cada vez que se abre el Panel.
+    @FXML private PanelControl dashboardViewController;
     @FXML private VBox peliculasView;
     @FXML private VBox salasView;
     @FXML private VBox funcionesView;
@@ -42,7 +46,10 @@ public class DashboardController {
 
     @FXML
     private void initialize() {
-        navPanel.setOnAction(event -> showView(dashboardView, navPanel));
+        navPanel.setOnAction(event -> {
+            showView(dashboardView, navPanel);
+            dashboardViewController.cargarEstadisticas();
+        });
         navPeliculas.setOnAction(event -> showView(peliculasView, navPeliculas));
         navSalas.setOnAction(event -> showView(salasView, navSalas));
         navFunciones.setOnAction(event -> showView(funcionesView, navFunciones));

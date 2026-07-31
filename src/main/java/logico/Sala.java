@@ -49,4 +49,11 @@ public class Sala {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    @Override
+    public String toString() {
+        // Para que el ComboBox de salas (en el formulario de funcion)
+        // muestre el nombre en vez de "Sala@hashcode".
+        return nombreSala;
+    }
 }

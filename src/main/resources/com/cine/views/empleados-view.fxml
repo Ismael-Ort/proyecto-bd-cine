@@ -10,7 +10,6 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
@@ -32,7 +31,7 @@
     varias cuentas de usuario y el rol vive en `usuario`, no en `empleado`.
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.EmpleadoControl" spacing="24" styleClass="main-content" visible="false" managed="false">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -50,7 +49,7 @@
                 <Label styleClass="form-label" text="Buscar persona existente por documento" />
                 <HBox spacing="8">
                     <TextField fx:id="txtEmpleadoBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnBuscarPersonaEmpleado" styleClass="secondary-button" text="Buscar" />
+                    <Button fx:id="btnBuscarPersonaEmpleado" styleClass="secondary-button" text="Buscar" onAction="#buscarPersonaEmpleado" />
                 </HBox>
             </VBox>
 
@@ -126,33 +125,18 @@
             </HBox>
 
             <HBox spacing="10">
-                <Button fx:id="btnGuardarEmpleado" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar empleado" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnCancelarEdicionEmpleado" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnGuardarEmpleado" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar empleado" HBox.hgrow="ALWAYS" onAction="#guardarEmpleado" />
+                <Button fx:id="btnCancelarEdicionEmpleado" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" onAction="#limpiarFormulario" />
             </HBox>
         </VBox>
 
         <VBox spacing="16" HBox.hgrow="ALWAYS">
             <TextField fx:id="txtEmpleadoBuscarLista" promptText="Buscar en la lista por nombre o documento..." styleClass="form-input" />
 
-            <FlowPane fx:id="empleadosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
-                <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
-                     `empleado` (unida con `persona`). -->
-                <VBox spacing="10" styleClass="item-card">
-                    <HBox alignment="TOP_LEFT" spacing="10">
-                        <Label styleClass="movie-title" text="Nombre completo" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Label styleClass="status-pill, status-activa" text="ACTIVO" />
-                    </HBox>
-                    <Label styleClass="movie-meta" text="Cargo: Cajero" />
-                    <Label styleClass="movie-meta" text="Documento: 00000000" />
-                    <Label styleClass="movie-meta" text="Contratado: 01/01/2026" />
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button styleClass="icon-button" text="Editar" />
-                        <Button styleClass="icon-button" text="X" />
-                    </HBox>
-                </VBox>
-            </FlowPane>
+            <!-- Las tarjetas de cada empleado se generan por codigo en
+                 EmpleadoControl (metodo cargarEmpleados), una por cada fila
+                 que haya en la tabla `empleado`. Este contenedor arranca vacio. -->
+            <FlowPane fx:id="empleadosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18" />
         </VBox>
     </HBox>
 </VBox>

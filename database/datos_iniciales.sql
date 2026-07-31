@@ -50,8 +50,22 @@ INSERT IGNORE INTO metodopago (nombre_metodo, descripcion, estado) VALUES
 
 
 -- =========================================================
+-- SALAS
+-- Catalogo minimo para poder programar Funciones mientras la pantalla de
+-- administracion de Salas y butacas todavia no esta hecha. Igual que
+-- tipoentrada/metodopago, se puede correr varias veces sin duplicar filas
+-- (uq_sala_nombre + INSERT IGNORE).
+-- =========================================================
+
+INSERT IGNORE INTO sala (nombre_sala, capacidad, estado) VALUES
+    ('Sala 1', 80, 'ACTIVA'),
+    ('Sala 2', 60, 'ACTIVA');
+
+
+-- =========================================================
 -- COMPROBACIÓN
 -- =========================================================
 
 SELECT * FROM tipoentrada;
 SELECT * FROM metodopago;
+SELECT * FROM sala;

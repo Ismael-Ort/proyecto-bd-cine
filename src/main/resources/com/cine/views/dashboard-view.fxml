@@ -12,7 +12,7 @@
     proximas funciones. Puramente informativa (solo lectura).
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.PanelControl" spacing="24" styleClass="main-content">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -66,21 +66,8 @@
                 <Label styleClass="panel-icon" text="\$" />
                 <Label styleClass="panel-title" text="Ultimas ventas" />
             </HBox>
-            <VBox fx:id="ventasListContainer" spacing="0" styleClass="list-container">
-                <!-- Fila de ejemplo; el programa debe llenar este contenedor con las
-                     ventas reales (id_venta, cliente, canal_venta, total_pagado, estado). -->
-                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
-                    <VBox spacing="2">
-                        <Label styleClass="row-title" text="Venta #001" />
-                        <Label styleClass="row-subtitle" text="Cliente - TAQUILLA" />
-                    </VBox>
-                    <Region HBox.hgrow="ALWAYS" />
-                    <VBox alignment="CENTER_RIGHT" spacing="2">
-                        <Label styleClass="row-amount" text="Bs 45.00" />
-                        <Label styleClass="status-pill, status-completada" text="COMPLETADA" />
-                    </VBox>
-                </HBox>
-            </VBox>
+            <!-- Se llena por codigo en PanelControl; arranca vacio. -->
+            <VBox fx:id="ventasListContainer" spacing="0" styleClass="list-container" />
         </VBox>
 
         <VBox fx:id="panelFunciones" prefWidth="380" spacing="18" styleClass="panel-card" HBox.hgrow="NEVER">
@@ -88,14 +75,8 @@
                 <Label styleClass="panel-icon" text="F" />
                 <Label styleClass="panel-title" text="Proximas funciones" />
             </HBox>
-            <VBox fx:id="funcionesListContainer" spacing="18" styleClass="list-container">
-                <!-- Fila de ejemplo; el programa debe llenar esto con funciones
-                     PROGRAMADA/EN_CURSO ordenadas por fecha_funcion/hora_inicio. -->
-                <VBox spacing="2">
-                    <Label styleClass="funcion-title" text="Titulo de pelicula" />
-                    <Label styleClass="funcion-subtitle" text="Sala 1 - 20:00 a 22:15" />
-                </VBox>
-            </VBox>
+            <!-- Se llena por codigo en PanelControl; arranca vacio. -->
+            <VBox fx:id="funcionesListContainer" spacing="18" styleClass="list-container" />
         </VBox>
     </HBox>
 </VBox>

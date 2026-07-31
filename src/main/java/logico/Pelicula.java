@@ -80,4 +80,11 @@ public class Pelicula {
     public void setImagenPortada(byte[] imagenPortada) {
         this.imagenPortada = imagenPortada;
     }
+
+    @Override
+    public String toString() {
+        // Para que el ComboBox de peliculas (en el formulario de funcion)
+        // muestre el titulo en vez de "Pelicula@hashcode".
+        return titulo;
+    }
 }

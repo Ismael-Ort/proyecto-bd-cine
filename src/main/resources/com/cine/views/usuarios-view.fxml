@@ -10,7 +10,6 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
@@ -32,7 +31,7 @@
     guardar), rol, estado.
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.UsuarioControl" spacing="24" styleClass="main-content" visible="false" managed="false">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -50,7 +49,7 @@
                 <Label styleClass="form-label" text="Buscar persona por documento" />
                 <HBox spacing="8">
                     <TextField fx:id="txtUsuarioBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnBuscarPersonaUsuario" styleClass="secondary-button" text="Buscar" />
+                    <Button fx:id="btnBuscarPersonaUsuario" styleClass="secondary-button" text="Buscar" onAction="#buscarPersonaUsuario" />
                 </HBox>
                 <Label fx:id="lblUsuarioPersonaEncontrada" styleClass="form-hint" text="Persona: (sin seleccionar)" wrapText="true" />
             </VBox>
@@ -93,32 +92,18 @@
             </VBox>
 
             <HBox spacing="10">
-                <Button fx:id="btnGuardarUsuario" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar usuario" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnCancelarEdicionUsuario" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnGuardarUsuario" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar usuario" HBox.hgrow="ALWAYS" onAction="#guardarUsuario" />
+                <Button fx:id="btnCancelarEdicionUsuario" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" onAction="#limpiarFormulario" />
             </HBox>
         </VBox>
 
         <VBox spacing="16" HBox.hgrow="ALWAYS">
             <TextField fx:id="txtUsuarioBuscarLista" promptText="Buscar en la lista por nombre de usuario o persona..." styleClass="form-input" />
 
-            <FlowPane fx:id="usuariosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18">
-                <!-- Tarjeta de ejemplo; el programa debe generar una por cada fila de
-                     `usuario` (unida con `persona`). -->
-                <VBox spacing="10" styleClass="item-card">
-                    <HBox alignment="TOP_LEFT" spacing="10">
-                        <Label styleClass="movie-title" text="nombre_usuario" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Label styleClass="status-pill, status-activa" text="ACTIVO" />
-                    </HBox>
-                    <Label styleClass="movie-meta" text="Persona: Nombre completo" />
-                    <Label styleClass="movie-genre-pill" text="ADMINISTRADOR" />
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button styleClass="icon-button" text="Editar" />
-                        <Button styleClass="icon-button" text="X" />
-                    </HBox>
-                </VBox>
-            </FlowPane>
+            <!-- Las tarjetas de cada usuario se generan por codigo en
+                 UsuarioControl (metodo cargarUsuarios), una por cada fila
+                 que haya en la tabla `usuario`. Este contenedor arranca vacio. -->
+            <FlowPane fx:id="usuariosCardsContainer" hgap="18" styleClass="cards-grid" vgap="18" />
         </VBox>
     </HBox>
 </VBox>

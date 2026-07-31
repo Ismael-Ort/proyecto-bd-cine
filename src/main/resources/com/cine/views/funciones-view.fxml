@@ -20,7 +20,7 @@
     CANCELADA).
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.FuncionControl" spacing="24" styleClass="main-content" visible="false" managed="false">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -91,8 +91,8 @@
             </VBox>
 
             <HBox spacing="10">
-                <Button fx:id="btnGuardarFuncion" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar funcion" HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnCancelarEdicionFuncion" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" />
+                <Button fx:id="btnGuardarFuncion" maxWidth="Infinity" styleClass="primary-button" text="+  Guardar funcion" HBox.hgrow="ALWAYS" onAction="#guardarFuncion" />
+                <Button fx:id="btnCancelarEdicionFuncion" maxWidth="Infinity" styleClass="secondary-button" text="Cancelar" HBox.hgrow="ALWAYS" onAction="#limpiarFormulario" />
             </HBox>
         </VBox>
 
@@ -103,21 +103,10 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <ComboBox fx:id="cmbFuncionFiltroEstado" promptText="Filtrar por estado" styleClass="form-input" />
             </HBox>
-            <VBox fx:id="funcionesListaContainer" spacing="0" styleClass="list-container">
-                <!-- Fila de ejemplo; el programa debe generar una por cada fila de
-                     `funcion` (incluyendo pelicula.titulo y sala.nombre_sala). -->
-                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
-                    <VBox spacing="2">
-                        <Label styleClass="funcion-title" text="Titulo de pelicula" />
-                        <Label styleClass="funcion-subtitle" text="Sala 1 - 08/07/2026 - 20:00 a 22:15" />
-                    </VBox>
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Label styleClass="row-amount" text="Bs 45.00" />
-                    <Label styleClass="status-pill, status-activa" text="PROGRAMADA" />
-                    <Button styleClass="icon-button" text="Editar" />
-                    <Button styleClass="icon-button" text="X" />
-                </HBox>
-            </VBox>
+            <!-- Las filas de cada funcion se generan por codigo en
+                 FuncionControl (metodo cargarFunciones), una por cada fila
+                 que haya en la tabla `funcion`. Este contenedor arranca vacio. -->
+            <VBox fx:id="funcionesListaContainer" spacing="0" styleClass="list-container" />
         </VBox>
     </HBox>
 </VBox>
