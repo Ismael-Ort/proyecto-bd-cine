@@ -24,8 +24,8 @@
     chkFuncionTieneSubtitulos habilita el campo de texto solo si aplica).
 
     Estado: al crear siempre queda PROGRAMADA. El combo de Estado solo deja
-    elegir PROGRAMADA/CANCELADA a mano -- EN_CURSO y FINALIZADA no tiene
-    sentido asignarlos manualmente porque el trigger
+    elegir PROGRAMADA/CANCELADA a mano, porque EN_CURSO y FINALIZADA no
+    tienen sentido asignarlos manualmente: el trigger
     trg_actualizar_estado_funcion (ver database/procedimientos_triggers.sql)
     los recalcula solo, comparando la fecha/hora contra el reloj del
     servidor cada vez que FuncionBD.actualizarEstadosAutomaticos() se
