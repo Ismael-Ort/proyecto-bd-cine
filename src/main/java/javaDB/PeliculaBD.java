@@ -11,7 +11,7 @@ import java.util.List;
 
 public class PeliculaBD {
 
-    public  boolean registrarPelicula (Pelicula pelicula){
+    public boolean registrarPelicula (Pelicula pelicula){
 
         String sql = "INSERT INTO pelicula (titulo, duracion_minutos, clasificacion, sinopsis, estado, imagen_portada) VALUES (?,?,?,?,?,?)";
 

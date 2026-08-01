@@ -24,7 +24,7 @@
     encargarse de crear/leer las filas reales en la tabla `butaca`.
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.SalaControl" spacing="24" styleClass="main-content" visible="false" managed="false">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -56,7 +56,7 @@
 
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Capacidad" />
-                <TextField fx:id="txtSalaCapacidad" promptText="48" styleClass="form-input" />
+                <TextField fx:id="txtSalaCapacidad" promptText="48" styleClass="form-input" editable="false" />
             </VBox>
 
             <VBox spacing="8">

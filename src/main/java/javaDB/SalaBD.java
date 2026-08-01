@@ -11,8 +11,7 @@ import java.util.List;
 
 public class SalaBD {
 
-    // Solo lectura por ahora: la pantalla de administracion de Salas y
-    // butacas se hace aparte; esto es lo minimo que necesita el formulario
+    // esto es lo minimo que necesita el formulario
     // de Funciones para poder elegir una sala ya existente.
     public List<Sala> listarSalasActivas() {
 
@@ -46,4 +45,81 @@ public class SalaBD {
 
         return salas;
     }
+
+
+
+
+    public boolean registrarSala (Sala sala){
+
+        String sql = "insert into sala (nombre_sala, capacidad, estado) values (?,?,?)";
+
+        try(Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)){
+
+            ps.setString(1, sala.getNombreSala());
+            ps.setInt(2, sala.getCapacidad());
+            ps.setString(3, sala.getEstado());
+
+            int filas = ps.executeUpdate(); // guarda cuantos registros fueron afectados por el insert, si una pelicula se inserto correctamente normalmente devuelve 1.
+            if(filas > 0){
+                return true;
+            } else{
+                return false;
+            }// si filas vale 1 es que se inserto correctamente, y devuelve true, si vale cero devuelve false
+
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al registrar: " + e.getMessage());
+            System.out.println("Codigo SQL: " + e.getErrorCode());
+            throw new RuntimeException("No se puedo registrar la sala" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar la sala" + e.getMessage(), e);
+        }
+    }
+
+
+    public boolean actualizarSala(Sala sala) {
+
+        String sql = "UPDATE sala SET nombre_sala = ?, capacidad = ?, estado = ? WHERE id_sala = ?";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setString(1, sala.getNombreSala());
+            ps.setInt(2, sala.getCapacidad());
+            ps.setString(3, sala.getEstado());
+            ps.setInt(4, sala.getIdSala());
+
+            int filas = ps.executeUpdate();
+            return filas > 0;
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al actualizar: " + e.getMessage());
+            System.out.println("Codigo SQL: " + e.getErrorCode());
+            throw new RuntimeException("No se pudo actualizar la Sala" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar la Sala" + e.getMessage(), e);
+        }
+
+
+
+
+
+    }
+
+
+
+
+
+
 }
+
+
+
+
