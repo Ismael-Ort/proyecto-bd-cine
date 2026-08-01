@@ -140,6 +140,32 @@ public class FuncionBD {
         return funciones;
     }
 
+    // Repasa el estado de todas las funciones no canceladas. No compara
+    // fechas/horas aqui en Java (eso dependeria del reloj de la
+    // computadora que corre el programa); solo dispara un UPDATE para que
+    // el trigger trg_actualizar_estado_funcion (ver
+    // database/procedimientos_triggers.sql) recalcule el estado usando la
+    // hora del propio servidor de MySQL, que es la misma para todos.
+    public void actualizarEstadosAutomaticos() {
+
+        String sql = "UPDATE funcion SET estado = estado WHERE estado <> 'CANCELADA'";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al actualizar estados de funciones: " + e.getMessage());
+            throw new RuntimeException("No se pudieron actualizar los estados de las funciones" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar las funciones" + e.getMessage(), e);
+        }
+    }
+
     // No se puede expresar con un CHECK de una sola fila: hay que comparar
     // contra las demas funciones de la misma sala y fecha. idFuncionExcluir
     // sirve para no chocar consigo misma cuando se esta editando (usar 0

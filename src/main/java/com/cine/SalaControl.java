@@ -17,6 +17,8 @@ import java.util.List;
 
 public class SalaControl {
 
+    private static final int CAPACIDAD_MAXIMA = 48;
+
     private SalaBD salaBD = new SalaBD();
 
     @FXML
@@ -124,7 +126,14 @@ public class SalaControl {
                 return;
             }
 
-            txtSalaCapacidad.setText(String.valueOf(filas * butacasPorFila));
+            int capacidad = filas * butacasPorFila;
+
+            if (capacidad > CAPACIDAD_MAXIMA) {
+                Alertas.mostrarAviso("Una sala no puede tener mas de " + CAPACIDAD_MAXIMA + " butacas (filas x butacas por fila).");
+                return;
+            }
+
+            txtSalaCapacidad.setText(String.valueOf(capacidad));
 
         } catch (NumberFormatException e) {
             Alertas.mostrarAviso("Filas y butacas por fila deben ser numeros enteros.");

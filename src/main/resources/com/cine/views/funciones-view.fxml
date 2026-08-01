@@ -5,6 +5,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
@@ -15,9 +16,10 @@
     Pagina: Funciones (tabla `funcion`).
 
     Campos: id_pelicula (combo), id_sala (combo), fecha_funcion, hora_inicio,
-    hora_fin (debe ser mayor a hora_inicio), tarifa_base, idioma_audio e
-    idioma_subtitulos (opcionales), estado (PROGRAMADA/EN_CURSO/FINALIZADA/
-    CANCELADA).
+    hora_fin (debe ser mayor a hora_inicio), tarifa_base, idioma_audio
+    (obligatorio: toda funcion se pasa en algun idioma) e idioma_subtitulos
+    (opcional: puede no tener subtitulos), estado (PROGRAMADA/EN_CURSO/
+    FINALIZADA/CANCELADA).
 -->
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.FuncionControl" spacing="24" styleClass="main-content" visible="false" managed="false">
@@ -46,17 +48,23 @@
 
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Fecha" />
-                <TextField fx:id="txtFuncionFecha" promptText="dd/mm/aaaa" styleClass="form-input" />
+                <DatePicker fx:id="dpFuncionFecha" maxWidth="Infinity" styleClass="form-input" />
             </VBox>
 
             <HBox spacing="12">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Hora de inicio" />
-                    <TextField fx:id="txtFuncionHoraInicio" promptText="20:00" styleClass="form-input" />
+                    <HBox spacing="6">
+                        <ComboBox fx:id="cmbFuncionHoraInicioHora" prefWidth="75" promptText="Hora" styleClass="form-input" />
+                        <ComboBox fx:id="cmbFuncionHoraInicioMinuto" prefWidth="75" promptText="Min" styleClass="form-input" />
+                    </HBox>
                 </VBox>
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Hora de fin" />
-                    <TextField fx:id="txtFuncionHoraFin" promptText="22:15" styleClass="form-input" />
+                    <HBox spacing="6">
+                        <ComboBox fx:id="cmbFuncionHoraFinHora" prefWidth="75" promptText="Hora" styleClass="form-input" />
+                        <ComboBox fx:id="cmbFuncionHoraFinMinuto" prefWidth="75" promptText="Min" styleClass="form-input" />
+                    </HBox>
                 </VBox>
             </HBox>
 
@@ -68,7 +76,7 @@
             <HBox spacing="12">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Idioma audio" />
-                    <TextField fx:id="txtFuncionIdiomaAudio" promptText="Espanol (opcional)" styleClass="form-input" />
+                    <TextField fx:id="txtFuncionIdiomaAudio" promptText="Espanol" styleClass="form-input" />
                 </VBox>
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Idioma subtitulos" />

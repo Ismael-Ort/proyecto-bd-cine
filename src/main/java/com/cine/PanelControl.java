@@ -56,6 +56,11 @@ public class PanelControl {
 
     private void cargarProximasFunciones(List<Pelicula> peliculas) {
 
+        // Mismo motivo que en FuncionControl: se pide recalcular el
+        // estado antes de listar, para no mostrar como "proxima" una
+        // funcion que ya deberia verse FINALIZADA o EN_CURSO.
+        funcionBD.actualizarEstadosAutomaticos();
+
         funcionesListContainer.getChildren().clear();
 
         List<Funcion> funciones = funcionBD.listarProximasFunciones(5);

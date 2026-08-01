@@ -232,7 +232,7 @@ CREATE TABLE funcion (
                          estado VARCHAR(20) NOT NULL DEFAULT 'PROGRAMADA',
                          id_pelicula INT NOT NULL,
                          id_sala INT NOT NULL,
-                         idioma_audio VARCHAR(30) NULL,
+                         idioma_audio VARCHAR(30) NOT NULL,
                          idioma_subtitulos VARCHAR(30) NULL,
 
                          CONSTRAINT pk_funcion

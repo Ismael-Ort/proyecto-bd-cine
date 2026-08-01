@@ -13,12 +13,13 @@
 -- docs/procedimientos_bd.md antes de correrlo.
 --
 -- El proyecto exige, como minimo, un procedimiento almacenado,
--- un trigger y una transaccion. Aqui hay exactamente lo minimo
--- necesario para cubrir un flujo real (registrar una venta y
--- confirmar su pago), sin usar funciones almacenadas (no se
--- vieron en clase):
+-- un trigger y una transaccion. Aqui hay lo minimo necesario
+-- para cubrir un flujo real (registrar una venta, confirmar su
+-- pago, y mantener al dia el estado de las funciones), sin usar
+-- funciones almacenadas (no se vieron en clase):
 --
---   1 trigger    -> trg_acumula_puntos
+--   2 triggers   -> trg_acumula_puntos
+--                -> trg_actualizar_estado_funcion
 --   2 procedimientos, ambos con su propia transaccion:
 --                -> sp_registrar_venta
 --                -> sp_confirmar_pago
@@ -51,6 +52,54 @@ BEGIN
 
         INSERT INTO historial_puntos (tipo_movimiento, cantidad_puntos, descripcion, id_cliente, id_venta)
         VALUES ('ACUMULACIÓN', 1, CONCAT('Punto generado por la entrada #', NEW.id_entrada), v_id_cliente, NEW.id_venta);
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- =========================================================
+-- TRIGGER: trg_actualizar_estado_funcion
+-- BEFORE UPDATE ON funcion
+--
+-- Recalcula el estado de una funcion (PROGRAMADA/EN_CURSO/
+-- FINALIZADA) comparando fecha_funcion/hora_inicio/hora_fin
+-- contra la hora del propio SERVIDOR de MySQL (CURDATE(),
+-- CURTIME()), no contra la hora de la computadora que corre el
+-- programa Java. Asi, aunque dos computadoras tengan el reloj
+-- desincronizado, el estado que queda guardado es siempre el
+-- mismo para todos: el trigger no confia en ningun reloj externo.
+--
+-- No se dispara solo cada cierto tiempo (un trigger no puede
+-- hacer eso): se dispara cuando Java ejecuta un UPDATE sobre
+-- `funcion`, ya sea porque se edito una funcion desde el
+-- formulario, o porque FuncionBD.actualizarEstadosAutomaticos()
+-- hizo un UPDATE "de repaso" (SET estado = estado) al abrir la
+-- pantalla de Funciones o el Panel de control.
+--
+-- Si NEW.estado ya viene como 'CANCELADA' (porque asi la dejo el
+-- repaso automatico, o porque el usuario la cancelo a mano desde
+-- el formulario), el trigger no la toca: una funcion cancelada
+-- nunca cambia de estado sola.
+-- =========================================================
+
+DELIMITER $$
+
+CREATE TRIGGER trg_actualizar_estado_funcion
+BEFORE UPDATE ON funcion
+FOR EACH ROW
+BEGIN
+    IF NEW.estado <> 'CANCELADA' THEN
+        IF NEW.fecha_funcion < CURDATE()
+           OR (NEW.fecha_funcion = CURDATE() AND CURTIME() >= NEW.hora_fin) THEN
+            SET NEW.estado = 'FINALIZADA';
+        ELSEIF NEW.fecha_funcion = CURDATE()
+               AND CURTIME() >= NEW.hora_inicio
+               AND CURTIME() < NEW.hora_fin THEN
+            SET NEW.estado = 'EN_CURSO';
+        ELSE
+            SET NEW.estado = 'PROGRAMADA';
+        END IF;
     END IF;
 END$$
 

@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -21,7 +22,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class FuncionControl {
@@ -35,9 +35,11 @@ public class FuncionControl {
     @FXML private Label lblFuncionFormTitulo;
     @FXML private ComboBox<Pelicula> cmbFuncionPelicula;
     @FXML private ComboBox<Sala> cmbFuncionSala;
-    @FXML private TextField txtFuncionFecha;
-    @FXML private TextField txtFuncionHoraInicio;
-    @FXML private TextField txtFuncionHoraFin;
+    @FXML private DatePicker dpFuncionFecha;
+    @FXML private ComboBox<String> cmbFuncionHoraInicioHora;
+    @FXML private ComboBox<String> cmbFuncionHoraInicioMinuto;
+    @FXML private ComboBox<String> cmbFuncionHoraFinHora;
+    @FXML private ComboBox<String> cmbFuncionHoraFinMinuto;
     @FXML private TextField txtFuncionTarifa;
     @FXML private TextField txtFuncionIdiomaAudio;
     @FXML private TextField txtFuncionIdiomaSubtitulos;
@@ -50,7 +52,25 @@ public class FuncionControl {
     public void initialize() {
         cmbFuncionEstado.setValue("PROGRAMADA");
         cargarCombosDeApoyo();
+        poblarSelectoresDeHora();
         cargarFunciones();
+    }
+
+    // Llena los 4 combos de hora/minuto (00-23 y 00-59), para elegir la
+    // hora de inicio y fin sin tener que escribirla a mano.
+    private void poblarSelectoresDeHora() {
+
+        for (int hora = 0; hora < 24; hora++) {
+            String texto = String.format("%02d", hora);
+            cmbFuncionHoraInicioHora.getItems().add(texto);
+            cmbFuncionHoraFinHora.getItems().add(texto);
+        }
+
+        for (int minuto = 0; minuto < 60; minuto++) {
+            String texto = String.format("%02d", minuto);
+            cmbFuncionHoraInicioMinuto.getItems().add(texto);
+            cmbFuncionHoraFinMinuto.getItems().add(texto);
+        }
     }
 
     // Peliculas (solo ACTIVA) y salas disponibles para elegir en el formulario.
@@ -68,6 +88,12 @@ public class FuncionControl {
     }
 
     private void cargarFunciones() {
+
+        // Antes de traer la lista, se pide que la BD recalcule el estado
+        // de cada funcion (PROGRAMADA/EN_CURSO/FINALIZADA) segun la hora
+        // del servidor. Asi la pantalla siempre muestra el estado correcto
+        // apenas se abre o se refresca, sin un reloj corriendo en Java.
+        funcionBD.actualizarEstadosAutomaticos();
 
         funcionesListaContainer.getChildren().clear();
 
@@ -139,9 +165,11 @@ public class FuncionControl {
 
         cmbFuncionPelicula.setValue(buscarPeliculaPorId(funcion.getIdPelicula()));
         cmbFuncionSala.setValue(buscarSalaPorId(funcion.getIdSala()));
-        txtFuncionFecha.setText(funcion.getFechaFuncion().format(FORMATO_FECHA));
-        txtFuncionHoraInicio.setText(funcion.getHoraInicio().toString());
-        txtFuncionHoraFin.setText(funcion.getHoraFin().toString());
+        dpFuncionFecha.setValue(funcion.getFechaFuncion());
+        cmbFuncionHoraInicioHora.setValue(String.format("%02d", funcion.getHoraInicio().getHour()));
+        cmbFuncionHoraInicioMinuto.setValue(String.format("%02d", funcion.getHoraInicio().getMinute()));
+        cmbFuncionHoraFinHora.setValue(String.format("%02d", funcion.getHoraFin().getHour()));
+        cmbFuncionHoraFinMinuto.setValue(String.format("%02d", funcion.getHoraFin().getMinute()));
         txtFuncionTarifa.setText(funcion.getTarifaBase().toString());
         txtFuncionIdiomaAudio.setText(funcion.getIdiomaAudio());
         txtFuncionIdiomaSubtitulos.setText(funcion.getIdiomaSubtitulos());
@@ -156,9 +184,11 @@ public class FuncionControl {
         try {
             Pelicula pelicula = cmbFuncionPelicula.getValue();
             Sala sala = cmbFuncionSala.getValue();
-            String textoFecha = txtFuncionFecha.getText().trim();
-            String textoHoraInicio = txtFuncionHoraInicio.getText().trim();
-            String textoHoraFin = txtFuncionHoraFin.getText().trim();
+            LocalDate fecha = dpFuncionFecha.getValue();
+            String horaInicioHora = cmbFuncionHoraInicioHora.getValue();
+            String horaInicioMinuto = cmbFuncionHoraInicioMinuto.getValue();
+            String horaFinHora = cmbFuncionHoraFinHora.getValue();
+            String horaFinMinuto = cmbFuncionHoraFinMinuto.getValue();
             String textoTarifa = txtFuncionTarifa.getText().trim();
             String idiomaAudio = txtFuncionIdiomaAudio.getText().trim();
             String idiomaSubtitulos = txtFuncionIdiomaSubtitulos.getText().trim();
@@ -174,26 +204,26 @@ public class FuncionControl {
                 return;
             }
 
-            LocalDate fecha;
-            try {
-                fecha = LocalDate.parse(textoFecha, FORMATO_FECHA);
-            } catch (DateTimeParseException e) {
-                Alertas.mostrarAviso("La fecha debe tener el formato dd/mm/aaaa.");
+            if (fecha == null) {
+                Alertas.mostrarAviso("Debes elegir la fecha.");
                 return;
             }
 
-            LocalTime horaInicio;
-            LocalTime horaFin;
-            try {
-                horaInicio = LocalTime.parse(textoHoraInicio);
-                horaFin = LocalTime.parse(textoHoraFin);
-            } catch (DateTimeParseException e) {
-                Alertas.mostrarAviso("Las horas deben tener el formato HH:mm, ej: 20:00.");
+            if (horaInicioHora == null || horaInicioMinuto == null || horaFinHora == null || horaFinMinuto == null) {
+                Alertas.mostrarAviso("Debes elegir la hora de inicio y la hora de fin.");
                 return;
             }
+
+            LocalTime horaInicio = LocalTime.of(Integer.parseInt(horaInicioHora), Integer.parseInt(horaInicioMinuto));
+            LocalTime horaFin = LocalTime.of(Integer.parseInt(horaFinHora), Integer.parseInt(horaFinMinuto));
 
             if (!horaFin.isAfter(horaInicio)) {
                 Alertas.mostrarAviso("La hora de fin debe ser mayor que la hora de inicio.");
+                return;
+            }
+
+            if (idiomaAudio.isEmpty()) {
+                Alertas.mostrarAviso("Debes escribir el idioma del audio.");
                 return;
             }
 
@@ -230,7 +260,7 @@ public class FuncionControl {
             funcion.setEstado(estado);
             funcion.setIdPelicula(pelicula.getIdPelicula());
             funcion.setIdSala(sala.getIdSala());
-            funcion.setIdiomaAudio(idiomaAudio.isEmpty() ? null : idiomaAudio);
+            funcion.setIdiomaAudio(idiomaAudio);
             funcion.setIdiomaSubtitulos(idiomaSubtitulos.isEmpty() ? null : idiomaSubtitulos);
 
             boolean guardado;
@@ -261,9 +291,11 @@ public class FuncionControl {
 
         cmbFuncionPelicula.setValue(null);
         cmbFuncionSala.setValue(null);
-        txtFuncionFecha.clear();
-        txtFuncionHoraInicio.clear();
-        txtFuncionHoraFin.clear();
+        dpFuncionFecha.setValue(null);
+        cmbFuncionHoraInicioHora.setValue(null);
+        cmbFuncionHoraInicioMinuto.setValue(null);
+        cmbFuncionHoraFinHora.setValue(null);
+        cmbFuncionHoraFinMinuto.setValue(null);
         txtFuncionTarifa.clear();
         txtFuncionIdiomaAudio.clear();
         txtFuncionIdiomaSubtitulos.clear();
