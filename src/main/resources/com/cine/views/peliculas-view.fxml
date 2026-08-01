@@ -6,7 +6,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
@@ -21,8 +20,8 @@
     Campos de pelicula: titulo, duracion_minutos, clasificacion, sinopsis,
     estado (ACTIVA/INACTIVA), imagen_portada (BLOB).
     Generos: relacion muchos a muchos via pelicula_genero -> se elige con
-    una lista de seleccion multiple (listPeliculaGeneros), cargada desde la
-    tabla `genero` (pantalla "Generos" en el menu).
+    un checkbox por cada genero activo (checkBoxGenerosContainer), cargados
+    desde la tabla `genero` (pantalla "Generos" en el menu).
 
     La imagen se muestra siempre al mismo tamano (imgPeliculaPreview, marco
     posterFrame de 160x220) tanto en el formulario como en cada tarjeta de la
@@ -64,13 +63,13 @@
                 </VBox>
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Clasificacion" />
-                    <ComboBox fx:id="cmbPeliculaClasificacion" editable="true" maxWidth="Infinity" promptText="PG-13" styleClass="form-input" />
+                    <ComboBox fx:id="cmbPeliculaClasificacion" maxWidth="Infinity" promptText="PG-13" styleClass="form-input" />
                 </VBox>
             </HBox>
 
             <VBox spacing="8">
-                <Label styleClass="form-label" text="Generos (Ctrl+clic para varios)" />
-                <ListView fx:id="listPeliculaGeneros" prefHeight="110" styleClass="form-input, multi-select-list" />
+                <Label styleClass="form-label" text="Generos" />
+                <FlowPane fx:id="checkBoxGenerosContainer" hgap="14" vgap="8" styleClass="checkbox-genero-container" />
             </VBox>
 
             <VBox spacing="8">

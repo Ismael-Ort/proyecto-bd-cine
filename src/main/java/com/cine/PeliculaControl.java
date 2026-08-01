@@ -4,11 +4,11 @@ import javaDB.GeneroBD;
 import javaDB.PeliculaBD;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -69,7 +69,7 @@ public class PeliculaControl {
     private FlowPane peliculasCardsContainer;
 
     @FXML
-    private ListView<Genero> listPeliculaGeneros;
+    private FlowPane checkBoxGenerosContainer;
 
     private byte[] imagenSeleccionada;
 
@@ -83,8 +83,11 @@ public class PeliculaControl {
         cmbPeliculaClasificacion.getItems().addAll("G","PG","PG-13","R"); // carga los valores dentro del combobox
         cmbPeliculaEstado.setValue("ACTIVA");
 
-        listPeliculaGeneros.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        listPeliculaGeneros.getItems().addAll(generoBD.listarGeneros());
+        for (Genero genero : generoBD.listarGeneros()) {
+            CheckBox checkGenero = new CheckBox(genero.getNombreGenero());
+            checkGenero.setUserData(genero);
+            checkBoxGenerosContainer.getChildren().add(checkGenero);
+        }
 
         cargarPeliculas();
     }
@@ -306,6 +309,10 @@ public class PeliculaControl {
 
         cmbPeliculaClasificacion.setValue(null);
         cmbPeliculaEstado.setValue("ACTIVA");
+
+        for (Node nodo : checkBoxGenerosContainer.getChildren()) {
+            ((CheckBox) nodo).setSelected(false);
+        }
 
         imagenSeleccionada = null;
         imgPeliculaPreview.setImage(null);

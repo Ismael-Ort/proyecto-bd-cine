@@ -513,6 +513,37 @@
     -fx-background-color: #25100d;
 }
 
+/* Checkboxes de generos en el formulario de pelicula */
+.checkbox-genero-container {
+    -fx-background-color: #160807;
+    -fx-background-radius: 10;
+    -fx-border-color: #3a1d16;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 10 12;
+}
+
+.checkbox-genero-container .check-box {
+    -fx-text-fill: #f5f5f5;
+    -fx-font-size: 12.5px;
+}
+
+.checkbox-genero-container .check-box .box {
+    -fx-background-color: #0a0303;
+    -fx-border-color: #3a1d16;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.checkbox-genero-container .check-box:selected .box {
+    -fx-background-color: #f97316;
+    -fx-border-color: #f97316;
+}
+
+.checkbox-genero-container .check-box .mark {
+    -fx-background-color: #ffffff;
+}
+
 .movie-genre-pill {
     -fx-background-color: rgba(249, 115, 22, 0.16);
     -fx-text-fill: #f97316;
