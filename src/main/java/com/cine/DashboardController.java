@@ -37,6 +37,10 @@ public class DashboardController {
     @FXML private VBox peliculasView;
     @FXML private VBox salasView;
     @FXML private VBox funcionesView;
+    // Misma convencion que dashboardViewController: refresca los estados
+    // (PROGRAMADA/EN_CURSO/FINALIZADA) cada vez que se abre esta pantalla,
+    // no solo la primera vez que carga la app.
+    @FXML private FuncionControl funcionesViewController;
     @FXML private VBox ventasView;
     @FXML private VBox clientesView;
     @FXML private VBox empleadosView;
@@ -52,7 +56,10 @@ public class DashboardController {
         });
         navPeliculas.setOnAction(event -> showView(peliculasView, navPeliculas));
         navSalas.setOnAction(event -> showView(salasView, navSalas));
-        navFunciones.setOnAction(event -> showView(funcionesView, navFunciones));
+        navFunciones.setOnAction(event -> {
+            showView(funcionesView, navFunciones);
+            funcionesViewController.cargarFunciones();
+        });
         navVentas.setOnAction(event -> showView(ventasView, navVentas));
         navClientes.setOnAction(event -> showView(clientesView, navClientes));
         navEmpleados.setOnAction(event -> showView(empleadosView, navEmpleados));

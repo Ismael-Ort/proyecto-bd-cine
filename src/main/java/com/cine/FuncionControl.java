@@ -22,6 +22,7 @@ import logico.Pelicula;
 import logico.Sala;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -84,7 +85,10 @@ public class FuncionControl {
         cmbFuncionSala.getItems().addAll(salaBD.listarSalasActivas());
     }
 
-    private void cargarFunciones() {
+    // Publico para que DashboardController pueda llamarlo cada vez que se
+    // hace clic en "Funciones" en el menu (ver DashboardController), y no
+    // solo la primera vez que se abre la pantalla.
+    public void cargarFunciones() {
 
         // Antes de traer la lista, se pide que la BD recalcule el estado
         // de cada funcion (PROGRAMADA/EN_CURSO/FINALIZADA) segun la hora
@@ -214,6 +218,16 @@ public class FuncionControl {
 
             if (!horaFin.isAfter(horaInicio)) {
                 Alertas.mostrarAviso("La hora de fin debe ser mayor que la hora de inicio.");
+                return;
+            }
+
+            // La funcion (hora_inicio a hora_fin) tiene que caber la pelicula
+            // completa; el tiempo extra es para anuncios, limpieza, etc.
+            // (ver comentario de la tabla funcion en database/schema.sql).
+            long duracionFuncionMinutos = Duration.between(horaInicio, horaFin).toMinutes();
+            if (duracionFuncionMinutos < pelicula.getDuracionMinutos()) {
+                Alertas.mostrarAviso("La funcion dura " + duracionFuncionMinutos + " minutos, pero la pelicula dura "
+                        + pelicula.getDuracionMinutos() + ". La hora de fin debe dejar espacio para la pelicula completa.");
                 return;
             }
 
