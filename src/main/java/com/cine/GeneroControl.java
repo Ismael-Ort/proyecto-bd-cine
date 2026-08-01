@@ -148,7 +148,7 @@ public class GeneroControl {
             }
 
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            Alertas.mostrarAviso(e.getMessage());
         }
     }
 

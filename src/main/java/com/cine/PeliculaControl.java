@@ -291,7 +291,7 @@ public class PeliculaControl {
             );
 
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            Alertas.mostrarAviso(e.getMessage());
         }
 
 
