@@ -56,7 +56,6 @@ public class FuncionControl {
 
     public void initialize() {
         cmbFuncionEstado.setValue("PROGRAMADA");
-        cargarCombosDeApoyo();
         configurarSelectoresDeHora();
         cargarFunciones();
     }
@@ -72,6 +71,11 @@ public class FuncionControl {
     }
 
     // Peliculas (solo ACTIVA) y salas disponibles para elegir en el formulario.
+    // Se llama desde cargarFunciones(), no solo desde initialize(): si no,
+    // el combo se queda con los objetos Pelicula/Sala cacheados desde que
+    // arranco la app, y si despues editas esa pelicula (por ejemplo su
+    // duracion) desde la pantalla de Peliculas, el combo de Funciones
+    // seguiria mostrando/usando el valor viejo hasta reiniciar la app.
     private void cargarCombosDeApoyo() {
 
         cmbFuncionPelicula.getItems().clear();
@@ -89,6 +93,11 @@ public class FuncionControl {
     // hace clic en "Funciones" en el menu (ver DashboardController), y no
     // solo la primera vez que se abre la pantalla.
     public void cargarFunciones() {
+
+        // Se vuelve a pedir peliculas/salas por la misma razon que se
+        // recalculan los estados mas abajo: que no queden datos viejos
+        // cacheados de cuando arranco la app.
+        cargarCombosDeApoyo();
 
         // Antes de traer la lista, se pide que la BD recalcule el estado
         // de cada funcion (PROGRAMADA/EN_CURSO/FINALIZADA) segun la hora
