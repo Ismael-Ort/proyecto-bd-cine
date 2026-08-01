@@ -6,9 +6,12 @@ import javaDB.SalaBD;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -36,12 +39,13 @@ public class FuncionControl {
     @FXML private ComboBox<Pelicula> cmbFuncionPelicula;
     @FXML private ComboBox<Sala> cmbFuncionSala;
     @FXML private DatePicker dpFuncionFecha;
-    @FXML private ComboBox<String> cmbFuncionHoraInicioHora;
-    @FXML private ComboBox<String> cmbFuncionHoraInicioMinuto;
-    @FXML private ComboBox<String> cmbFuncionHoraFinHora;
-    @FXML private ComboBox<String> cmbFuncionHoraFinMinuto;
+    @FXML private Spinner<Integer> spnFuncionHoraInicioHora;
+    @FXML private Spinner<Integer> spnFuncionHoraInicioMinuto;
+    @FXML private Spinner<Integer> spnFuncionHoraFinHora;
+    @FXML private Spinner<Integer> spnFuncionHoraFinMinuto;
     @FXML private TextField txtFuncionTarifa;
     @FXML private TextField txtFuncionIdiomaAudio;
+    @FXML private CheckBox chkFuncionTieneSubtitulos;
     @FXML private TextField txtFuncionIdiomaSubtitulos;
     @FXML private ComboBox<String> cmbFuncionEstado;
     @FXML private VBox funcionesListaContainer;
@@ -52,25 +56,18 @@ public class FuncionControl {
     public void initialize() {
         cmbFuncionEstado.setValue("PROGRAMADA");
         cargarCombosDeApoyo();
-        poblarSelectoresDeHora();
+        configurarSelectoresDeHora();
         cargarFunciones();
     }
 
-    // Llena los 4 combos de hora/minuto (00-23 y 00-59), para elegir la
-    // hora de inicio y fin sin tener que escribirla a mano.
-    private void poblarSelectoresDeHora() {
+    // Los 4 Spinner de hora/minuto (00-23 y 00-59) para elegir la hora de
+    // inicio y de fin con flechitas, sin tener que escribirla a mano.
+    private void configurarSelectoresDeHora() {
 
-        for (int hora = 0; hora < 24; hora++) {
-            String texto = String.format("%02d", hora);
-            cmbFuncionHoraInicioHora.getItems().add(texto);
-            cmbFuncionHoraFinHora.getItems().add(texto);
-        }
-
-        for (int minuto = 0; minuto < 60; minuto++) {
-            String texto = String.format("%02d", minuto);
-            cmbFuncionHoraInicioMinuto.getItems().add(texto);
-            cmbFuncionHoraFinMinuto.getItems().add(texto);
-        }
+        spnFuncionHoraInicioHora.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 0));
+        spnFuncionHoraInicioMinuto.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
+        spnFuncionHoraFinHora.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 0));
+        spnFuncionHoraFinMinuto.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
     }
 
     // Peliculas (solo ACTIVA) y salas disponibles para elegir en el formulario.
@@ -124,7 +121,7 @@ public class FuncionControl {
         Region espacio = new Region();
         HBox.setHgrow(espacio, Priority.ALWAYS);
 
-        Label tarifa = new Label("Bs " + funcion.getTarifaBase());
+        Label tarifa = new Label("RD$" + funcion.getTarifaBase());
         tarifa.getStyleClass().add("row-amount");
 
         Label estado = new Label(funcion.getEstado());
@@ -166,14 +163,23 @@ public class FuncionControl {
         cmbFuncionPelicula.setValue(buscarPeliculaPorId(funcion.getIdPelicula()));
         cmbFuncionSala.setValue(buscarSalaPorId(funcion.getIdSala()));
         dpFuncionFecha.setValue(funcion.getFechaFuncion());
-        cmbFuncionHoraInicioHora.setValue(String.format("%02d", funcion.getHoraInicio().getHour()));
-        cmbFuncionHoraInicioMinuto.setValue(String.format("%02d", funcion.getHoraInicio().getMinute()));
-        cmbFuncionHoraFinHora.setValue(String.format("%02d", funcion.getHoraFin().getHour()));
-        cmbFuncionHoraFinMinuto.setValue(String.format("%02d", funcion.getHoraFin().getMinute()));
+        spnFuncionHoraInicioHora.getValueFactory().setValue(funcion.getHoraInicio().getHour());
+        spnFuncionHoraInicioMinuto.getValueFactory().setValue(funcion.getHoraInicio().getMinute());
+        spnFuncionHoraFinHora.getValueFactory().setValue(funcion.getHoraFin().getHour());
+        spnFuncionHoraFinMinuto.getValueFactory().setValue(funcion.getHoraFin().getMinute());
         txtFuncionTarifa.setText(funcion.getTarifaBase().toString());
         txtFuncionIdiomaAudio.setText(funcion.getIdiomaAudio());
-        txtFuncionIdiomaSubtitulos.setText(funcion.getIdiomaSubtitulos());
-        cmbFuncionEstado.setValue(funcion.getEstado());
+
+        String idiomaSubtitulos = funcion.getIdiomaSubtitulos();
+        chkFuncionTieneSubtitulos.setSelected(idiomaSubtitulos != null && !idiomaSubtitulos.isEmpty());
+        txtFuncionIdiomaSubtitulos.setDisable(!chkFuncionTieneSubtitulos.isSelected());
+        txtFuncionIdiomaSubtitulos.setText(idiomaSubtitulos);
+
+        // El estado real solo puede ser PROGRAMADA o CANCELADA para elegir
+        // a mano; si la funcion esta EN_CURSO o FINALIZADA (calculado por
+        // el trigger), se muestra como PROGRAMADA en el combo porque
+        // volver a guardar sin tocarla no debe cancelarla.
+        cmbFuncionEstado.setValue("CANCELADA".equals(funcion.getEstado()) ? "CANCELADA" : "PROGRAMADA");
 
         lblFuncionFormTitulo.setText("Editar funcion");
     }
@@ -185,13 +191,10 @@ public class FuncionControl {
             Pelicula pelicula = cmbFuncionPelicula.getValue();
             Sala sala = cmbFuncionSala.getValue();
             LocalDate fecha = dpFuncionFecha.getValue();
-            String horaInicioHora = cmbFuncionHoraInicioHora.getValue();
-            String horaInicioMinuto = cmbFuncionHoraInicioMinuto.getValue();
-            String horaFinHora = cmbFuncionHoraFinHora.getValue();
-            String horaFinMinuto = cmbFuncionHoraFinMinuto.getValue();
+            LocalTime horaInicio = LocalTime.of(spnFuncionHoraInicioHora.getValue(), spnFuncionHoraInicioMinuto.getValue());
+            LocalTime horaFin = LocalTime.of(spnFuncionHoraFinHora.getValue(), spnFuncionHoraFinMinuto.getValue());
             String textoTarifa = txtFuncionTarifa.getText().trim();
             String idiomaAudio = txtFuncionIdiomaAudio.getText().trim();
-            String idiomaSubtitulos = txtFuncionIdiomaSubtitulos.getText().trim();
             String estado = cmbFuncionEstado.getValue();
 
             if (pelicula == null) {
@@ -209,14 +212,6 @@ public class FuncionControl {
                 return;
             }
 
-            if (horaInicioHora == null || horaInicioMinuto == null || horaFinHora == null || horaFinMinuto == null) {
-                Alertas.mostrarAviso("Debes elegir la hora de inicio y la hora de fin.");
-                return;
-            }
-
-            LocalTime horaInicio = LocalTime.of(Integer.parseInt(horaInicioHora), Integer.parseInt(horaInicioMinuto));
-            LocalTime horaFin = LocalTime.of(Integer.parseInt(horaFinHora), Integer.parseInt(horaFinMinuto));
-
             if (!horaFin.isAfter(horaInicio)) {
                 Alertas.mostrarAviso("La hora de fin debe ser mayor que la hora de inicio.");
                 return;
@@ -225,6 +220,15 @@ public class FuncionControl {
             if (idiomaAudio.isEmpty()) {
                 Alertas.mostrarAviso("Debes escribir el idioma del audio.");
                 return;
+            }
+
+            String idiomaSubtitulos = null;
+            if (chkFuncionTieneSubtitulos.isSelected()) {
+                idiomaSubtitulos = txtFuncionIdiomaSubtitulos.getText().trim();
+                if (idiomaSubtitulos.isEmpty()) {
+                    Alertas.mostrarAviso("Escribe el idioma de los subtitulos, o desmarca \"Tiene subtitulos\".");
+                    return;
+                }
             }
 
             BigDecimal tarifa;
@@ -261,7 +265,7 @@ public class FuncionControl {
             funcion.setIdPelicula(pelicula.getIdPelicula());
             funcion.setIdSala(sala.getIdSala());
             funcion.setIdiomaAudio(idiomaAudio);
-            funcion.setIdiomaSubtitulos(idiomaSubtitulos.isEmpty() ? null : idiomaSubtitulos);
+            funcion.setIdiomaSubtitulos(idiomaSubtitulos);
 
             boolean guardado;
 
@@ -284,6 +288,19 @@ public class FuncionControl {
         }
     }
 
+    // Habilita/deshabilita el campo de idioma de subtitulos segun el
+    // checkbox. Si se desmarca, se borra lo que tuviera escrito.
+    @FXML
+    private void actualizarCampoSubtitulos() {
+
+        boolean tieneSubtitulos = chkFuncionTieneSubtitulos.isSelected();
+        txtFuncionIdiomaSubtitulos.setDisable(!tieneSubtitulos);
+
+        if (!tieneSubtitulos) {
+            txtFuncionIdiomaSubtitulos.clear();
+        }
+    }
+
     @FXML
     private void limpiarFormulario() {
 
@@ -292,13 +309,15 @@ public class FuncionControl {
         cmbFuncionPelicula.setValue(null);
         cmbFuncionSala.setValue(null);
         dpFuncionFecha.setValue(null);
-        cmbFuncionHoraInicioHora.setValue(null);
-        cmbFuncionHoraInicioMinuto.setValue(null);
-        cmbFuncionHoraFinHora.setValue(null);
-        cmbFuncionHoraFinMinuto.setValue(null);
+        spnFuncionHoraInicioHora.getValueFactory().setValue(0);
+        spnFuncionHoraInicioMinuto.getValueFactory().setValue(0);
+        spnFuncionHoraFinHora.getValueFactory().setValue(0);
+        spnFuncionHoraFinMinuto.getValueFactory().setValue(0);
         txtFuncionTarifa.clear();
         txtFuncionIdiomaAudio.clear();
+        chkFuncionTieneSubtitulos.setSelected(false);
         txtFuncionIdiomaSubtitulos.clear();
+        txtFuncionIdiomaSubtitulos.setDisable(true);
         cmbFuncionEstado.setValue("PROGRAMADA");
 
         lblFuncionFormTitulo.setText("Nueva funcion");

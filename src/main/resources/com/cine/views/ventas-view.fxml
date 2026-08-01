@@ -164,11 +164,11 @@
                                 <Label styleClass="row-subtitle" text="Cliente - TAQUILLA - Empleado" />
                             </VBox>
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label styleClass="row-amount" text="Bs 45.00" />
+                            <Label styleClass="row-amount" text="RD\$45.00" />
                             <Label styleClass="status-pill, status-pendiente" text="PENDIENTE" />
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="10" styleClass="entrada-subrow">
-                            <Label styleClass="funcion-subtitle" text="Butaca A1 - Adulto - Bs 45.00" />
+                            <Label styleClass="funcion-subtitle" text="Butaca A1 - Adulto - RD\$45.00" />
                             <Label styleClass="status-pill, status-reservada" text="RESERVADA" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Button fx:id="btnConfirmarPagoDemo" styleClass="secondary-button" text="Confirmar pago" />

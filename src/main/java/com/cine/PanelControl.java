@@ -38,7 +38,7 @@ public class PanelControl {
     // reflejen lo que se haya registrado en las demas pantallas.
     public void cargarEstadisticas() {
 
-        lblIngresosActivosValor.setText("Bs " + panelBD.calcularIngresosCompletados());
+        lblIngresosActivosValor.setText("RD$" + panelBD.calcularIngresosCompletados());
         lblEntradasVendidasValor.setText(String.valueOf(panelBD.contarEntradasPagadasOUtilizadas()));
 
         List<Pelicula> peliculas = peliculaBD.listarPeliculas();

@@ -448,6 +448,50 @@
     -fx-font-size: 12px;
 }
 
+/* Spinner (selector de hora/minuto en Funciones): igual problema que
+   ComboBox/DatePicker, por defecto se ve blanco si no se pinta a mano. */
+.spinner {
+    -fx-background-color: #160807;
+}
+
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5f5f5;
+    -fx-alignment: CENTER;
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+}
+
+.spinner .increment-arrow,
+.spinner .decrement-arrow {
+    -fx-background-color: #f97316;
+}
+
+/* Checkbox suelto fuera del contenedor de generos (ej: "Tiene subtitulos"
+   en Funciones), mismos colores que el resto del formulario. */
+.form-checkbox {
+    -fx-text-fill: #f5f5f5;
+}
+
+.form-checkbox .box {
+    -fx-background-color: #160807;
+    -fx-border-color: #3a1d16;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.form-checkbox:selected .box {
+    -fx-background-color: #f97316;
+    -fx-border-color: #f97316;
+}
+
+.form-checkbox .mark {
+    -fx-background-color: #ffffff;
+}
+
 .file-name-label {
     -fx-text-fill: #7f6d68;
     -fx-font-size: 11px;

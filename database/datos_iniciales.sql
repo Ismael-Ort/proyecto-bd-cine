@@ -51,15 +51,15 @@ INSERT IGNORE INTO metodopago (nombre_metodo, descripcion, estado) VALUES
 
 -- =========================================================
 -- SALAS
--- Catalogo minimo para poder programar Funciones mientras la pantalla de
--- administracion de Salas y butacas todavia no esta hecha. Igual que
--- tipoentrada/metodopago, se puede correr varias veces sin duplicar filas
--- (uq_sala_nombre + INSERT IGNORE).
+-- Un par de salas de ejemplo para poder programar Funciones desde el
+-- primer momento. Igual que tipoentrada/metodopago, se puede correr
+-- varias veces sin duplicar filas (uq_sala_nombre + INSERT IGNORE).
+-- La capacidad respeta chk_sala_capacidad (maximo 48 butacas por sala).
 -- =========================================================
 
 INSERT IGNORE INTO sala (nombre_sala, capacidad, estado) VALUES
-    ('Sala 1', 80, 'ACTIVA'),
-    ('Sala 2', 60, 'ACTIVA');
+    ('Sala 1', 48, 'ACTIVA'),
+    ('Sala 2', 40, 'ACTIVA');
 
 
 -- =========================================================

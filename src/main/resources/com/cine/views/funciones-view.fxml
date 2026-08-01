@@ -4,9 +4,11 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -15,11 +17,19 @@
 <!--
     Pagina: Funciones (tabla `funcion`).
 
-    Campos: id_pelicula (combo), id_sala (combo), fecha_funcion, hora_inicio,
-    hora_fin (debe ser mayor a hora_inicio), tarifa_base, idioma_audio
-    (obligatorio: toda funcion se pasa en algun idioma) e idioma_subtitulos
-    (opcional: puede no tener subtitulos), estado (PROGRAMADA/EN_CURSO/
-    FINALIZADA/CANCELADA).
+    Campos: id_pelicula (combo), id_sala (combo), fecha_funcion (DatePicker),
+    hora_inicio/hora_fin (un Spinner de hora + un Spinner de minuto cada
+    una), tarifa_base, idioma_audio (obligatorio: toda funcion se pasa en
+    algun idioma) e idioma_subtitulos (opcional: el checkbox
+    chkFuncionTieneSubtitulos habilita el campo de texto solo si aplica).
+
+    Estado: al crear siempre queda PROGRAMADA. El combo de Estado solo deja
+    elegir PROGRAMADA/CANCELADA a mano -- EN_CURSO y FINALIZADA no tiene
+    sentido asignarlos manualmente porque el trigger
+    trg_actualizar_estado_funcion (ver database/procedimientos_triggers.sql)
+    los recalcula solo, comparando la fecha/hora contra el reloj del
+    servidor cada vez que FuncionBD.actualizarEstadosAutomaticos() se
+    ejecuta (ver FuncionControl.cargarFunciones()).
 -->
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.FuncionControl" spacing="24" styleClass="main-content" visible="false" managed="false">
@@ -55,34 +65,33 @@
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Hora de inicio" />
                     <HBox spacing="6">
-                        <ComboBox fx:id="cmbFuncionHoraInicioHora" prefWidth="75" promptText="Hora" styleClass="form-input" />
-                        <ComboBox fx:id="cmbFuncionHoraInicioMinuto" prefWidth="75" promptText="Min" styleClass="form-input" />
+                        <Spinner fx:id="spnFuncionHoraInicioHora" prefWidth="80" styleClass="form-input" />
+                        <Spinner fx:id="spnFuncionHoraInicioMinuto" prefWidth="80" styleClass="form-input" />
                     </HBox>
                 </VBox>
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Hora de fin" />
                     <HBox spacing="6">
-                        <ComboBox fx:id="cmbFuncionHoraFinHora" prefWidth="75" promptText="Hora" styleClass="form-input" />
-                        <ComboBox fx:id="cmbFuncionHoraFinMinuto" prefWidth="75" promptText="Min" styleClass="form-input" />
+                        <Spinner fx:id="spnFuncionHoraFinHora" prefWidth="80" styleClass="form-input" />
+                        <Spinner fx:id="spnFuncionHoraFinMinuto" prefWidth="80" styleClass="form-input" />
                     </HBox>
                 </VBox>
             </HBox>
 
             <VBox spacing="8">
-                <Label styleClass="form-label" text="Tarifa base (Bs)" />
+                <Label styleClass="form-label" text="Tarifa base (RD\$)" />
                 <TextField fx:id="txtFuncionTarifa" promptText="45.00" styleClass="form-input" />
             </VBox>
 
-            <HBox spacing="12">
-                <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label styleClass="form-label" text="Idioma audio" />
-                    <TextField fx:id="txtFuncionIdiomaAudio" promptText="Espanol" styleClass="form-input" />
-                </VBox>
-                <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label styleClass="form-label" text="Idioma subtitulos" />
-                    <TextField fx:id="txtFuncionIdiomaSubtitulos" promptText="Ingles (opcional)" styleClass="form-input" />
-                </VBox>
-            </HBox>
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Idioma audio" />
+                <TextField fx:id="txtFuncionIdiomaAudio" promptText="Espanol" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <CheckBox fx:id="chkFuncionTieneSubtitulos" styleClass="form-checkbox" text="Tiene subtitulos" onAction="#actualizarCampoSubtitulos" />
+                <TextField fx:id="txtFuncionIdiomaSubtitulos" promptText="Ingles" styleClass="form-input" disable="true" />
+            </VBox>
 
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Estado" />
@@ -90,12 +99,11 @@
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="PROGRAMADA" />
-                            <String fx:value="EN_CURSO" />
-                            <String fx:value="FINALIZADA" />
                             <String fx:value="CANCELADA" />
                         </FXCollections>
                     </items>
                 </ComboBox>
+                <Label styleClass="form-hint" text="EN_CURSO y FINALIZADA se calculan solas segun la fecha/hora." wrapText="true" />
             </VBox>
 
             <HBox spacing="10">

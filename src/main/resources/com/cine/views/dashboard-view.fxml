@@ -29,7 +29,7 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <Label styleClass="stat-card-icon" text="\$" />
             </HBox>
-            <Label fx:id="lblIngresosActivosValor" styleClass="stat-card-value" text="Bs 0.00" />
+            <Label fx:id="lblIngresosActivosValor" styleClass="stat-card-value" text="RD\$0.00" />
         </VBox>
 
         <VBox fx:id="cardEntradasVendidas" spacing="14" styleClass="stat-card" HBox.hgrow="ALWAYS">

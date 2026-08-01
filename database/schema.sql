@@ -86,7 +86,7 @@ CREATE TABLE sala (
                           UNIQUE (nombre_sala),
 
                       CONSTRAINT chk_sala_capacidad
-                          CHECK (capacidad > 0),
+                          CHECK (capacidad > 0 AND capacidad <= 48),
 
                       CONSTRAINT chk_sala_estado
                           CHECK (estado IN ('ACTIVA', 'INACTIVA'))
