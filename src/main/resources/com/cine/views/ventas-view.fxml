@@ -44,7 +44,7 @@
     que agregar ese procedimiento primero y luego ampliar esta pantalla.
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false"  fx:controller="com.cine.VentaControl"  >
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
