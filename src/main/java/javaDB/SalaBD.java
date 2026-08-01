@@ -11,6 +11,42 @@ import java.util.List;
 
 public class SalaBD {
 
+    // Todas las salas (ACTIVA e INACTIVA), para la pantalla de administracion
+    // de Salas: ahi se necesita ver tambien las inactivas para poder
+    // reactivarlas.
+    public List<Sala> listarSalas() {
+
+        String sql = "SELECT id_sala, nombre_sala, capacidad, estado FROM sala ORDER BY nombre_sala";
+
+        List<Sala> salas = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Sala sala = new Sala();
+
+                sala.setIdSala(rs.getInt("id_sala"));
+                sala.setNombreSala(rs.getString("nombre_sala"));
+                sala.setCapacidad(rs.getInt("capacidad"));
+                sala.setEstado(rs.getString("estado"));
+
+                salas.add(sala);
+            }
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al listar salas: " + e.getMessage());
+            throw new RuntimeException("No se pudieron cargar las salas" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar las salas" + e.getMessage(), e);
+        }
+
+        return salas;
+    }
+
     // esto es lo minimo que necesita el formulario
     // de Funciones para poder elegir una sala ya existente.
     public List<Sala> listarSalasActivas() {
