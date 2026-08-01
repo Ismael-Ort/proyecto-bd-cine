@@ -16,12 +16,12 @@ public class PruebaConexionAiven {
             Statement statement = conexion.createStatement();
 
             // Se ejecuta una consulta de prueba para obtener la versión de MySQL
-            ResultSet resultSet = statement.executeQuery("SELECT version() AS version");
+            ResultSet resultSet = statement.executeQuery("SELECT NOW() AS nigger");
 
             // Si la consulta devuelve un resultado, se muestra en consola
             if (resultSet.next()) {
                 System.out.println("Conexión exitosa.");
-                System.out.println("Versión MySQL: " + resultSet.getString("version"));
+                System.out.println("Versión MySQL: " + resultSet.getTimestamp("nigger"));
             }
 
             // Se cierran los recursos utilizados
