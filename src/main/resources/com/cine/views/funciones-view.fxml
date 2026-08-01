@@ -43,7 +43,7 @@
     </VBox>
 
     <HBox alignment="TOP_LEFT" spacing="24" styleClass="funciones-layout">
-        <VBox fx:id="funcionForm" maxWidth="340" minWidth="320" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
+        <VBox fx:id="funcionForm" maxWidth="380" minWidth="360" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
             <Label fx:id="lblFuncionFormTitulo" styleClass="panel-title" text="Nueva funcion" />
 
             <VBox spacing="8">
@@ -61,22 +61,21 @@
                 <DatePicker fx:id="dpFuncionFecha" maxWidth="Infinity" styleClass="form-input" />
             </VBox>
 
-            <HBox spacing="12">
-                <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label styleClass="form-label" text="Hora de inicio" />
-                    <HBox spacing="6">
-                        <Spinner fx:id="spnFuncionHoraInicioHora" prefWidth="80" styleClass="form-input" />
-                        <Spinner fx:id="spnFuncionHoraInicioMinuto" prefWidth="80" styleClass="form-input" />
-                    </HBox>
-                </VBox>
-                <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label styleClass="form-label" text="Hora de fin" />
-                    <HBox spacing="6">
-                        <Spinner fx:id="spnFuncionHoraFinHora" prefWidth="80" styleClass="form-input" />
-                        <Spinner fx:id="spnFuncionHoraFinMinuto" prefWidth="80" styleClass="form-input" />
-                    </HBox>
-                </VBox>
-            </HBox>
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Hora de inicio" />
+                <HBox spacing="10">
+                    <Spinner fx:id="spnFuncionHoraInicioHora" prefWidth="90" styleClass="form-input" />
+                    <Spinner fx:id="spnFuncionHoraInicioMinuto" prefWidth="90" styleClass="form-input" />
+                </HBox>
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Hora de fin" />
+                <HBox spacing="10">
+                    <Spinner fx:id="spnFuncionHoraFinHora" prefWidth="90" styleClass="form-input" />
+                    <Spinner fx:id="spnFuncionHoraFinMinuto" prefWidth="90" styleClass="form-input" />
+                </HBox>
+            </VBox>
 
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Tarifa base (RD\$)" />

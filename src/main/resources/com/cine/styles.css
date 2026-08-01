@@ -449,15 +449,20 @@
 }
 
 /* Spinner (selector de hora/minuto en Funciones): igual problema que
-   ComboBox/DatePicker, por defecto se ve blanco si no se pinta a mano. */
+   ComboBox/DatePicker, por defecto se ve blanco si no se pinta a mano.
+   -fx-min-width evita que el HBox que lo contiene lo aplaste por debajo
+   de un tamano legible cuando el espacio esta apretado (mismo motivo por
+   el que el ListView de generos se aplastaba antes). */
 .spinner {
     -fx-background-color: #160807;
+    -fx-min-width: 64px;
 }
 
 .spinner .text-field {
     -fx-background-color: transparent;
     -fx-text-fill: #f5f5f5;
     -fx-alignment: CENTER;
+    -fx-padding: 4 0 4 4;
 }
 
 .spinner .increment-arrow-button,
