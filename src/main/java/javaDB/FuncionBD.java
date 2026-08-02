@@ -2,6 +2,7 @@ package javaDB;
 
 import logico.Funcion;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -72,6 +73,32 @@ public class FuncionBD {
             System.out.println("Error al actualizar funcion: " + e.getMessage());
             System.out.println("Codigo SQL: " + e.getErrorCode());
             throw new RuntimeException("No se pudo actualizar la funcion" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar la funcion" + e.getMessage(), e);
+        }
+    }
+
+    // Cancela la funcion llamando a sp_cancelar_funcion (BR-37: no se hace
+    // con un UPDATE directo). Ese procedimiento dispara
+    // trg_cancelar_entradas_por_funcion, que en la misma transaccion
+    // cancela las entradas y ventas de la funcion y devuelve los puntos de
+    // fidelidad ya ganados (ver database/procedimientos_triggers.sql).
+    public void cancelarFuncion(int idFuncion) {
+
+        String sql = "{call sp_cancelar_funcion(?)}";
+
+        try (Connection conexion = ConexionBD.conectar(); CallableStatement cs = conexion.prepareCall(sql)) {
+
+            cs.setInt(1, idFuncion);
+            cs.execute();
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al cancelar funcion: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
 
         } catch (Exception e) {
 

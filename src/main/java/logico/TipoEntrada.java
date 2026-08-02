@@ -62,4 +62,11 @@ public class TipoEntrada {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    @Override
+    public String toString() {
+        // Para que el ComboBox de tipos de entrada (en el formulario de
+        // venta) muestre el nombre en vez de "TipoEntrada@hashcode".
+        return nombreTipo;
+    }
 }

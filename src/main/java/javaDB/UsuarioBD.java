@@ -1,10 +1,8 @@
 package javaDB;
 
 import logico.Usuario;
+import org.mindrot.jbcrypt.BCrypt;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -103,27 +101,49 @@ public class UsuarioBD {
         return usuarios;
     }
 
-    // SHA-256: alcanza para un proyecto de clase. No guarda la contrasena
-    // en texto plano en ningun momento dentro de la base de datos.
+    // BCrypt: genera un salt distinto en cada llamada e incluye ese salt
+    // dentro del hash resultante, asi que nunca se guarda la contrasena en
+    // texto plano ni con un hash reutilizable entre cuentas con la misma
+    // contrasena (a diferencia de un SHA-256 sin salt).
     private String hashear(String contrasenaPlana) {
+        return BCrypt.hashpw(contrasenaPlana, BCrypt.gensalt());
+    }
 
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(contrasenaPlana.getBytes(StandardCharsets.UTF_8));
+    // Para el login: busca por nombre_usuario (solo cuentas ACTIVAS) y
+    // compara la contrasena en texto plano contra el hash guardado con
+    // BCrypt.checkpw (que ya sabe extraer el salt del propio hash). Si el
+    // usuario no existe, esta INACTIVO, o la contrasena no coincide,
+    // devuelve null: nunca revela por separado cual de esas tres cosas paso.
+    public Usuario autenticar(String nombreUsuario, String contrasenaPlana) {
 
-            StringBuilder hexadecimal = new StringBuilder();
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexadecimal.append('0');
+        String sql = SELECT_BASE + " WHERE u.nombre_usuario = ? AND u.estado = 'ACTIVO'";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setString(1, nombreUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
                 }
-                hexadecimal.append(hex);
+
+                String hashGuardado = rs.getString("hash_contrasena");
+                if (!BCrypt.checkpw(contrasenaPlana, hashGuardado)) {
+                    return null;
+                }
+
+                return mapearUsuario(rs);
             }
 
-            return hexadecimal.toString();
+        } catch (SQLException e) {
 
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("No se pudo cifrar la contrasena", e);
+            System.out.println("Error al autenticar usuario: " + e.getMessage());
+            throw new RuntimeException("No se pudo validar el usuario" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar el usuario" + e.getMessage(), e);
         }
     }
 

@@ -102,7 +102,7 @@ El sistema deberá evitar la duplicación de datos personales, manteniéndolos �
 | RF-01 Gestión de personas | `persona` (PK, `uq_persona_documento`, `uq_persona_correo`, `chk_persona_sexo`) | [x] |
 | RF-02 Gestión de clientes | `cliente` (`uq_cliente_persona`, `fk_cliente_persona`) | [x] |
 | RF-03 Gestión de empleados | `empleado` (`uq_empleado_persona`, `fk_empleado_persona`) | [x] |
-| RF-04 Gestión de usuarios | `usuario` (`chk_usuario_rol`, `fk_usuario_persona`) | [x] DB parcial / [ ] validación de rol en Java |
+| RF-04 Gestión de usuarios | `usuario` (`chk_usuario_rol`, `fk_usuario_persona`) | [x] DB + [x] validación de rol en Java (BR-12, BR-38 en `UsuarioControl`) |
 | RF-05 Películas y géneros | `pelicula_genero` (PK compuesta, FKs) | [x] |
 | RF-06 Salas y butacas | `butaca` (`uq_butaca_sala_fila_numero`) | [x] |
 | RF-07 Programación de funciones | `funcion` (`chk_funcion_tarifa`, `chk_funcion_estado`, `chk_funcion_horario`) | [x] |
@@ -115,7 +115,7 @@ El sistema deberá evitar la duplicación de datos personales, manteniéndolos �
 | RF-14 Historial de puntos | `historial_puntos` (`id_cliente` y `id_venta` `NOT NULL`) | [x] |
 | RF-15 Venta taquilla/en línea | `venta.chk_venta_canal_empleado` | [x] |
 | RF-16 Consultas | No requiere restricción propia (solo `SELECT`) | [x] |
-| RF-17 Control de acceso por rol | `usuario.chk_usuario_rol` | [x] DB parcial / [ ] permisos en Java |
+| RF-17 Control de acceso por rol | `usuario.chk_usuario_rol` | [x] DB + [x] permisos en Java (BR-40, `VentanaPrincipalControl` + login) |
 
 ---
 

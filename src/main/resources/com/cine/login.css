@@ -53,6 +53,16 @@
     -fx-font-size: 12px;
 }
 
+.login-link {
+    -fx-text-fill: #f97316;
+    -fx-font-size: 12.5px;
+    -fx-border-color: transparent;
+}
+
+.login-link:visited {
+    -fx-text-fill: #f97316;
+}
+
 .login-footer {
     -fx-text-fill: #6b6b6b;
     -fx-font-size: 10.5px;

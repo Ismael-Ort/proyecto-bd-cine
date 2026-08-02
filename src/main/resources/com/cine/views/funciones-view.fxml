@@ -20,8 +20,9 @@
     Campos: id_pelicula (combo), id_sala (combo), fecha_funcion (DatePicker),
     hora_inicio/hora_fin (un Spinner de hora + un Spinner de minuto cada
     una), tarifa_base, idioma_audio (obligatorio: toda funcion se pasa en
-    algun idioma) e idioma_subtitulos (opcional: el checkbox
-    chkFuncionTieneSubtitulos habilita el campo de texto solo si aplica).
+    algun idioma, se elige de una lista fija de idiomas) e idioma_subtitulos
+    (opcional, misma lista: el checkbox chkFuncionTieneSubtitulos habilita
+    el combo solo si aplica).
 
     Estado: al crear siempre queda PROGRAMADA. El combo de Estado solo deja
     elegir PROGRAMADA/CANCELADA a mano, porque EN_CURSO y FINALIZADA no
@@ -84,12 +85,40 @@
 
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Idioma audio" />
-                <TextField fx:id="txtFuncionIdiomaAudio" promptText="Espanol" styleClass="form-input" />
+                <ComboBox fx:id="cmbFuncionIdiomaAudio" maxWidth="Infinity" promptText="Selecciona un idioma" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Espanol" />
+                            <String fx:value="Ingles" />
+                            <String fx:value="Frances" />
+                            <String fx:value="Portugues" />
+                            <String fx:value="Aleman" />
+                            <String fx:value="Italiano" />
+                            <String fx:value="Japones" />
+                            <String fx:value="Coreano" />
+                            <String fx:value="Mandarin" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
             </VBox>
 
             <VBox spacing="8">
                 <CheckBox fx:id="chkFuncionTieneSubtitulos" styleClass="form-checkbox" text="Tiene subtitulos" onAction="#actualizarCampoSubtitulos" />
-                <TextField fx:id="txtFuncionIdiomaSubtitulos" promptText="Ingles" styleClass="form-input" disable="true" />
+                <ComboBox fx:id="cmbFuncionIdiomaSubtitulos" maxWidth="Infinity" promptText="Selecciona un idioma" styleClass="form-input" disable="true">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Espanol" />
+                            <String fx:value="Ingles" />
+                            <String fx:value="Frances" />
+                            <String fx:value="Portugues" />
+                            <String fx:value="Aleman" />
+                            <String fx:value="Italiano" />
+                            <String fx:value="Japones" />
+                            <String fx:value="Coreano" />
+                            <String fx:value="Mandarin" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
             </VBox>
 
             <VBox spacing="8">

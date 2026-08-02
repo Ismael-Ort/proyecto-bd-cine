@@ -84,8 +84,13 @@
             </HBox>
 
             <VBox spacing="8">
-                <Label styleClass="form-label" text="Documento" />
-                <TextField fx:id="txtEmpleadoDocumento" promptText="Cedula / documento de identidad" styleClass="form-input" />
+                <Label styleClass="form-label" text="Tipo de documento" />
+                <ComboBox fx:id="cmbEmpleadoTipoDocumento" maxWidth="Infinity" styleClass="form-input" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label styleClass="form-label" text="Numero de documento" />
+                <TextField fx:id="txtEmpleadoDocumento" styleClass="form-input" />
             </VBox>
 
             <HBox spacing="12">

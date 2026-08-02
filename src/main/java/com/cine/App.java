@@ -13,14 +13,15 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         // Punto de entrada real de la aplicacion: la pantalla de login.
-        // TODO (logica pendiente de programar): al validar usuario/contrasena
-        // contra la tabla `usuario` (via `persona`), cargar "/com/cine/main-shell.fxml"
-        // en este mismo Stage (o en uno nuevo) y cerrar/ocultar esta ventana de login.
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/cine/main-shell.fxml"));
+        // LoginControl (via Pantallas.cambiarA) es quien carga
+        // "/com/cine/ventana-principal.fxml" en esta misma ventana una vez
+        // que el usuario/contrasena son validos.
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/cine/login.fxml"));
         Parent root = loader.load();
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/com/cine/styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/com/cine/login.css").toExternalForm());
 
         // Para que la ventana se adapte a cualquier tamano de pantalla: se deja
         // redimensionable, con un minimo para que el layout no se vea apretado,

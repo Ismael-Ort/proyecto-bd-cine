@@ -16,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import logico.Empleado;
 import logico.Persona;
 import logico.Usuario;
 
@@ -168,10 +169,25 @@ public class UsuarioControl {
             }
 
             // BR-12: administrador/cajero deben tener registro de Empleado;
-            // cliente debe tener registro de Cliente.
-            if (("ADMINISTRADOR".equals(rol) || "CAJERO".equals(rol)) && !empleadoBD.existeEmpleadoParaPersona(idPersonaActual)) {
-                Alertas.mostrarAviso("Esa persona no tiene un registro de Empleado. Registrala primero en la pantalla de Empleados.");
-                return;
+            // cliente debe tener registro de Cliente. BR-12b: ademas, el
+            // cargo de ese Empleado debe corresponder al rol elegido: solo
+            // empleados con cargo "Administrador" o "Cajero" pueden tener
+            // usuario del sistema (un conserje, por ejemplo, se queda como
+            // empleado sin usuario).
+            if ("ADMINISTRADOR".equals(rol) || "CAJERO".equals(rol)) {
+                Empleado empleado = empleadoBD.obtenerEmpleadoPorPersona(idPersonaActual);
+
+                if (empleado == null) {
+                    Alertas.mostrarAviso("Esa persona no tiene un registro de Empleado. Registrala primero en la pantalla de Empleados.");
+                    return;
+                }
+
+                String cargoEsperado = "ADMINISTRADOR".equals(rol) ? "Administrador" : "Cajero";
+                if (!cargoEsperado.equalsIgnoreCase(empleado.getCargo())) {
+                    Alertas.mostrarAviso("El cargo de esa persona ('" + empleado.getCargo() + "') no permite un usuario con rol "
+                            + rol + ". Solo empleados con cargo 'Administrador' o 'Cajero' pueden iniciar sesion.");
+                    return;
+                }
             }
 
             if ("CLIENTE".equals(rol) && !clienteBD.existeClienteParaPersona(idPersonaActual)) {

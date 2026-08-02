@@ -34,8 +34,8 @@ public class PanelControl {
     }
 
     // Se llama al abrir la pantalla y de nuevo cada vez que se hace clic en
-    // "Panel" en el menu (ver DashboardController), para que los numeros
-    // reflejen lo que se haya registrado en las demas pantallas.
+    // "Panel" en el menu, para que los numeros reflejen lo que se haya
+    // registrado en las demas pantallas.
     public void cargarEstadisticas() {
 
         lblIngresosActivosValor.setText("RD$" + panelBD.calcularIngresosCompletados());

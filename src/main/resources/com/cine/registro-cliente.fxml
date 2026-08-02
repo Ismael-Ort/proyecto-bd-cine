@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Auto-registro de Cliente: pantalla aparte del login (controlador:
+    RegistroClienteControl), pensada para que alguien desde su casa se cree
+    su propia cuenta con rol CLIENTE sin que un Administrador tenga que
+    hacerlo por el/ella. Al terminar, vuelve al login (Pantallas.cambiarA) para que
+    inicie sesion con la cuenta recien creada.
+
+    Crea, en una sola operacion: Persona (o reutiliza una ya existente con
+    el mismo documento, ver RegistroClienteControl), Cliente y Usuario
+    (rol=CLIENTE). BR-04 permite que una persona tenga varios usuarios, asi
+    que no hace falta bloquear el registro si esa persona ya tenia cuenta.
+-->
+
+<StackPane fx:id="registroRoot" styleClass="login-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.RegistroClienteControl">
+
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" styleClass="main-scroll">
+        <VBox alignment="CENTER" spacing="24">
+            <padding>
+                <Insets bottom="40" left="20" right="20" top="40" />
+            </padding>
+
+            <VBox fx:id="registroCard" alignment="CENTER" maxWidth="-Infinity" prefWidth="460" spacing="18" styleClass="login-card">
+                <padding>
+                    <Insets bottom="36" left="36" right="36" top="36" />
+                </padding>
+
+                <VBox alignment="CENTER" spacing="6" styleClass="login-brand-box">
+                    <Label styleClass="login-brand-mark" text="C" />
+                    <Label styleClass="login-title" text="Crear cuenta" />
+                    <Label styleClass="login-subtitle" text="Registrate como Cliente para comprar entradas en linea" />
+                </VBox>
+
+                <HBox spacing="12">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Nombres" />
+                        <TextField fx:id="txtRegistroNombres" promptText="Nombres" styleClass="form-input" />
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Apellidos" />
+                        <TextField fx:id="txtRegistroApellidos" promptText="Apellidos" styleClass="form-input" />
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Fecha de nacimiento" />
+                        <DatePicker fx:id="dpRegistroFechaNacimiento" maxWidth="Infinity" styleClass="form-input" />
+                    </VBox>
+                    <VBox spacing="8">
+                        <Label styleClass="form-label" text="Sexo" />
+                        <ComboBox fx:id="cmbRegistroSexo" prefWidth="90" styleClass="form-input">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="M" />
+                                    <String fx:value="F" />
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12">
+                    <VBox spacing="8">
+                        <Label styleClass="form-label" text="Tipo de documento" />
+                        <ComboBox fx:id="cmbRegistroTipoDocumento" prefWidth="130" styleClass="form-input" />
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Numero de documento" />
+                        <TextField fx:id="txtRegistroDocumento" styleClass="form-input" />
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="12">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Telefono" />
+                        <TextField fx:id="txtRegistroTelefono" promptText="Ej: 71234567" styleClass="form-input" />
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Correo" />
+                        <TextField fx:id="txtRegistroCorreo" promptText="correo@ejemplo.com" styleClass="form-input" />
+                    </VBox>
+                </HBox>
+
+                <Separator />
+
+                <VBox spacing="8">
+                    <Label styleClass="form-label" text="Nombre de usuario" />
+                    <TextField fx:id="txtRegistroNombreUsuario" promptText="nombre_usuario" styleClass="form-input" />
+                </VBox>
+
+                <HBox spacing="12">
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Contrasena" />
+                        <PasswordField fx:id="txtRegistroContrasena" promptText="Contrasena" styleClass="form-input" />
+                    </VBox>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label styleClass="form-label" text="Confirmar contrasena" />
+                        <PasswordField fx:id="txtRegistroConfirmarContrasena" promptText="Repite la contrasena" styleClass="form-input" />
+                    </VBox>
+                </HBox>
+
+                <Label fx:id="lblRegistroError" managed="false" styleClass="login-error" text="" visible="false" wrapText="true" />
+
+                <Button fx:id="btnRegistroCrearCuenta" maxWidth="Infinity" onAction="#crearCuenta" styleClass="primary-button" text="Crear cuenta" />
+
+                <Hyperlink fx:id="lnkVolverLogin" onAction="#volverAlLogin" styleClass="login-link" text="Ya tengo cuenta, volver al inicio de sesion" />
+            </VBox>
+        </VBox>
+    </ScrollPane>
+
+</StackPane>

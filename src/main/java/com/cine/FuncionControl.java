@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
 import logico.Funcion;
 import logico.Pelicula;
 import logico.Sala;
+import sesion.SesionActual;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -45,11 +46,12 @@ public class FuncionControl {
     @FXML private Spinner<Integer> spnFuncionHoraFinHora;
     @FXML private Spinner<Integer> spnFuncionHoraFinMinuto;
     @FXML private TextField txtFuncionTarifa;
-    @FXML private TextField txtFuncionIdiomaAudio;
+    @FXML private ComboBox<String> cmbFuncionIdiomaAudio;
     @FXML private CheckBox chkFuncionTieneSubtitulos;
-    @FXML private TextField txtFuncionIdiomaSubtitulos;
+    @FXML private ComboBox<String> cmbFuncionIdiomaSubtitulos;
     @FXML private ComboBox<String> cmbFuncionEstado;
     @FXML private VBox funcionesListaContainer;
+    @FXML private Button btnGuardarFuncion;
 
     // null = se va a crear una funcion nueva; con valor = se esta editando esa funcion
     private Integer idFuncionEnEdicion;
@@ -57,6 +59,13 @@ public class FuncionControl {
     public void initialize() {
         cmbFuncionEstado.setValue("PROGRAMADA");
         configurarSelectoresDeHora();
+        Mascaras.aplicarMascaraDecimal(txtFuncionTarifa);
+
+        // RF-17: Cajero solo tiene acceso de lectura a esta pantalla.
+        if (!SesionActual.esAdministrador()) {
+            btnGuardarFuncion.setDisable(true);
+        }
+
         cargarFunciones();
     }
 
@@ -89,8 +98,8 @@ public class FuncionControl {
         cmbFuncionSala.getItems().addAll(salaBD.listarSalasActivas());
     }
 
-    // Publico para que DashboardController pueda llamarlo cada vez que se
-    // hace clic en "Funciones" en el menu (ver DashboardController), y no
+    // Publico para que VentanaPrincipalControl pueda llamarlo cada vez que se
+    // hace clic en "Funciones" en el menu, y no
     // solo la primera vez que se abre la pantalla.
     public void cargarFunciones() {
 
@@ -181,12 +190,12 @@ public class FuncionControl {
         spnFuncionHoraFinHora.getValueFactory().setValue(funcion.getHoraFin().getHour());
         spnFuncionHoraFinMinuto.getValueFactory().setValue(funcion.getHoraFin().getMinute());
         txtFuncionTarifa.setText(funcion.getTarifaBase().toString());
-        txtFuncionIdiomaAudio.setText(funcion.getIdiomaAudio());
+        cmbFuncionIdiomaAudio.setValue(funcion.getIdiomaAudio());
 
         String idiomaSubtitulos = funcion.getIdiomaSubtitulos();
         chkFuncionTieneSubtitulos.setSelected(idiomaSubtitulos != null && !idiomaSubtitulos.isEmpty());
-        txtFuncionIdiomaSubtitulos.setDisable(!chkFuncionTieneSubtitulos.isSelected());
-        txtFuncionIdiomaSubtitulos.setText(idiomaSubtitulos);
+        cmbFuncionIdiomaSubtitulos.setDisable(!chkFuncionTieneSubtitulos.isSelected());
+        cmbFuncionIdiomaSubtitulos.setValue(idiomaSubtitulos);
 
         // El estado real solo puede ser PROGRAMADA o CANCELADA para elegir
         // a mano; si la funcion esta EN_CURSO o FINALIZADA (calculado por
@@ -207,7 +216,7 @@ public class FuncionControl {
             LocalTime horaInicio = LocalTime.of(spnFuncionHoraInicioHora.getValue(), spnFuncionHoraInicioMinuto.getValue());
             LocalTime horaFin = LocalTime.of(spnFuncionHoraFinHora.getValue(), spnFuncionHoraFinMinuto.getValue());
             String textoTarifa = txtFuncionTarifa.getText().trim();
-            String idiomaAudio = txtFuncionIdiomaAudio.getText().trim();
+            String idiomaAudio = cmbFuncionIdiomaAudio.getValue();
             String estado = cmbFuncionEstado.getValue();
 
             if (pelicula == null) {
@@ -240,16 +249,16 @@ public class FuncionControl {
                 return;
             }
 
-            if (idiomaAudio.isEmpty()) {
-                Alertas.mostrarAviso("Debes escribir el idioma del audio.");
+            if (idiomaAudio == null) {
+                Alertas.mostrarAviso("Debes elegir el idioma del audio.");
                 return;
             }
 
             String idiomaSubtitulos = null;
             if (chkFuncionTieneSubtitulos.isSelected()) {
-                idiomaSubtitulos = txtFuncionIdiomaSubtitulos.getText().trim();
-                if (idiomaSubtitulos.isEmpty()) {
-                    Alertas.mostrarAviso("Escribe el idioma de los subtitulos, o desmarca \"Tiene subtitulos\".");
+                idiomaSubtitulos = cmbFuncionIdiomaSubtitulos.getValue();
+                if (idiomaSubtitulos == null) {
+                    Alertas.mostrarAviso("Elige el idioma de los subtitulos, o desmarca \"Tiene subtitulos\".");
                     return;
                 }
             }
@@ -294,6 +303,13 @@ public class FuncionControl {
 
             if (idFuncionEnEdicion == null) {
                 guardado = funcionBD.registrarFuncion(funcion);
+            } else if ("CANCELADA".equals(estado)) {
+                // Cancelar una funcion no es un UPDATE normal: dispara la
+                // cancelacion en cascada de sus entradas/ventas (ver
+                // FuncionBD.cancelarFuncion). El resto de los cambios del
+                // formulario se ignora: cancelar es su propia accion.
+                funcionBD.cancelarFuncion(idFuncionEnEdicion);
+                guardado = true;
             } else {
                 funcion.setIdFuncion(idFuncionEnEdicion);
                 guardado = funcionBD.actualizarFuncion(funcion);
@@ -311,16 +327,16 @@ public class FuncionControl {
         }
     }
 
-    // Habilita/deshabilita el campo de idioma de subtitulos segun el
-    // checkbox. Si se desmarca, se borra lo que tuviera escrito.
+    // Habilita/deshabilita el combo de idioma de subtitulos segun el
+    // checkbox. Si se desmarca, se borra lo que tuviera elegido.
     @FXML
     private void actualizarCampoSubtitulos() {
 
         boolean tieneSubtitulos = chkFuncionTieneSubtitulos.isSelected();
-        txtFuncionIdiomaSubtitulos.setDisable(!tieneSubtitulos);
+        cmbFuncionIdiomaSubtitulos.setDisable(!tieneSubtitulos);
 
         if (!tieneSubtitulos) {
-            txtFuncionIdiomaSubtitulos.clear();
+            cmbFuncionIdiomaSubtitulos.setValue(null);
         }
     }
 
@@ -337,10 +353,10 @@ public class FuncionControl {
         spnFuncionHoraFinHora.getValueFactory().setValue(0);
         spnFuncionHoraFinMinuto.getValueFactory().setValue(0);
         txtFuncionTarifa.clear();
-        txtFuncionIdiomaAudio.clear();
+        cmbFuncionIdiomaAudio.setValue(null);
         chkFuncionTieneSubtitulos.setSelected(false);
-        txtFuncionIdiomaSubtitulos.clear();
-        txtFuncionIdiomaSubtitulos.setDisable(true);
+        cmbFuncionIdiomaSubtitulos.setValue(null);
+        cmbFuncionIdiomaSubtitulos.setDisable(true);
         cmbFuncionEstado.setValue("PROGRAMADA");
 
         lblFuncionFormTitulo.setText("Nueva funcion");

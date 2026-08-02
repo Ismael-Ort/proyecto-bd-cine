@@ -49,4 +49,11 @@ public class MetodoPago {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    @Override
+    public String toString() {
+        // Para que el ComboBox de metodos de pago (en el formulario de
+        // venta) muestre el nombre en vez de "MetodoPago@hashcode".
+        return nombreMetodo;
+    }
 }

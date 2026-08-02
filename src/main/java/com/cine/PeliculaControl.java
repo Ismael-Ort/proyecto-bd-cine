@@ -2,6 +2,7 @@ package com.cine;
 
 import javaDB.GeneroBD;
 import javaDB.PeliculaBD;
+import javaDB.PeliculaGeneroBD;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -22,10 +23,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import logico.Genero;
 import logico.Pelicula;
+import sesion.SesionActual;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -34,6 +37,7 @@ public class PeliculaControl {
 
     private PeliculaBD peliculaBD = new PeliculaBD();
     private GeneroBD generoBD = new GeneroBD();
+    private PeliculaGeneroBD peliculaGeneroBD = new PeliculaGeneroBD();
 
     @FXML
     private TextField txtPeliculaTitulo;
@@ -82,11 +86,17 @@ public class PeliculaControl {
     public void initialize(){
         cmbPeliculaClasificacion.getItems().addAll("G","PG","PG-13","R"); // carga los valores dentro del combobox
         cmbPeliculaEstado.setValue("ACTIVA");
+        Mascaras.aplicarMascaraEnteros(txtPeliculaDuracion, 4);
 
         for (Genero genero : generoBD.listarGeneros()) {
             CheckBox checkGenero = new CheckBox(genero.getNombreGenero());
             checkGenero.setUserData(genero);
             checkBoxGenerosContainer.getChildren().add(checkGenero);
+        }
+
+        // RF-17: Cajero solo tiene acceso de lectura a este catalogo.
+        if (!SesionActual.esAdministrador()) {
+            btnGuardarPelicula.setDisable(true);
         }
 
         cargarPeliculas();
@@ -182,6 +192,13 @@ public class PeliculaControl {
         lblPosterPlaceholder.setVisible(false);
         lblPeliculaImagenNombre.setText("Portada actual (selecciona otra imagen para cambiarla)");
 
+        List<Integer> idsGenerosActuales = peliculaGeneroBD.listarIdsGenerosDePelicula(pelicula.getIdPelicula());
+        for (Node nodo : checkBoxGenerosContainer.getChildren()) {
+            CheckBox checkGenero = (CheckBox) nodo;
+            Genero genero = (Genero) checkGenero.getUserData();
+            checkGenero.setSelected(idsGenerosActuales.contains(genero.getIdGenero()));
+        }
+
         lblPeliculaFormTitulo.setText("Editar pelicula");
         btnGuardarPelicula.setText("Guardar cambios");
     }
@@ -252,6 +269,13 @@ public class PeliculaControl {
                 return;
             }
 
+            List<Integer> idsGenerosSeleccionados = obtenerGenerosSeleccionados();
+
+            if (idsGenerosSeleccionados.isEmpty()) {
+                Alertas.mostrarAviso("Debe seleccionar al menos un genero.");
+                return;
+            }
+
             int duracion = Integer.parseInt(duracionTexto);
 
             if (duracion <= 0) {
@@ -268,16 +292,20 @@ public class PeliculaControl {
             pelicula.setEstado(estado);
             pelicula.setImagenPortada(imagenSeleccionada);
 
+            int idPelicula;
             boolean guardada;
 
             if (idPeliculaEnEdicion == null) {
-                guardada = peliculaBD.registrarPelicula(pelicula);
+                idPelicula = peliculaBD.registrarPelicula(pelicula);
+                guardada = idPelicula > 0;
             } else {
-                pelicula.setIdPelicula(idPeliculaEnEdicion);
+                idPelicula = idPeliculaEnEdicion;
+                pelicula.setIdPelicula(idPelicula);
                 guardada = peliculaBD.actualizarPelicula(pelicula);
             }
 
             if (guardada) {
+                peliculaGeneroBD.guardarGenerosDePelicula(idPelicula, idsGenerosSeleccionados);
                 System.out.println("Pelicula guardada correctamente.");
                 limpiarFormulario();
                 cargarPeliculas();
@@ -296,6 +324,24 @@ public class PeliculaControl {
 
 
 
+    }
+
+    // Recorre los checkbox de genero y devuelve el id_genero de los que
+    // esten marcados (cada checkbox trae su Genero guardado en setUserData,
+    // ver initialize()).
+    private List<Integer> obtenerGenerosSeleccionados() {
+
+        List<Integer> idsGeneros = new ArrayList<>();
+
+        for (Node nodo : checkBoxGenerosContainer.getChildren()) {
+            CheckBox checkGenero = (CheckBox) nodo;
+            if (checkGenero.isSelected()) {
+                Genero genero = (Genero) checkGenero.getUserData();
+                idsGeneros.add(genero.getIdGenero());
+            }
+        }
+
+        return idsGeneros;
     }
 
     @FXML

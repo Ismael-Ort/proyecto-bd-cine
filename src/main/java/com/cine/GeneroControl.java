@@ -14,6 +14,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import logico.Genero;
+import sesion.SesionActual;
 
 import java.util.List;
 
@@ -46,6 +47,12 @@ public class GeneroControl {
 
     public void initialize() {
         cmbGeneroEstado.setValue("ACTIVO");
+
+        // RF-17: Cajero solo tiene acceso de lectura a este catalogo.
+        if (!SesionActual.esAdministrador()) {
+            btnGuardarGenero.setDisable(true);
+        }
+
         cargarGeneros();
     }
 

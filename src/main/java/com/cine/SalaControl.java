@@ -1,5 +1,6 @@
 package com.cine;
 
+import javaDB.ButacaBD;
 import javaDB.SalaBD;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -11,7 +12,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import logico.Butaca;
 import logico.Sala;
+import sesion.SesionActual;
 
 import java.util.List;
 
@@ -20,6 +23,7 @@ public class SalaControl {
     private static final int CAPACIDAD_MAXIMA = 48;
 
     private SalaBD salaBD = new SalaBD();
+    private ButacaBD butacaBD = new ButacaBD();
 
     @FXML
     private Label lblSalaFormTitulo;
@@ -42,6 +46,9 @@ public class SalaControl {
     @FXML
     private VBox salasListContainer;
 
+    @FXML
+    private Button btnGuardarSala;
+
     // Si esta en null, "Guardar sala" inserta una sala nueva. Si tiene un
     // id, se esta editando esa sala y "Guardar sala" pasa a actualizarla.
     private Integer idSalaEnEdicion;
@@ -49,6 +56,14 @@ public class SalaControl {
 
     public void initialize() {
         cmbSalaEstado.setValue("ACTIVA");
+        Mascaras.aplicarMascaraEnteros(txtSalaFilas, 2);
+        Mascaras.aplicarMascaraEnteros(txtSalaColumnas, 2);
+
+        // RF-17: Cajero solo tiene acceso de lectura a este catalogo.
+        if (!SesionActual.esAdministrador()) {
+            btnGuardarSala.setDisable(true);
+        }
+
         cargarSalas();
     }
 
@@ -175,16 +190,20 @@ public class SalaControl {
             sala.setCapacidad(capacidad);
             sala.setEstado(estado);
 
+            int idSala;
             boolean guardada;
 
             if (idSalaEnEdicion == null) {
-                guardada = salaBD.registrarSala(sala);
+                idSala = salaBD.registrarSala(sala);
+                guardada = idSala > 0;
             } else {
-                sala.setIdSala(idSalaEnEdicion);
+                idSala = idSalaEnEdicion;
+                sala.setIdSala(idSala);
                 guardada = salaBD.actualizarSala(sala);
             }
 
             if (guardada) {
+                generarButacasSiHacenFalta(idSala);
                 limpiarFormulario();
                 cargarSalas();
             } else {
@@ -195,6 +214,44 @@ public class SalaControl {
             Alertas.mostrarAviso("La capacidad debe ser un numero entero.");
         } catch (RuntimeException e) {
             Alertas.mostrarAviso(e.getMessage());
+        }
+    }
+
+    // Si esta sala todavia no tiene butacas en la BD y el formulario trae
+    // filas/butacas por fila validos, las crea ahora: fila "A", "B", ... x
+    // el numero de butacas por fila. Sin esto, Ventas no tendria butacas
+    // que mostrar ni vender para esta sala.
+    private void generarButacasSiHacenFalta(int idSala) {
+
+        if (butacaBD.contarButacasDeSala(idSala) > 0) {
+            return;
+        }
+
+        try {
+            int filas = Integer.parseInt(txtSalaFilas.getText().trim());
+            int butacasPorFila = Integer.parseInt(txtSalaColumnas.getText().trim());
+
+            if (filas <= 0 || butacasPorFila <= 0) {
+                return;
+            }
+
+            for (int fila = 0; fila < filas; fila++) {
+                String letraFila = String.valueOf((char) ('A' + fila));
+
+                for (int numero = 1; numero <= butacasPorFila; numero++) {
+                    Butaca butaca = new Butaca();
+                    butaca.setFila(letraFila);
+                    butaca.setNumero(numero);
+                    butaca.setEstado("ACTIVA");
+                    butaca.setIdSala(idSala);
+                    butacaBD.registrarButaca(butaca);
+                }
+            }
+
+        } catch (NumberFormatException e) {
+            // Filas/butacas por fila vacios o invalidos: la sala se guarda
+            // igual, simplemente sin butacas todavia (se pueden generar
+            // despues volviendo a guardar la sala con esos campos llenos).
         }
     }
 

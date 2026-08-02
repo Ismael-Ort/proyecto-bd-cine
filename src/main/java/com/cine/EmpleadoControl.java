@@ -31,6 +31,7 @@ public class EmpleadoControl {
     @FXML private TextField txtEmpleadoApellidos;
     @FXML private DatePicker dpEmpleadoFechaNacimiento;
     @FXML private ComboBox<String> cmbEmpleadoSexo;
+    @FXML private ComboBox<String> cmbEmpleadoTipoDocumento;
     @FXML private TextField txtEmpleadoDocumento;
     @FXML private TextField txtEmpleadoTelefono;
     @FXML private TextField txtEmpleadoCorreo;
@@ -48,6 +49,12 @@ public class EmpleadoControl {
         cmbEmpleadoSexo.setValue("M");
         cmbEmpleadoEstado.setValue("ACTIVO");
         dpEmpleadoFechaContratacion.setValue(LocalDate.now());
+
+        cmbEmpleadoTipoDocumento.getItems().addAll("Cedula", "Pasaporte");
+        cmbEmpleadoTipoDocumento.valueProperty().addListener((obs, anterior, nuevo) -> Mascaras.aplicarMascaraDocumento(txtEmpleadoDocumento, nuevo));
+        cmbEmpleadoTipoDocumento.setValue("Cedula");
+
+        Mascaras.aplicarMascaraTelefono(txtEmpleadoTelefono);
 
         cargarEmpleados();
     }
@@ -111,7 +118,7 @@ public class EmpleadoControl {
         txtEmpleadoApellidos.setText(empleado.getApellidos());
         dpEmpleadoFechaNacimiento.setValue(empleado.getFechaNacimiento());
         cmbEmpleadoSexo.setValue(empleado.getSexo());
-        txtEmpleadoDocumento.setText(empleado.getDocumento());
+        Mascaras.cargarDocumentoEnCampos(empleado.getDocumento(), cmbEmpleadoTipoDocumento, txtEmpleadoDocumento);
         txtEmpleadoTelefono.setText(empleado.getTelefono());
         txtEmpleadoCorreo.setText(empleado.getCorreo());
         txtEmpleadoCargo.setText(empleado.getCargo());
@@ -153,7 +160,7 @@ public class EmpleadoControl {
         txtEmpleadoApellidos.setText(persona.getApellidos());
         dpEmpleadoFechaNacimiento.setValue(persona.getFechaNacimiento());
         cmbEmpleadoSexo.setValue(persona.getSexo());
-        txtEmpleadoDocumento.setText(persona.getDocumento());
+        Mascaras.cargarDocumentoEnCampos(persona.getDocumento(), cmbEmpleadoTipoDocumento, txtEmpleadoDocumento);
         txtEmpleadoTelefono.setText(persona.getTelefono());
         txtEmpleadoCorreo.setText(persona.getCorreo());
 
@@ -168,7 +175,8 @@ public class EmpleadoControl {
             String apellidos = txtEmpleadoApellidos.getText().trim();
             LocalDate fechaNacimiento = dpEmpleadoFechaNacimiento.getValue();
             String sexo = cmbEmpleadoSexo.getValue();
-            String documento = txtEmpleadoDocumento.getText().trim();
+            String tipoDocumento = cmbEmpleadoTipoDocumento.getValue();
+            String numeroDocumento = txtEmpleadoDocumento.getText().trim();
             String telefono = txtEmpleadoTelefono.getText().trim();
             String correo = txtEmpleadoCorreo.getText().trim();
             String cargo = txtEmpleadoCargo.getText().trim();
@@ -185,8 +193,13 @@ public class EmpleadoControl {
                 return;
             }
 
-            if (documento.isEmpty()) {
-                Alertas.mostrarAviso("Debes escribir el documento.");
+            if ("Cedula".equals(tipoDocumento) && numeroDocumento.length() != 11) {
+                Alertas.mostrarAviso("La cedula debe tener 11 digitos.");
+                return;
+            }
+
+            if ("Pasaporte".equals(tipoDocumento) && numeroDocumento.isEmpty()) {
+                Alertas.mostrarAviso("Debes escribir el numero de pasaporte.");
                 return;
             }
 
@@ -210,7 +223,7 @@ public class EmpleadoControl {
             persona.setApellidos(apellidos);
             persona.setFechaNacimiento(fechaNacimiento);
             persona.setSexo(sexo);
-            persona.setDocumento(documento);
+            persona.setDocumento(Mascaras.construirDocumentoCombinado(tipoDocumento, numeroDocumento));
             persona.setTelefono(telefono);
             persona.setCorreo(correo);
 
@@ -259,6 +272,7 @@ public class EmpleadoControl {
         txtEmpleadoApellidos.clear();
         dpEmpleadoFechaNacimiento.setValue(null);
         cmbEmpleadoSexo.setValue("M");
+        cmbEmpleadoTipoDocumento.setValue("Cedula");
         txtEmpleadoDocumento.clear();
         txtEmpleadoTelefono.clear();
         txtEmpleadoCorreo.clear();

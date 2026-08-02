@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,23 +86,27 @@ public class SalaBD {
 
 
 
-    public boolean registrarSala (Sala sala){
+    // Devuelve el id_sala generado (0 si no se pudo registrar), para que
+    // SalaControl pueda usarlo enseguida y generar las butacas de esa sala.
+    public int registrarSala (Sala sala){
 
         String sql = "insert into sala (nombre_sala, capacidad, estado) values (?,?,?)";
 
-        try(Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)){
+        try(Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
 
             ps.setString(1, sala.getNombreSala());
             ps.setInt(2, sala.getCapacidad());
             ps.setString(3, sala.getEstado());
 
-            int filas = ps.executeUpdate(); // guarda cuantos registros fueron afectados por el insert, si una pelicula se inserto correctamente normalmente devuelve 1.
-            if(filas > 0){
-                return true;
-            } else{
-                return false;
-            }// si filas vale 1 es que se inserto correctamente, y devuelve true, si vale cero devuelve false
+            ps.executeUpdate();
 
+            try (ResultSet claves = ps.getGeneratedKeys()) {
+                if (claves.next()) {
+                    return claves.getInt(1);
+                }
+            }
+
+            return 0;
 
         } catch (SQLException e) {
 

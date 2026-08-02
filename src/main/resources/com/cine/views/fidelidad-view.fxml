@@ -28,7 +28,7 @@
     (ver database/datos_iniciales.sql y docs/procedimientos_bd.md seccion 4).
 -->
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" spacing="24" styleClass="main-content" visible="false" managed="false" fx:controller="com.cine.FidelidadControl">
     <padding>
         <Insets bottom="36" left="40" right="40" top="36" />
     </padding>
@@ -42,9 +42,9 @@
         <VBox fx:id="fidelidadForm" maxWidth="320" minWidth="300" spacing="16" styleClass="form-card" HBox.hgrow="NEVER">
             <Label styleClass="panel-title" text="Canjear puntos" />
 
-            <VBox spacing="8">
+            <VBox fx:id="filaFidelidadCliente" spacing="8">
                 <Label styleClass="form-label" text="Cliente" />
-                <ComboBox fx:id="cmbFidelidadCliente" maxWidth="Infinity" promptText="Selecciona un cliente" styleClass="form-input" />
+                <ComboBox fx:id="cmbFidelidadCliente" maxWidth="Infinity" onAction="#consultarSaldo" promptText="Selecciona un cliente" styleClass="form-input" />
             </VBox>
 
             <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
@@ -52,7 +52,7 @@
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="lblFidelidadSaldo" styleClass="saldo-valor" text="-- pts" />
             </HBox>
-            <Button fx:id="btnConsultarSaldo" maxWidth="Infinity" styleClass="secondary-button" text="Consultar saldo" />
+            <Button fx:id="btnConsultarSaldo" maxWidth="Infinity" onAction="#consultarSaldo" styleClass="secondary-button" text="Consultar saldo" />
 
             <!--
                 No hay selector de "tipo de movimiento": esta pantalla solo
@@ -81,7 +81,7 @@
                 <TextArea fx:id="txtFidelidadDescripcion" prefRowCount="2" promptText="Ej: Canje de puntos por entrada gratuita" styleClass="form-textarea" wrapText="true" />
             </VBox>
 
-            <Button fx:id="btnRegistrarMovimiento" disable="true" maxWidth="Infinity" styleClass="primary-button" text="+  Registrar canje (9 pts)" />
+            <Button fx:id="btnRegistrarMovimiento" disable="true" maxWidth="Infinity" onAction="#registrarCanje" styleClass="primary-button" text="+  Registrar canje (9 pts)" />
             <Label styleClass="form-hint" text="Se habilita solo cuando el saldo del cliente es 9 pts o mas." wrapText="true" />
         </VBox>
 
@@ -90,7 +90,7 @@
                 <Label styleClass="panel-icon" text="*" />
                 <Label styleClass="panel-title" text="Historial de puntos" />
                 <Region HBox.hgrow="ALWAYS" />
-                <ComboBox fx:id="cmbFidelidadFiltroTipo" promptText="Filtrar por tipo" styleClass="form-input">
+                <ComboBox fx:id="cmbFidelidadFiltroTipo" onAction="#aplicarFiltroTipo" promptText="Filtrar por tipo" styleClass="form-input">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="ACUMULACIÓN" />
@@ -99,21 +99,7 @@
                     </items>
                 </ComboBox>
             </HBox>
-            <VBox fx:id="fidelidadListaContainer" spacing="0" styleClass="list-container">
-                <!-- Fila de ejemplo; el programa debe generar una por cada fila de
-                     `historial_puntos` (unida con `cliente`/`persona` y `venta`). -->
-                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="list-row">
-                    <VBox spacing="2">
-                        <Label styleClass="row-title" text="Nombre del cliente" />
-                        <Label styleClass="row-subtitle" text="Venta #001 - dd/mm/aaaa" />
-                    </VBox>
-                    <Region HBox.hgrow="ALWAYS" />
-                    <VBox alignment="CENTER_RIGHT" spacing="2">
-                        <Label styleClass="row-amount" text="+1 pt" />
-                        <Label styleClass="status-pill, status-activa" text="ACUMULACIÓN" />
-                    </VBox>
-                </HBox>
-            </VBox>
+            <VBox fx:id="fidelidadListaContainer" spacing="0" styleClass="list-container" />
         </VBox>
     </HBox>
 </VBox>

@@ -153,6 +153,42 @@ Al confirmar el pago de una entrada (`sp_confirmar_pago`), la venta correspondie
 ## BR-37. Procedimientos como única puerta de entrada a las operaciones críticas
 La aplicación Java no deberá construir manualmente las sentencias `INSERT`/`UPDATE` para registrar una venta o confirmar un pago: deberá invocar siempre `sp_registrar_venta` y `sp_confirmar_pago`, para garantizar que las validaciones, los cálculos y la atomicidad se apliquen de forma consistente.
 
+## BR-41. Cancelación de una entrada limitada por el tiempo
+Una entrada solo podrá cancelarse mientras su función todavía no haya terminado (comparando `fecha_funcion`/`hora_fin` contra la hora del servidor, igual que `trg_actualizar_estado_funcion`). Una vez que la función ya pasó, cancelar no tiene sentido (la butaca no se puede revender) y la operación no hace nada. Esta validación vive en `EntradaBD.cancelarEntrada` (un `UPDATE` con esa condición en el `WHERE`, no un procedimiento aparte).
+
+## BR-42. Cancelación en cascada de una función
+Cancelar una función (`sp_cancelar_funcion`) cancela automáticamente, en la misma transacción, todo lo que dependía de ella:
+
+1. Todas sus entradas pasan a `CANCELADA` (sin importar el límite de tiempo de BR-41: esta es una cancelación administrativa, no una del cliente).
+2. Las ventas que tenían entradas en esa función pasan a `CANCELADA` ("se devuelve el dinero": la venta deja de estar `PENDIENTE`/`COMPLETADA`).
+3. Por cada entrada que ya estaba `PAGADA` (ya había generado un punto de fidelidad), se registra un movimiento `CANJE` en `historial_puntos` que resta ese punto.
+
+Todo esto lo hace `trg_cancelar_entradas_por_funcion` (`AFTER UPDATE ON funcion`), disparado por el `UPDATE` que hace `sp_cancelar_funcion` dentro de su propia transacción: si algo de esto falla, la función tampoco queda cancelada.
+
+---
+
+# 10. Autenticación y control de acceso
+
+## BR-38. Coherencia entre cargo de Empleado y rol de Usuario
+Además de BR-12 (la persona debe tener registro de Empleado), un usuario con rol `ADMINISTRADOR` o `CAJERO` solo puede crearse si el `cargo` de ese Empleado es, respectivamente, "Administrador" o "Cajero" (comparación sin distinguir mayúsculas/minúsculas). Empleados con otros cargos (ej. conserje, seguridad) quedan registrados como empleados del sistema pero sin usuario propio — el schema ya lo permite porque `usuario` no tiene FK obligatoria a `empleado`. Esta validación vive en la aplicación (`UsuarioControl`), igual que BR-12.
+
+## BR-39. Autenticación
+El inicio de sesión valida `nombre_usuario` + contraseña contra `usuario.hash_contrasena` (solo cuentas con `estado = 'ACTIVO'`). Las contraseñas se guardan con **BCrypt** (librería `jbcrypt`, salt incorporado en cada hash), nunca en texto plano ni con un hash sin salt.
+
+## BR-40. Permisos por pantalla según rol
+Cada rol ve y puede operar solo el subconjunto de pantallas que le corresponde (RF-17):
+
+| Pantalla | ADMINISTRADOR | CAJERO | CLIENTE |
+|---|---|---|---|
+| Panel | Sí | No | No |
+| Películas / Salas / Funciones / Géneros | Sí (crear/editar) | Solo lectura | No |
+| Ventas | Sí | Sí | Sí |
+| Clientes | Sí (crear/editar) | Sí (crear/editar) | No |
+| Empleados / Usuarios | Sí | No | No |
+| Fidelidad | Sí | Sí | Sí |
+
+Esta matriz se aplica en `VentanaPrincipalControl` (qué botones del menú lateral se muestran) y, en las pantallas de solo lectura, deshabilitando el botón "Guardar" en el controlador de cada una.
+
 ---
 
 # Checklist de correspondencia con `database/schema.sql`
@@ -235,7 +271,8 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] FK a `persona` (no única: una persona puede tener varios usuarios).
 - [x] `rol` restringido a `ADMINISTRADOR`/`CAJERO`/`CLIENTE`.
 - [x] `estado` restringido a `ACTIVO`/`INACTIVO`.
-- [ ] Validar en Java la coherencia rol-persona (BR-12), ya que no hay FK directa a `cliente`/`empleado`.
+- [x] Validar en Java la coherencia rol-persona (BR-12) y cargo-rol (BR-38), ya que no hay FK directa a `cliente`/`empleado`.
+- [x] `hash_contrasena` generado con BCrypt (BR-39), nunca en texto plano.
 
 ## venta
 - [x] PK `id_venta`.
@@ -264,11 +301,14 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 
 ## Procedimientos y trigger (`database/procedimientos_triggers.sql`)
 - [x] `trg_acumula_puntos` implementado (AFTER UPDATE ON entrada).
+- [x] `trg_actualizar_estado_funcion` implementado (BEFORE UPDATE ON funcion).
+- [x] `trg_cancelar_entradas_por_funcion` implementado (AFTER UPDATE ON funcion; BR-42).
 - [x] `sp_registrar_venta` implementado, con transacción (`START TRANSACTION`/`COMMIT`/`ROLLBACK`).
 - [x] `sp_confirmar_pago` implementado, con transacción.
+- [x] `sp_cancelar_funcion` implementado, con transacción (BR-42).
 - [x] Sin funciones almacenadas (a propósito).
-- [ ] Ejecutar `database/procedimientos_triggers.sql` cuando el equipo esté listo para programar esa parte (no antes).
-- [ ] Guion de pruebas de `docs/procedimientos_bd.md` (sección 5) ejecutado contra la base de datos real.
+- [x] `database/procedimientos_triggers.sql` ejecutado contra la base de datos real.
+- [x] Cascada de `sp_cancelar_funcion` probada manualmente contra la base de datos real (entrada/venta/historial_puntos quedan consistentes).
 
 ---
 
@@ -282,10 +322,11 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] Reglas del programa de fidelidad definidas.
 - [x] Reglas de estados y transacciones definidas.
 - [x] Reglas de procedimientos y trigger definidas.
+- [x] Reglas de autenticación y control de acceso definidas (BR-38 a BR-40).
 - [x] Checklist de correspondencia con `database/schema.sql` definido.
 - [x] Documento consistente con el modelo conceptual.
 - [x] Documento consistente con el modelo lógico.
-- [ ] Validaciones pendientes de implementar en Java (solapamiento de horario, coherencia rol-persona).
+- [x] Validaciones pendientes de implementar en Java: Ventas ya filtra por empleado propio (`VentaBD.listarVentas`) y Fidelidad ya filtra por cliente propio (`FidelidadControl.clienteConsultado`, oculta el selector de cliente para el rol `CLIENTE`).
 
 ---
 

@@ -1,75 +1,70 @@
 package javaDB;
 
-import logico.Venta;
+import logico.Entrada;
+import logico.VentaDetalle;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+// BR-37: aqui nunca se arma un INSERT/UPDATE a mano sobre venta/entrada.
+// Todo pasa por los procedimientos de database/procedimientos_triggers.sql
+// (sp_registrar_venta, sp_confirmar_pago), llamados con CallableStatement,
+// tal como esta documentado en docs/procedimientos_bd.md (seccion 6).
 public class VentaBD {
 
-    private boolean registrarVenta (Venta venta){
+    private EntradaBD entradaBD = new EntradaBD();
 
-        String sql = "insert into venta (fecha_venta, total_pagado, canal_venta, observacion, estado, id_cliente, id_empleado, id_metodopago) VALUES (?,?,?,?,?,?,?,?)";
+    // idEmpleado puede ser null (venta EN_LINEA). idVentaExistente en null
+    // crea una venta nueva (primera butaca de la compra); con un id_venta
+    // agrega esta butaca a esa misma venta (BR-19: una venta puede tener
+    // varias entradas) en vez de crear una venta aparte. Para vender varias
+    // butacas en una sola compra, se llama este metodo una vez por butaca,
+    // pasando en la primera llamada idVentaExistente=null y en las
+    // siguientes el idVenta que devolvio la entrada anterior. Devuelve la
+    // entrada recien creada, ya con el precio que calculo el procedimiento.
+    public Entrada registrarVenta(int idCliente, Integer idEmpleado, String canalVenta, int idMetodoPago,
+                                   String observacion, int idFuncion, int idButaca, int idTipoEntrada,
+                                   Integer idVentaExistente) {
 
-        try(Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)){
+        String sql = "{call sp_registrar_venta(?,?,?,?,?,?,?,?,?,?,?)}";
 
-          //  ps.setDate(1, venta.getFechaVenta());
-            ps.setBigDecimal(2, venta.getTotalPagado());
-            ps.setString(3, venta.getCanalVenta());
-            ps.setString(4, venta.getObservacion());
-            ps.setString(5, venta.getEstado());
-            ps.setInt(6, venta.getIdCliente());
-            ps.setInt(7, venta.getIdEmpleado());
-            ps.setInt(8, venta.getIdMetodoPago());
+        try (Connection conexion = ConexionBD.conectar(); CallableStatement cs = conexion.prepareCall(sql)) {
 
-            int filas = ps.executeUpdate(); // guarda cuantos registros fueron afectados por el insert, si una pelicula se inserto correctamente normalmente devuelve 1.
-            if(filas > 0){
-                return true;
-            } else{
-                return false;
-            }// si filas vale 1 es que se inserto correctamente, y devuelve true, si vale cero devuelve false
+            cs.setInt(1, idCliente);
+            if (idEmpleado == null) {
+                cs.setNull(2, Types.INTEGER);
+            } else {
+                cs.setInt(2, idEmpleado);
+            }
+            cs.setString(3, canalVenta);
+            cs.setInt(4, idMetodoPago);
+            cs.setString(5, observacion);
+            cs.setInt(6, idFuncion);
+            cs.setInt(7, idButaca);
+            cs.setInt(8, idTipoEntrada);
+            if (idVentaExistente == null) {
+                cs.setNull(9, Types.INTEGER);
+            } else {
+                cs.setInt(9, idVentaExistente);
+            }
+            cs.registerOutParameter(10, Types.INTEGER); // p_id_venta
+            cs.registerOutParameter(11, Types.INTEGER); // p_id_entrada
 
+            cs.execute();
 
-        } catch (SQLException e) {
-
-            System.out.println("Error al registrar: " + e.getMessage());
-            System.out.println("Codigo SQL: " + e.getErrorCode());
-            throw new RuntimeException("No se puedo registrar la Venta" + e.getMessage(), e);
-
-        } catch (Exception e) {
-
-            System.out.println("Error general: " + e.getMessage());
-            throw new RuntimeException("Error al conectar o procesar la Venta" + e.getMessage(), e);
-        }
-
-    }
-
-
-    public boolean actualizarVenta (Venta venta) {
-
-        String sql = "UPDATE venta SET fecha_venta = ?, total_pagado = ?, canal_venta = ?, observacion = ?, estado = ? WHERE id_venta = ?";
-
-        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
-
-        //    ps.setDate(1, venta.getFechaVenta());
-            ps.setBigDecimal(2, venta.getTotalPagado());
-            ps.setString(3, venta.getCanalVenta());
-            ps.setString(4, venta.getObservacion());
-            ps.setString(5, venta.getEstado());
-            ps.setInt(6, venta.getIdVenta());
-
-            int filas = ps.executeUpdate();
-            return filas > 0;
+            int idEntrada = cs.getInt(11);
+            return entradaBD.obtenerEntrada(idEntrada);
 
         } catch (SQLException e) {
 
-            System.out.println("Error al actualizar: " + e.getMessage());
-            System.out.println("Codigo SQL: " + e.getErrorCode());
-            throw new RuntimeException("No se pudo actualizar la venta" + e.getMessage(), e);
+            System.out.println("Error al registrar venta: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
 
         } catch (Exception e) {
 
@@ -78,96 +73,115 @@ public class VentaBD {
         }
     }
 
+    // Marca la entrada como PAGADA y la venta como COMPLETADA (dispara
+    // trg_acumula_puntos). Falla si la entrada no estaba RESERVADA.
+    public void confirmarPago(int idEntrada) {
 
-    public List<Venta> listarVentas() {
+        String sql = "{call sp_confirmar_pago(?)}";
 
-        String sql = "SELECT id_venta, fecha_venta, total_pagado, canal_venta, observacion, estado, id_cliente, id_empleado, id_metodopago FROM venta ORDER BY id_venta";
+        try (Connection conexion = ConexionBD.conectar(); CallableStatement cs = conexion.prepareCall(sql)) {
 
-        List<Venta> ventas = new ArrayList<>();
+            cs.setInt(1, idEntrada);
+            cs.execute();
 
-        try (Connection conexion = ConexionBD.conectar();
-             PreparedStatement ps = conexion.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        } catch (SQLException e) {
 
-            while (rs.next()) {
+            System.out.println("Error al confirmar pago: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
 
-                Venta venta = new Venta();
+        } catch (Exception e) {
 
-                venta.setIdVenta(rs.getInt("id_venta"));
-                venta.setFechaVenta(rs.getTimestamp("fecha_venta").toLocalDateTime());
-                venta.setTotalPagado(rs.getBigDecimal("total_pagado"));
-                venta.setCanalVenta(rs.getString("canal_venta"));
-                venta.setObservacion(rs.getString("observacion"));
-                venta.setEstado(rs.getString("estado"));
-                venta.setIdCliente(rs.getInt("id_cliente"));
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar el pago" + e.getMessage(), e);
+        }
+    }
 
-                // id_empleado puede ser NULL en ventas EN_LINEA
-                int idEmpleado = rs.getInt("id_empleado");
+    // idCliente/idEmpleado en null = sin filtrar por ese lado (Administrador
+    // ve todo; Cajero pasa su propio idEmpleado; Cliente su propio idCliente).
+    public List<VentaDetalle> listarVentas(Integer idCliente, Integer idEmpleado) {
 
-                if (rs.wasNull()) {
-                    venta.setIdEmpleado(null);
-                } else {
-                    venta.setIdEmpleado(idEmpleado);
+        String sql = "SELECT v.id_venta, v.fecha_venta, v.canal_venta, v.estado AS estado_venta, v.total_pagado, " +
+                "v.id_cliente, v.id_empleado, " +
+                "CONCAT(pc.nombres, ' ', pc.apellidos) AS nombre_cliente, " +
+                "CONCAT(pe.nombres, ' ', pe.apellidos) AS nombre_empleado, " +
+                "e.id_entrada, e.estado AS estado_entrada, e.precio_final, " +
+                "p.titulo, b.fila, b.numero, t.nombre_tipo " +
+                "FROM venta v " +
+                "JOIN entrada e ON e.id_venta = v.id_venta " +
+                "JOIN cliente c ON c.id_cliente = v.id_cliente " +
+                "JOIN persona pc ON pc.id_persona = c.id_persona " +
+                "LEFT JOIN empleado emp ON emp.id_empleado = v.id_empleado " +
+                "LEFT JOIN persona pe ON pe.id_persona = emp.id_persona " +
+                "JOIN funcion f ON f.id_funcion = e.id_funcion " +
+                "JOIN pelicula p ON p.id_pelicula = f.id_pelicula " +
+                "JOIN butaca b ON b.id_butaca = e.id_butaca " +
+                "JOIN tipoentrada t ON t.id_tipoentrada = e.id_tipoentrada ";
+
+        if (idCliente != null) {
+            sql += "WHERE v.id_cliente = ? ";
+        } else if (idEmpleado != null) {
+            sql += "WHERE v.id_empleado = ? ";
+        }
+
+        // id_venta como segundo criterio: asi las entradas de una misma
+        // venta (BR-19: puede tener varias) quedan siempre juntas, incluso
+        // si dos ventas comparten la misma fecha_venta exacta.
+        sql += "ORDER BY v.fecha_venta DESC, v.id_venta DESC";
+
+        List<VentaDetalle> ventas = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            if (idCliente != null) {
+                ps.setInt(1, idCliente);
+            } else if (idEmpleado != null) {
+                ps.setInt(1, idEmpleado);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ventas.add(mapearVentaDetalle(rs));
                 }
-
-                venta.setIdMetodoPago(rs.getInt("id_metodopago"));
-
-                ventas.add(venta);
             }
 
         } catch (SQLException e) {
 
             System.out.println("Error al listar ventas: " + e.getMessage());
-            throw new RuntimeException(
-                    "No se pudieron cargar las ventas: " + e.getMessage(), e
-            );
+            throw new RuntimeException("No se pudieron cargar las ventas" + e.getMessage(), e);
 
         } catch (Exception e) {
 
             System.out.println("Error general: " + e.getMessage());
-            throw new RuntimeException(
-                    "Error al conectar o procesar las ventas: " + e.getMessage(), e
-            );
+            throw new RuntimeException("Error al conectar o procesar las ventas" + e.getMessage(), e);
         }
 
         return ventas;
     }
 
+    private VentaDetalle mapearVentaDetalle(ResultSet rs) throws SQLException {
 
+        VentaDetalle venta = new VentaDetalle();
 
+        venta.setIdVenta(rs.getInt("id_venta"));
+        venta.setFechaVenta(rs.getTimestamp("fecha_venta").toLocalDateTime());
+        venta.setCanalVenta(rs.getString("canal_venta"));
+        venta.setEstadoVenta(rs.getString("estado_venta"));
+        venta.setTotalPagado(rs.getBigDecimal("total_pagado"));
+        venta.setIdCliente(rs.getInt("id_cliente"));
+        venta.setNombreCliente(rs.getString("nombre_cliente"));
+        venta.setNombreEmpleado(rs.getString("nombre_empleado")); // null si la venta es EN_LINEA
 
+        int idEmpleado = rs.getInt("id_empleado");
+        venta.setIdEmpleado(rs.wasNull() ? null : idEmpleado);
 
+        venta.setIdEntrada(rs.getInt("id_entrada"));
+        venta.setEstadoEntrada(rs.getString("estado_entrada"));
+        venta.setPrecioFinal(rs.getBigDecimal("precio_final"));
+        venta.setTituloPelicula(rs.getString("titulo"));
+        venta.setFila(rs.getString("fila"));
+        venta.setNumero(rs.getInt("numero"));
+        venta.setNombreTipoEntrada(rs.getString("nombre_tipo"));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return venta;
     }
-
-
-
-
-
-
-
+}

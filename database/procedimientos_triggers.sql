@@ -13,16 +13,19 @@
 -- docs/procedimientos_bd.md antes de correrlo.
 --
 -- El proyecto exige, como minimo, un procedimiento almacenado,
--- un trigger y una transaccion. Aqui hay lo minimo necesario
--- para cubrir un flujo real (registrar una venta, confirmar su
--- pago, y mantener al dia el estado de las funciones), sin usar
--- funciones almacenadas (no se vieron en clase):
+-- un trigger y una transaccion. Aqui hay lo necesario para
+-- cubrir un flujo real (registrar una venta, confirmar su pago,
+-- mantener al dia el estado de las funciones, y cancelar una
+-- funcion en cascada), sin usar funciones almacenadas (no se
+-- vieron en clase):
 --
---   2 triggers   -> trg_acumula_puntos
+--   3 triggers   -> trg_acumula_puntos
 --                -> trg_actualizar_estado_funcion
---   2 procedimientos, ambos con su propia transaccion:
+--                -> trg_cancelar_entradas_por_funcion
+--   3 procedimientos, todos con su propia transaccion:
 --                -> sp_registrar_venta
 --                -> sp_confirmar_pago
+--                -> sp_cancelar_funcion
 -- =========================================================
 
 USE cine;
@@ -107,13 +110,73 @@ DELIMITER ;
 
 
 -- =========================================================
+-- TRIGGER: trg_cancelar_entradas_por_funcion
+-- AFTER UPDATE ON funcion
+--
+-- Cuando una funcion pasa a CANCELADA (por sp_cancelar_funcion,
+-- ver mas abajo), cancela en cascada todo lo que dependia de
+-- ella, "devolviendo" tanto la venta como los puntos ganados:
+--
+--   1. Por cada entrada de esa funcion que ya estaba PAGADA (ya
+--      habia generado un punto via trg_acumula_puntos), inserta
+--      un movimiento CANJE que resta ese punto.
+--   2. Cancela todas las entradas de la funcion (menos las que
+--      ya estaban CANCELADA).
+--   3. Cancela las ventas que tenian entradas en esa funcion.
+--
+-- Todo esto corre dentro de la misma transaccion que abre
+-- sp_cancelar_funcion: si algo aqui falla, el UPDATE de funcion
+-- que disparo este trigger tambien se revierte.
+-- =========================================================
+
+DELIMITER $$
+
+CREATE TRIGGER trg_cancelar_entradas_por_funcion
+AFTER UPDATE ON funcion
+FOR EACH ROW
+BEGIN
+    IF NEW.estado = 'CANCELADA' AND OLD.estado <> 'CANCELADA' THEN
+
+        INSERT INTO historial_puntos (tipo_movimiento, cantidad_puntos, descripcion, id_cliente, id_venta)
+        SELECT 'CANJE', 1,
+               CONCAT('Reverso de punto por cancelacion de la funcion #', NEW.id_funcion, ' (entrada #', e.id_entrada, ')'),
+               v.id_cliente, e.id_venta
+        FROM entrada e
+        JOIN venta v ON v.id_venta = e.id_venta
+        WHERE e.id_funcion = NEW.id_funcion AND e.estado = 'PAGADA' AND e.precio_final > 0;
+
+        UPDATE entrada SET estado = 'CANCELADA'
+            WHERE id_funcion = NEW.id_funcion AND estado <> 'CANCELADA';
+
+        UPDATE venta SET estado = 'CANCELADA'
+            WHERE estado <> 'CANCELADA'
+              AND id_venta IN (SELECT id_venta FROM entrada WHERE id_funcion = NEW.id_funcion);
+
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- =========================================================
 -- PROCEDIMIENTO: sp_registrar_venta
 --
--- Registra una venta con su entrada, calculando el precio a
--- partir de la tarifa base de la funcion y el descuento del
--- tipo de entrada (no hace falta que Java calcule el precio,
--- se lo pasa el procedimiento en las salidas si lo necesita
--- consultar despues con un SELECT).
+-- Registra una entrada, calculando el precio a partir de la
+-- tarifa base de la funcion y el descuento del tipo de entrada
+-- (no hace falta que Java calcule el precio, se lo pasa el
+-- procedimiento en las salidas si lo necesita consultar despues
+-- con un SELECT).
+--
+-- BR-19: una venta puede tener varias entradas (varias butacas
+-- en una sola compra). p_id_venta_existente controla eso:
+--   - NULL       -> crea una venta nueva (primera butaca de la compra).
+--   - un id_venta -> reutiliza esa venta (butacas siguientes de la
+--                    misma compra) y le suma el precio de esta
+--                    entrada a su total_pagado, en vez de crear
+--                    una venta aparte. Java debe llamar a este
+--                    procedimiento una vez por butaca, pasando en
+--                    la segunda llamada en adelante el p_id_venta
+--                    que devolvio la primera (ver docs/procedimientos_bd.md).
 --
 -- Para vender una entrada "gratis" (canje de puntos), no hace
 -- falta otro procedimiento: basta con llamar a este mismo
@@ -122,8 +185,10 @@ DELIMITER ;
 -- desde Java, se inserta el movimiento CANJE correspondiente
 -- en historial_puntos (ver docs/procedimientos_bd.md).
 --
--- Toda la operacion ocurre dentro de una unica transaccion:
--- si algo falla a mitad de camino, se revierte por completo.
+-- Cada llamada ocurre dentro de su propia transaccion: si algo
+-- falla, esa llamada se revierte completa (las butacas de la
+-- misma compra que ya se hubieran registrado en llamadas
+-- anteriores quedan como estaban, no se deshacen).
 -- =========================================================
 
 DELIMITER $$
@@ -137,6 +202,7 @@ CREATE PROCEDURE sp_registrar_venta(
     IN  p_id_funcion     INT,
     IN  p_id_butaca      INT,
     IN  p_id_tipoentrada INT,
+    IN  p_id_venta_existente INT,
     OUT p_id_venta       INT,
     OUT p_id_entrada     INT
 )
@@ -184,10 +250,16 @@ BEGIN
 
     START TRANSACTION;
 
-    INSERT INTO venta (canal_venta, observacion, id_cliente, id_empleado, id_metodopago, total_pagado)
-    VALUES (p_canal_venta, p_observacion, p_id_cliente, p_id_empleado, p_id_metodopago, v_precio_final);
+    IF p_id_venta_existente IS NULL THEN
+        INSERT INTO venta (canal_venta, observacion, id_cliente, id_empleado, id_metodopago, total_pagado)
+        VALUES (p_canal_venta, p_observacion, p_id_cliente, p_id_empleado, p_id_metodopago, v_precio_final);
 
-    SET p_id_venta = LAST_INSERT_ID();
+        SET p_id_venta = LAST_INSERT_ID();
+    ELSE
+        SET p_id_venta = p_id_venta_existente;
+
+        UPDATE venta SET total_pagado = total_pagado + v_precio_final WHERE id_venta = p_id_venta;
+    END IF;
 
     -- La tabla entrada tiene uq_entrada_funcion_butaca: solo puede
     -- existir UNA fila para cada (id_funcion, id_butaca). Si esa
@@ -265,6 +337,50 @@ BEGIN
     UPDATE entrada SET estado = 'PAGADA' WHERE id_entrada = p_id_entrada;
 
     UPDATE venta SET estado = 'COMPLETADA' WHERE id_venta = v_id_venta;
+
+    COMMIT;
+END$$
+
+DELIMITER ;
+
+
+-- =========================================================
+-- PROCEDIMIENTO: sp_cancelar_funcion
+--
+-- Cancela una funcion. El propio UPDATE dispara
+-- trg_cancelar_entradas_por_funcion (ver arriba), que en la
+-- misma transaccion cancela las entradas y ventas asociadas y
+-- devuelve los puntos de fidelidad ya ganados. Por eso este
+-- procedimiento no necesita tocar entrada/venta/historial_puntos
+-- el mismo: le basta con cambiar el estado de la funcion.
+-- =========================================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_cancelar_funcion(
+    IN p_id_funcion INT
+)
+BEGIN
+    DECLARE v_estado VARCHAR(20);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    SELECT estado INTO v_estado FROM funcion WHERE id_funcion = p_id_funcion FOR UPDATE;
+
+    IF v_estado IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La funcion indicada no existe.';
+    END IF;
+    IF v_estado = 'CANCELADA' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Esa funcion ya estaba cancelada.';
+    END IF;
+
+    UPDATE funcion SET estado = 'CANCELADA' WHERE id_funcion = p_id_funcion;
 
     COMMIT;
 END$$

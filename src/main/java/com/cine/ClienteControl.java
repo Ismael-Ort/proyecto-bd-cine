@@ -9,7 +9,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -20,7 +19,6 @@ import logico.Persona;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public class ClienteControl {
 
@@ -52,69 +50,12 @@ public class ClienteControl {
         dpClienteFechaRegistro.setValue(LocalDate.now());
 
         cmbClienteTipoDocumento.getItems().addAll("Cedula", "Pasaporte");
-        cmbClienteTipoDocumento.valueProperty().addListener((obs, anterior, nuevo) -> aplicarMascaraDocumento(nuevo));
+        cmbClienteTipoDocumento.valueProperty().addListener((obs, anterior, nuevo) -> Mascaras.aplicarMascaraDocumento(txtClienteDocumento, nuevo));
         cmbClienteTipoDocumento.setValue("Cedula");
 
+        Mascaras.aplicarMascaraTelefono(txtClienteTelefono);
+
         cargarClientes();
-    }
-
-    // Cambia el filtro de caracteres permitidos y el texto de ejemplo del
-    // campo de documento segun el tipo elegido: Cedula = solo numeros (11
-    // digitos), Pasaporte = letras y numeros (hasta 9 caracteres).
-    private void aplicarMascaraDocumento(String tipo) {
-
-        if ("Pasaporte".equals(tipo)) {
-            UnaryOperator<TextFormatter.Change> filtro = cambio -> {
-                String textoNuevo = cambio.getControlNewText();
-                if (textoNuevo.length() > 9 || !textoNuevo.matches("[a-zA-Z0-9]*")) {
-                    return null;
-                }
-                cambio.setText(cambio.getText().toUpperCase());
-                return cambio;
-            };
-            txtClienteDocumento.setTextFormatter(new TextFormatter<>(filtro));
-            txtClienteDocumento.setPromptText("Ej: AB1234567 (letras y numeros)");
-        } else {
-            UnaryOperator<TextFormatter.Change> filtro = cambio -> {
-                String textoNuevo = cambio.getControlNewText();
-                if (textoNuevo.length() > 11 || !textoNuevo.matches("[0-9]*")) {
-                    return null;
-                }
-                return cambio;
-            };
-            txtClienteDocumento.setTextFormatter(new TextFormatter<>(filtro));
-            txtClienteDocumento.setPromptText("Ej: 00112345678 (11 digitos)");
-        }
-
-        txtClienteDocumento.clear();
-    }
-
-    // Arma el valor combinado que se guarda en persona.documento, ej:
-    // "CED-001-1234567-8" o "PAS-AB1234567".
-    private String construirDocumentoCombinado(String tipo, String numero) {
-
-        if ("Pasaporte".equals(tipo)) {
-            return "PAS-" + numero;
-        }
-
-        String formateada = numero.substring(0, 3) + "-" + numero.substring(3, 10) + "-" + numero.substring(10);
-        return "CED-" + formateada;
-    }
-
-    // Reparte un documento combinado ya guardado de vuelta al combo + campo,
-    // para cuando se busca o se edita una persona existente.
-    private void cargarDocumentoEnFormulario(String documentoCompleto) {
-
-        if (documentoCompleto != null && documentoCompleto.startsWith("PAS-")) {
-            cmbClienteTipoDocumento.setValue("Pasaporte");
-            txtClienteDocumento.setText(documentoCompleto.substring(4));
-        } else if (documentoCompleto != null && documentoCompleto.startsWith("CED-")) {
-            cmbClienteTipoDocumento.setValue("Cedula");
-            txtClienteDocumento.setText(documentoCompleto.substring(4).replace("-", ""));
-        } else {
-            cmbClienteTipoDocumento.setValue("Cedula");
-            txtClienteDocumento.setText(documentoCompleto == null ? "" : documentoCompleto.replace("-", ""));
-        }
     }
 
     private void cargarClientes() {
@@ -180,7 +121,7 @@ public class ClienteControl {
         txtClienteApellidos.setText(cliente.getApellidos());
         dpClienteFechaNacimiento.setValue(cliente.getFechaNacimiento());
         cmbClienteSexo.setValue(cliente.getSexo());
-        cargarDocumentoEnFormulario(cliente.getDocumento());
+        Mascaras.cargarDocumentoEnCampos(cliente.getDocumento(), cmbClienteTipoDocumento, txtClienteDocumento);
         txtClienteTelefono.setText(cliente.getTelefono());
         txtClienteCorreo.setText(cliente.getCorreo());
         dpClienteFechaRegistro.setValue(cliente.getFechaRegistro());
@@ -221,7 +162,7 @@ public class ClienteControl {
         txtClienteApellidos.setText(persona.getApellidos());
         dpClienteFechaNacimiento.setValue(persona.getFechaNacimiento());
         cmbClienteSexo.setValue(persona.getSexo());
-        cargarDocumentoEnFormulario(persona.getDocumento());
+        Mascaras.cargarDocumentoEnCampos(persona.getDocumento(), cmbClienteTipoDocumento, txtClienteDocumento);
         txtClienteTelefono.setText(persona.getTelefono());
         txtClienteCorreo.setText(persona.getCorreo());
 
@@ -278,7 +219,7 @@ public class ClienteControl {
             persona.setApellidos(apellidos);
             persona.setFechaNacimiento(fechaNacimiento);
             persona.setSexo(sexo);
-            persona.setDocumento(construirDocumentoCombinado(tipoDocumento, numeroDocumento));
+            persona.setDocumento(Mascaras.construirDocumentoCombinado(tipoDocumento, numeroDocumento));
             persona.setTelefono(telefono);
             persona.setCorreo(correo);
 

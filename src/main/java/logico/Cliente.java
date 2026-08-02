@@ -48,4 +48,11 @@ public class Cliente extends Persona {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    @Override
+    public String toString() {
+        // Para que el ComboBox de clientes (en el formulario de venta)
+        // muestre el nombre en vez de "Cliente@hashcode".
+        return getNombres() + " " + getApellidos();
+    }
 }

@@ -4,10 +4,10 @@ Este documento explica, paso a paso, el archivo `database/procedimientos_trigger
 
 **Este archivo no se ejecuta al crear la base de datos.** `database/schema.sql` (que incluye su propio `DROP DATABASE` / `CREATE DATABASE`) solo crea las tablas. `database/procedimientos_triggers.sql` se ejecuta **aparte**, más adelante, cuando en el programa Java lleguemos a la parte de registrar ventas y confirmar pagos. Así evitamos correr algo que todavía no hemos terminado de entender.
 
-El proyecto pide, como mínimo, un procedimiento almacenado, un trigger y una transacción. Aquí hay exactamente eso — ni más ni menos — porque no vimos funciones almacenadas en clase y no tiene sentido meter cosas de más solo por meterlas:
+El proyecto pide, como mínimo, un procedimiento almacenado, un trigger y una transacción. Aquí hay bastante más que eso porque, a medida que se fue armando Ventas y Funciones, aparecieron casos reales (mantener el estado de una función al día, cancelarla en cascada) que se resuelven mejor con esta misma mecánica que con código Java aparte:
 
-- **1 trigger:** `trg_acumula_puntos`
-- **2 procedimientos almacenados**, cada uno con su propia transacción (`START TRANSACTION` / `COMMIT` / `ROLLBACK`): `sp_registrar_venta` y `sp_confirmar_pago`.
+- **3 triggers:** `trg_acumula_puntos`, `trg_actualizar_estado_funcion` y `trg_cancelar_entradas_por_funcion`.
+- **3 procedimientos almacenados**, cada uno con su propia transacción (`START TRANSACTION` / `COMMIT` / `ROLLBACK`): `sp_registrar_venta`, `sp_confirmar_pago` y `sp_cancelar_funcion`.
 
 No se usan funciones almacenadas (`CREATE FUNCTION`) en ningún lado.
 
@@ -57,6 +57,16 @@ SELECT * FROM historial_puntos WHERE id_venta = @id_venta;
 
 Debe aparecer una fila nueva con `ACUMULACIÓN` y `cantidad_puntos = 1`.
 
+### `trg_cancelar_entradas_por_funcion` (`AFTER UPDATE ON funcion`)
+
+Se ejecuta después de cada `UPDATE` sobre `funcion`. Solo hace algo si `NEW.estado = 'CANCELADA' AND OLD.estado <> 'CANCELADA'` (o sea, la función se acaba de cancelar en este `UPDATE`, no antes). Ahí:
+
+1. Por cada entrada de esa función que ya estaba `PAGADA`, inserta un `CANJE` de 1 punto en `historial_puntos` (le "devuelve" el punto de fidelidad que ya se había generado).
+2. Cancela todas las entradas de esa función.
+3. Cancela las ventas que tenían entradas en esa función.
+
+Es lo que hace que `sp_cancelar_funcion` (sección 2.3) no tenga que tocar `entrada`/`venta`/`historial_puntos` a mano: le basta con cambiar `funcion.estado`, y el trigger hace el resto solo, dentro de la misma transacción.
+
 ---
 
 ## 2. ¿Por qué dos procedimientos y no uno solo?
@@ -70,9 +80,17 @@ Separarlos en dos procedimientos refleja el flujo real y además nos deja un `UP
 
 ### 2.1. `sp_registrar_venta`
 
-Registra una venta con su entrada. Calcula el precio automáticamente a partir de `funcion.tarifa_base` y `tipoentrada.descuento_porcentaje`, así Java no tiene que repetir esa cuenta.
+Registra **una** entrada (una butaca). Calcula el precio automáticamente a partir de `funcion.tarifa_base` y `tipoentrada.descuento_porcentaje`, así Java no tiene que repetir esa cuenta.
+
+BR-19 dice que una venta puede tener varias entradas (varias butacas en una sola compra). Eso se resuelve con el último parámetro, `p_id_venta_existente`:
+
+- `NULL` → crea una venta nueva (primera butaca de la compra).
+- un `id_venta` → no crea otra venta: agrega esta entrada a esa venta y le suma el precio a `total_pagado`.
+
+Para vender varias butacas en una sola compra, Java llama a este procedimiento **una vez por butaca**, pasando `NULL` la primera vez y, de ahí en adelante, el `@id_venta` que devolvió la llamada anterior:
 
 ```sql
+-- Butaca 1 (crea la venta)
 CALL sp_registrar_venta(
     5,              -- p_id_cliente
     NULL,           -- p_id_empleado (NULL porque es EN_LINEA)
@@ -82,9 +100,14 @@ CALL sp_registrar_venta(
     3,              -- p_id_funcion
     12,             -- p_id_butaca
     1,              -- p_id_tipoentrada
+    NULL,           -- p_id_venta_existente (NULL = venta nueva)
     @id_venta,      -- OUT
     @id_entrada     -- OUT
 );
+
+-- Butaca 2 (misma venta: se pasa @id_venta que devolvio la llamada anterior)
+CALL sp_registrar_venta(5, NULL, 'EN_LINEA', 2, 'Compra desde la web', 3, 13, 1, @id_venta, @id_venta, @id_entrada);
+
 SELECT @id_venta, @id_entrada;
 ```
 
@@ -94,12 +117,14 @@ Qué hace, en orden:
 2. Busca la función: si no existe, o si está `CANCELADA`/`FINALIZADA`, aborta con un mensaje claro.
 3. Busca el tipo de entrada: si no existe, aborta.
 4. Calcula `precio_base`, `descuento` y `precio_final`.
-5. Abre la transacción (`START TRANSACTION`), crea la fila de `venta`.
+5. Abre la transacción (`START TRANSACTION`). Si `p_id_venta_existente` es `NULL`, crea la fila de `venta`; si no, reutiliza esa venta y le suma el precio de esta entrada a `total_pagado`.
 6. Revisa si esa butaca ya tiene una entrada para esa función (`SELECT ... FOR UPDATE`, para evitar que dos personas la reserven al mismo tiempo):
    - Si existe y **no** está `CANCELADA` → aborta ("butaca ya ocupada").
    - Si no existe → la crea (`INSERT`).
    - Si existe y está `CANCELADA` → la reutiliza (`UPDATE`), porque `uq_entrada_funcion_butaca` no permite dos filas para el mismo `(id_funcion, id_butaca)`. Esto es lo que hace posible "revender" una butaca que alguien canceló.
 7. `COMMIT`.
+
+Cada llamada es su propia transacción: si la butaca 2 falla (por ejemplo, alguien mas la tomo primero), la butaca 1 ya quedó registrada y no se deshace sola — queda como una venta con una sola entrada en vez de dos.
 
 ### 2.2. `sp_confirmar_pago`
 
@@ -116,11 +141,36 @@ Qué hace:
 3. Marca la venta como `COMPLETADA`.
 4. `COMMIT`.
 
+### 2.3. `sp_cancelar_funcion`
+
+Cancela una función. No toca `entrada`/`venta`/`historial_puntos` directamente — solo cambia `funcion.estado` a `CANCELADA`, y ese mismo `UPDATE` dispara el trigger `trg_cancelar_entradas_por_funcion` (sección 1) dentro de la misma transacción.
+
+```sql
+CALL sp_cancelar_funcion(3);
+```
+
+Qué hace:
+
+1. Busca la función (bloqueándola con `FOR UPDATE`): si no existe, o si ya estaba `CANCELADA`, aborta.
+2. `UPDATE funcion SET estado = 'CANCELADA'` — dispara `trg_cancelar_entradas_por_funcion`.
+3. `COMMIT`.
+
+**Cómo comprobarlo manualmente** (probado así contra la base de datos real):
+
+```sql
+CALL sp_cancelar_funcion(@id_funcion);
+SELECT estado FROM funcion WHERE id_funcion = @id_funcion;                 -- CANCELADA
+SELECT estado FROM entrada WHERE id_funcion = @id_funcion;                 -- todas CANCELADA
+SELECT estado FROM venta WHERE id_venta IN
+    (SELECT id_venta FROM entrada WHERE id_funcion = @id_funcion);         -- todas CANCELADA
+SELECT * FROM historial_puntos WHERE descripcion LIKE '%Reverso%';         -- un CANJE por cada entrada que ya estaba PAGADA
+```
+
 ---
 
 ## 3. Transacciones: ¿dónde están y por qué?
 
-Los dos procedimientos siguen el mismo patrón:
+Los tres procedimientos siguen el mismo patrón:
 
 ```sql
 CREATE PROCEDURE sp_algo(...)
@@ -182,7 +232,7 @@ La aplicación **no** debe construir a mano los `INSERT`/`UPDATE` de `venta` y `
 
 ```java
 try (CallableStatement cs = connection.prepareCall(
-        "{call sp_registrar_venta(?,?,?,?,?,?,?,?,?,?)}")) {
+        "{call sp_registrar_venta(?,?,?,?,?,?,?,?,?,?,?)}")) {
     cs.setInt(1, idCliente);
     cs.setNull(2, Types.INTEGER); // sin empleado (EN_LINEA)
     cs.setString(3, "EN_LINEA");
@@ -191,12 +241,13 @@ try (CallableStatement cs = connection.prepareCall(
     cs.setInt(6, idFuncion);
     cs.setInt(7, idButaca);
     cs.setInt(8, idTipoEntrada);
-    cs.registerOutParameter(9, Types.INTEGER);
+    cs.setNull(9, Types.INTEGER); // idVentaExistente: NULL = crea venta nueva
     cs.registerOutParameter(10, Types.INTEGER);
+    cs.registerOutParameter(11, Types.INTEGER);
     cs.execute();
 
-    int idVenta = cs.getInt(9);
-    int idEntrada = cs.getInt(10);
+    int idVenta = cs.getInt(10);
+    int idEntrada = cs.getInt(11);
 }
 ```
 
@@ -207,7 +258,7 @@ try (CallableStatement cs = connection.prepareCall("{call sp_confirmar_pago(?)}"
 }
 ```
 
-Cada `CALL` ya es, por sí solo, una transacción completa (el `START TRANSACTION`/`COMMIT` vive dentro del procedimiento), así que **no** hace falta que Java abra su propia transacción JDBC solo para esto. Si más adelante se agrega una venta con varias entradas (llamando a `sp_registrar_venta` varias veces seguidas), ahí sí conviene envolver esa secuencia de llamadas en `connection.setAutoCommit(false)` / `commit()` / `rollback()`.
+Cada `CALL` ya es, por sí solo, una transacción completa (el `START TRANSACTION`/`COMMIT` vive dentro del procedimiento), así que **no** hace falta que Java abra su propia transacción JDBC solo para esto — ni siquiera para una venta con varias entradas: `VentaControl.registrarVenta()` simplemente llama a `VentaBD.registrarVenta(...)` una vez por butaca, pasando en la primera llamada `idVentaExistente = null` y de ahí en adelante el `idVenta` que devolvió la entrada anterior (ver `javaDB/VentaBD.java`).
 
 Ver `docs/validaciones_en_java.md` para el resto de validaciones que siguen siendo responsabilidad de Java (elegir butacas en pantalla, choque de horarios, coherencia de roles, saldo de puntos, etc.).
 

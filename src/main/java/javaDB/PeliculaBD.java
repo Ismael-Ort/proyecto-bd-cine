@@ -6,16 +6,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PeliculaBD {
 
-    public boolean registrarPelicula (Pelicula pelicula){
+    // Devuelve el id_pelicula generado (0 si no se pudo registrar), para
+    // que PeliculaControl pueda usarlo enseguida y guardar sus generos en
+    // pelicula_genero.
+    public int registrarPelicula (Pelicula pelicula){
 
         String sql = "INSERT INTO pelicula (titulo, duracion_minutos, clasificacion, sinopsis, estado, imagen_portada) VALUES (?,?,?,?,?,?)";
 
-        try(Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)){
+        try(Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
 
             ps.setString(1, pelicula.getTitulo());
             ps.setInt(2, pelicula.getDuracionMinutos());
@@ -24,13 +28,15 @@ public class PeliculaBD {
             ps.setString(5, pelicula.getEstado());
             ps.setBytes(6, pelicula.getImagenPortada());
 
-            int filas = ps.executeUpdate(); // guarda cuantos registros fueron afectados por el insert, si una pelicula se inserto correctamente normalmente devuelve 1.
-            if(filas > 0){
-                return true;
-            } else{
-                return false;
-            }// si filas vale 1 es que se inserto correctamente, y devuelve true, si vale cero devuelve false
+            ps.executeUpdate();
 
+            try (ResultSet claves = ps.getGeneratedKeys()) {
+                if (claves.next()) {
+                    return claves.getInt(1);
+                }
+            }
+
+            return 0;
 
         } catch (SQLException e) {
 

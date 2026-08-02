@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
@@ -9,16 +10,16 @@
 <?import javafx.scene.layout.VBox?>
 
 <!--
-    Pantalla de inicio de sesion. Es una ventana/escena aparte de main-shell.fxml
-    (se muestra primero; al autenticar, el programa debe cargar main-shell.fxml).
+    Pantalla de inicio de sesion. Es una pantalla aparte de ventana-principal.fxml
+    (se muestra primero; controlador: LoginControl). Al autenticar, LoginControl
+    cambia a ventana-principal.fxml (ver Pantallas.cambiarA).
 
     Roles validos del sistema (usuario.rol): ADMINISTRADOR, CAJERO, CLIENTE.
-    Esta pantalla NO distingue el rol visualmente: el programa debe consultar
-    el rol despues de validar el usuario/contrasena contra la tabla `usuario`
-    (a traves de persona) y decidir que puede ver cada quien.
+    Esta pantalla NO distingue el rol visualmente: VentanaPrincipalControl es
+    quien decide que pantallas puede ver cada rol, leyendo sesion.SesionActual.
 -->
 
-<StackPane fx:id="loginRoot" styleClass="login-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<StackPane fx:id="loginRoot" styleClass="login-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cine.LoginControl">
 
     <VBox fx:id="loginCard" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="380" spacing="22" styleClass="login-card">
         <padding>
@@ -43,7 +44,9 @@
 
         <Label fx:id="lblLoginError" managed="false" styleClass="login-error" text="Usuario o contrasena incorrectos." visible="false" wrapText="true" />
 
-        <Button fx:id="btnLoginIngresar" defaultButton="true" maxWidth="Infinity" styleClass="primary-button" text="Iniciar sesion" />
+        <Button fx:id="btnLoginIngresar" defaultButton="true" maxWidth="Infinity" onAction="#iniciarSesion" styleClass="primary-button" text="Iniciar sesion" />
+
+        <Hyperlink fx:id="lnkCrearCuenta" onAction="#irARegistro" styleClass="login-link" text="¿No tienes cuenta? Registrate aqui" />
 
         <Label fx:id="lblLoginFooter" styleClass="login-footer" text="Sistema de gestion de cine - v1.0" />
     </VBox>
