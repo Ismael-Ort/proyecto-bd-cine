@@ -20,6 +20,8 @@ import logico.Persona;
 import java.time.LocalDate;
 import java.util.List;
 
+// Pantalla de Empleados: buscar por documento, y formulario para
+// crear/editar la Persona + Empleado asociada.
 public class EmpleadoControl {
 
     private PersonaBD personaBD = new PersonaBD();
@@ -55,11 +57,15 @@ public class EmpleadoControl {
         cmbEmpleadoTipoDocumento.setValue("Cedula");
 
         Mascaras.aplicarMascaraTelefono(txtEmpleadoTelefono);
+        Mascaras.aplicarMascaraBusquedaDocumento(txtEmpleadoBuscarDocumento);
+        Mascaras.bloquearEscrituraManual(dpEmpleadoFechaNacimiento);
+        Mascaras.bloquearEscrituraManual(dpEmpleadoFechaContratacion);
 
         cargarEmpleados();
     }
 
-    private void cargarEmpleados() {
+    // Publico para que VentanaPrincipalControl lo llame cada vez que se navega a "Empleados".
+    public void cargarEmpleados() {
 
         empleadosCardsContainer.getChildren().clear();
 
@@ -70,6 +76,7 @@ public class EmpleadoControl {
         }
     }
 
+    // Arma la tarjeta visual de un empleado con su cargo y datos.
     private VBox crearTarjetaEmpleado(Empleado empleado) {
 
         Label nombre = new Label(empleado.getNombres() + " " + empleado.getApellidos());
@@ -109,6 +116,7 @@ public class EmpleadoControl {
         return tarjeta;
     }
 
+    // Pone los datos de un empleado ya guardado en el formulario para editarlo.
     private void cargarEmpleadoEnFormulario(Empleado empleado) {
 
         idPersonaActual = empleado.getIdPersona();
@@ -128,6 +136,8 @@ public class EmpleadoControl {
         lblEmpleadoFormTitulo.setText("Editar empleado");
     }
 
+    // Busca una persona por documento: si ya es empleado, carga sus datos
+    // para editar; si no, precarga el formulario para hacerla empleado.
     @FXML
     private void buscarPersonaEmpleado() {
 
@@ -167,6 +177,7 @@ public class EmpleadoControl {
         lblEmpleadoFormTitulo.setText("Nuevo empleado (persona existente)");
     }
 
+    // Valida el formulario y guarda la persona y el empleado (nuevo o editado).
     @FXML
     private void guardarEmpleado() {
 

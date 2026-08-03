@@ -114,13 +114,13 @@ El precio final de una entrada se calcula como `precio_base - descuento` (`chk_e
 Solo las entradas pagadas generarán un movimiento de tipo `ACUMULACIÓN` en el historial de puntos, asociado a la venta correspondiente. Esta regla se aplica automáticamente mediante el trigger `trg_acumula_puntos`: la aplicación no necesita insertar el movimiento manualmente, solo debe llamar a `sp_confirmar_pago`.
 
 ## BR-28. Entradas gratuitas por canje
-Una entrada obtenida mediante canje de puntos tendrá `precio_final` igual a cero. No se necesita un procedimiento aparte: basta con registrar un `tipoentrada` con `descuento_porcentaje = 100` y usar el mismo `sp_registrar_venta`. El trigger `trg_acumula_puntos` solo acumula puntos cuando `precio_final > 0`, así que una entrada gratuita nunca genera un punto nuevo. El descuento de los 9 puntos se registra desde Java con un `INSERT` directo en `historial_puntos` (ver `docs/procedimientos_bd.md`, sección 4).
+Una entrada obtenida mediante canje de puntos tendrá `precio_final` igual a cero. No se necesita un procedimiento aparte: basta con registrar un `tipoentrada` con `descuento_porcentaje = 100` y usar el mismo `sp_registrar_venta`. El trigger `trg_acumula_puntos` solo acumula puntos cuando `precio_final > 0`, así que una entrada gratuita nunca genera un punto nuevo. El descuento de los 9 puntos se registra desde Java con un `INSERT` directo en `historial_puntos` (ver `docs/procedimientos_bd.md`, sección 4). Ver BR-30 sobre cómo se confirma el pago cuando la entrada gratuita todavía está `RESERVADA`.
 
 ## BR-29. Historial de puntos
 Todo movimiento de `ACUMULACIÓN` o `CANJE` deberá registrar obligatoriamente el cliente y la venta relacionados (`id_cliente` e `id_venta` son `NOT NULL` en `historial_puntos`) y una `cantidad_puntos` mayor que cero.
 
 ## BR-30. Aplicación del beneficio
-Cuando un cliente cumpla la condición establecida por el programa de fidelidad (9 puntos disponibles), el sistema permitirá aplicar el beneficio correspondiente (una entrada gratuita).
+Cuando un cliente cumpla la condición establecida por el programa de fidelidad (9 puntos disponibles), el sistema permitirá aplicar el beneficio correspondiente (una entrada gratuita). El canje puede aplicarse sobre una entrada gratuita ya confirmada por RD$0 desde Ventas, o sobre una que todavía está `RESERVADA`: en ese caso, `FidelidadControl.registrarCanje` llama primero a `sp_confirmar_pago` para cerrar esa venta pendiente y recién después inserta el `CANJE`, así que canjear puntos desde Fidelidad también sirve para completar una compra de entrada gratuita que había quedado a medias en Ventas.
 
 ---
 
@@ -181,13 +181,14 @@ Cada rol ve y puede operar solo el subconjunto de pantallas que le corresponde (
 | Pantalla | ADMINISTRADOR | CAJERO | CLIENTE |
 |---|---|---|---|
 | Panel | Sí | No | No |
-| Películas / Salas / Funciones / Géneros | Sí (crear/editar) | Solo lectura | No |
+| Películas / Salas / Géneros | Sí (crear/editar) | Solo lectura | No |
+| Funciones | Sí (crear/editar) | No | No |
 | Ventas | Sí | Sí | Sí |
 | Clientes | Sí (crear/editar) | Sí (crear/editar) | No |
 | Empleados / Usuarios | Sí | No | No |
 | Fidelidad | Sí | Sí | Sí |
 
-Esta matriz se aplica en `VentanaPrincipalControl` (qué botones del menú lateral se muestran) y, en las pantallas de solo lectura, deshabilitando el botón "Guardar" en el controlador de cada una.
+Esta matriz se aplica en `VentanaPrincipalControl.aplicarPermisosPorRol()` (qué botones del menú lateral se muestran) y, en las pantallas de solo lectura, deshabilitando el botón "Guardar" en el controlador de cada una. Funciones quedó como pantalla exclusiva de ADMINISTRADOR (programar funciones es una decisión administrativa); CAJERO ya no tiene acceso ni siquiera en modo lectura.
 
 ---
 
@@ -326,7 +327,7 @@ Este checklist permite verificar, tabla por tabla, que ninguna restricción del 
 - [x] Checklist de correspondencia con `database/schema.sql` definido.
 - [x] Documento consistente con el modelo conceptual.
 - [x] Documento consistente con el modelo lógico.
-- [x] Validaciones pendientes de implementar en Java: Ventas ya filtra por empleado propio (`VentaBD.listarVentas`) y Fidelidad ya filtra por cliente propio (`FidelidadControl.clienteConsultado`, oculta el selector de cliente para el rol `CLIENTE`).
+- [x] Filtro de ventas por rol implementado en `VentaBD.listarVentas`: Administrador ve todas las ventas, Cajero solo las que él registró (por `id_empleado`) y Cliente solo las suyas (por `id_cliente`). Fidelidad filtra igual por cliente propio (`FidelidadControl.clienteConsultado`, oculta el selector de cliente para el rol `CLIENTE`).
 
 ---
 

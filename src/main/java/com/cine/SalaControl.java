@@ -18,6 +18,8 @@ import sesion.SesionActual;
 
 import java.util.List;
 
+// Pantalla de Salas: crear/editar salas y generar sus butacas segun
+// filas x columnas.
 public class SalaControl {
 
     private static final int CAPACIDAD_MAXIMA = 48;
@@ -59,7 +61,7 @@ public class SalaControl {
         Mascaras.aplicarMascaraEnteros(txtSalaFilas, 2);
         Mascaras.aplicarMascaraEnteros(txtSalaColumnas, 2);
 
-        // RF-17: Cajero solo tiene acceso de lectura a este catalogo.
+        // El cajero solo puede ver esta pantalla, no editar.
         if (!SesionActual.esAdministrador()) {
             btnGuardarSala.setDisable(true);
         }
@@ -67,10 +69,9 @@ public class SalaControl {
         cargarSalas();
     }
 
-    // Trae todas las salas de la BD y arma una tarjeta por cada una dentro
-    // de salasListContainer. Se llama al abrir la pantalla y cada vez que
-    // se guarda una sala, para que la lista se mantenga al dia.
-    private void cargarSalas() {
+    // Trae todas las salas y arma una tarjeta por cada una. Publico para
+    // que VentanaPrincipalControl tambien pueda llamarlo al navegar.
+    public void cargarSalas() {
 
         salasListContainer.getChildren().clear();
 
@@ -81,6 +82,7 @@ public class SalaControl {
         }
     }
 
+    // Arma la tarjeta visual de una sala con su nombre, capacidad y estado.
     private VBox crearTarjetaSala(Sala sala) {
 
         Label nombre = new Label(sala.getNombreSala());
@@ -110,9 +112,7 @@ public class SalaControl {
         return tarjeta;
     }
 
-    // Pone los datos de una sala ya guardada en el formulario para poder
-    // modificarlos. El id se guarda aparte (idSalaEnEdicion) y se usa al
-    // guardar para saber cual fila actualizar en la BD.
+    // Pone los datos de una sala ya guardada en el formulario para editarla.
     private void cargarSalaEnFormulario(Sala sala) {
 
         idSalaEnEdicion = sala.getIdSala();
@@ -126,9 +126,7 @@ public class SalaControl {
         lblSalaFormTitulo.setText("Editar sala");
     }
 
-    // La capacidad ya no se escribe a mano: se calcula como
-    // filas x butacas por fila y se pone en el campo (que sigue sin
-    // poderse editar directamente).
+    // Calcula la capacidad como filas x butacas por fila y la pone en el campo.
     @FXML
     private void generarButacas() {
 
@@ -155,6 +153,7 @@ public class SalaControl {
         }
     }
 
+    // Valida el formulario y guarda la sala (nueva o editada).
     @FXML
     private void guardarSala() {
 
@@ -217,10 +216,8 @@ public class SalaControl {
         }
     }
 
-    // Si esta sala todavia no tiene butacas en la BD y el formulario trae
-    // filas/butacas por fila validos, las crea ahora: fila "A", "B", ... x
-    // el numero de butacas por fila. Sin esto, Ventas no tendria butacas
-    // que mostrar ni vender para esta sala.
+    // Si la sala todavia no tiene butacas, las crea ahora (fila "A", "B", ...
+    // x butacas por fila), para que Ventas tenga algo que vender.
     private void generarButacasSiHacenFalta(int idSala) {
 
         if (butacaBD.contarButacasDeSala(idSala) > 0) {
@@ -249,9 +246,7 @@ public class SalaControl {
             }
 
         } catch (NumberFormatException e) {
-            // Filas/butacas por fila vacios o invalidos: la sala se guarda
-            // igual, simplemente sin butacas todavia (se pueden generar
-            // despues volviendo a guardar la sala con esos campos llenos).
+            // Filas/butacas invalidos: la sala se guarda igual, sin butacas todavia.
         }
     }
 

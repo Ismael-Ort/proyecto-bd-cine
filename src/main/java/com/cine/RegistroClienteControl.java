@@ -17,11 +17,9 @@ import logico.Usuario;
 import java.io.IOException;
 import java.time.LocalDate;
 
-// Auto-registro de Cliente (ver comentario de registro-cliente.fxml). Crea
-// Persona + Cliente + Usuario(rol=CLIENTE) sin intervencion de un
-// Administrador. La logica de documento (Cedula/Pasaporte) es la misma que
-// ClienteControl, para que el numero quede guardado con el mismo formato
-// sin importar por cual pantalla se haya registrado la persona.
+// Pantalla de auto-registro: crea Persona + Cliente + Usuario(rol=CLIENTE)
+// sin que un Administrador tenga que hacerlo. Usa la misma logica de
+// documento que ClienteControl, para guardar el numero con el mismo formato.
 public class RegistroClienteControl {
 
     private PersonaBD personaBD = new PersonaBD();
@@ -51,6 +49,7 @@ public class RegistroClienteControl {
         cmbRegistroTipoDocumento.setValue("Cedula");
 
         Mascaras.aplicarMascaraTelefono(txtRegistroTelefono);
+        Mascaras.bloquearEscrituraManual(dpRegistroFechaNacimiento);
     }
 
     @FXML

@@ -49,23 +49,9 @@ INSERT IGNORE INTO metodopago (nombre_metodo, descripcion, estado) VALUES
     ('Transferencia/QR',         'Pago mediante transferencia bancaria o codigo QR.',     'ACTIVO');
 
 
--- =========================================================
--- SALAS
--- Un par de salas de ejemplo para poder programar Funciones desde el
--- primer momento. Igual que tipoentrada/metodopago, se puede correr
--- varias veces sin duplicar filas (uq_sala_nombre + INSERT IGNORE).
--- La capacidad respeta chk_sala_capacidad (maximo 48 butacas por sala).
--- =========================================================
-
-INSERT IGNORE INTO sala (nombre_sala, capacidad, estado) VALUES
-    ('Sala 1', 48, 'ACTIVA'),
-    ('Sala 2', 40, 'ACTIVA');
-
-
--- =========================================================
--- COMPROBACIÓN
--- =========================================================
-
-SELECT * FROM tipoentrada;
-SELECT * FROM metodopago;
-SELECT * FROM sala;
+-- Las salas NO se siembran por SQL: se crean desde la pantalla de Salas de
+-- la aplicacion, que ademas genera las butacas automaticamente al guardar
+-- (ButacaBD.registrarButaca, disparado desde SalaControl). Una sala
+-- insertada aca directo por SQL quedaria sin butacas hasta volver a abrirla
+-- y guardarla desde la UI, asi que sembrarla por este script no tiene
+-- sentido.

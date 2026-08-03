@@ -59,6 +59,13 @@ public class LoginControl {
 
             Pantallas.cambiarA(txtLoginUsuario, "/com/cine/ventana-principal.fxml", "CinemaHUB", "/com/cine/styles.css");
 
+            // Por si la fila de usuario se creo directo en la BD sin pasar
+            // por la pantalla de Usuarios y le falta el Empleado (BR-12).
+            if (empleado == null && !"CLIENTE".equals(usuario.getRol())) {
+                Alertas.mostrarAviso("Tu usuario no tiene un registro de Empleado asociado en la base de datos. "
+                        + "No vas a poder registrar ventas hasta que un administrador te registre en la pantalla de Empleados con el mismo documento.");
+            }
+
         } catch (IOException e) {
             mostrarError("No se pudo abrir el sistema: " + e.getMessage());
         } catch (RuntimeException e) {

@@ -6,16 +6,11 @@ import logico.Usuario;
 
 import java.time.LocalDate;
 
-// Utilidad de un solo uso (no forma parte del flujo normal de la app, igual
-// que PruebaConexionAiven): crea el primer usuario ADMINISTRADOR.
-//
-// Es necesaria porque, una vez que el login oculta "Empleados"/"Usuarios"
-// para quien no sea ADMINISTRADOR, no hay forma de crear ese primer
-// administrador desde la UI (nadie tiene sesion iniciada todavia). Se corre
-// una sola vez desde el IDE (click derecho > Run) contra la base de datos
-// real; usa las mismas clases *BD que usa la app, asi que la contrasena
-// queda hasheada con BCrypt exactamente igual que si se hubiera creado
-// desde la pantalla de Usuarios.
+// Utilidad de un solo uso (no forma parte del flujo normal, igual que
+// PruebaConexionAiven): crea el primer usuario ADMINISTRADOR, porque sin
+// uno no hay forma de entrar y crear el primero desde la UI. Se corre una
+// vez desde el IDE; usa las mismas clases *BD que la app, asi la contrasena
+// queda hasheada con BCrypt igual que si se creara desde Usuarios.
 public class CrearAdministradorInicial {
 
     private static final String DOCUMENTO_ADMIN = "000-0000000-0";

@@ -93,6 +93,9 @@ El sistema deberá soportar tanto ventas presenciales como ventas en línea util
 ## RNF-09. Datos personales centralizados
 El sistema deberá evitar la duplicación de datos personales, manteniéndolos únicamente en la entidad Persona y referenciándolos desde Cliente, Empleado y Usuario.
 
+## RNF-10. Actualización automática de pantalla
+La aplicación deberá mantener actualizada la pantalla visible sin depender de que el usuario navegue manualmente. `VentanaPrincipalControl` revisa cada 20 segundos, en un hilo aparte, si cambió algo en la base de datos (`ConexionBD.calcularChecksum`, basado en `CHECKSUM TABLE`) y recarga sola la pantalla actual cuando corresponde.
+
 ---
 
 # Checklist de trazabilidad requerimiento → restricción física

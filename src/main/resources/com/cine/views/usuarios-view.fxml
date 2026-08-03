@@ -17,7 +17,8 @@
     Pagina: Usuarios (tabla `usuario`).
 
     Un usuario es una cuenta de acceso al sistema, vinculada a una persona
-    (id_persona) que YA debe existir (buscarla por documento primero). Una
+    (id_persona) que YA debe existir como Cliente o Empleado; se elige de la
+    lista de personas que todavia no tienen ninguna cuenta de usuario. Una
     persona puede tener varias cuentas de usuario (no hay restriccion unica
     sobre usuario.id_persona), aunque en el uso normal cada persona suele
     tener una sola.
@@ -46,11 +47,8 @@
             <Label fx:id="lblUsuarioFormTitulo" styleClass="panel-title" text="Nuevo usuario" />
 
             <VBox spacing="8">
-                <Label styleClass="form-label" text="Buscar persona por documento" />
-                <HBox spacing="8">
-                    <TextField fx:id="txtUsuarioBuscarDocumento" promptText="Numero de documento" styleClass="form-input" HBox.hgrow="ALWAYS" />
-                    <Button fx:id="btnBuscarPersonaUsuario" styleClass="secondary-button" text="Buscar" onAction="#buscarPersonaUsuario" />
-                </HBox>
+                <Label styleClass="form-label" text="Persona sin usuario" />
+                <ComboBox fx:id="cmbUsuarioPersonaDisponible" maxWidth="Infinity" promptText="Selecciona un cliente o empleado" styleClass="form-input" />
                 <Label fx:id="lblUsuarioPersonaEncontrada" styleClass="form-hint" text="Persona: (sin seleccionar)" wrapText="true" />
             </VBox>
 

@@ -2,7 +2,6 @@ package com.cine;
 
 import javaDB.ClienteBD;
 import javaDB.EmpleadoBD;
-import javaDB.PersonaBD;
 import javaDB.UsuarioBD;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -16,20 +15,21 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import logico.Cliente;
 import logico.Empleado;
-import logico.Persona;
 import logico.Usuario;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UsuarioControl {
 
-    private PersonaBD personaBD = new PersonaBD();
     private UsuarioBD usuarioBD = new UsuarioBD();
     private EmpleadoBD empleadoBD = new EmpleadoBD();
     private ClienteBD clienteBD = new ClienteBD();
 
-    @FXML private TextField txtUsuarioBuscarDocumento;
+    @FXML private ComboBox<String> cmbUsuarioPersonaDisponible;
     @FXML private Label lblUsuarioPersonaEncontrada;
     @FXML private Label lblUsuarioFormTitulo;
     @FXML private TextField txtUsuarioNombreUsuario;
@@ -39,18 +39,28 @@ public class UsuarioControl {
     @FXML private FlowPane usuariosCardsContainer;
 
     // La persona debe existir siempre de antemano (no se crea desde aqui,
-    // a diferencia de Cliente/Empleado): null = todavia no se ha buscado/
-    // encontrado ninguna.
+    // a diferencia de Cliente/Empleado): null = todavia no se ha elegido
+    // ninguna de la lista.
     private Integer idPersonaActual;
     // null = se va a crear un usuario nuevo; con valor = se esta editando ese usuario
     private Integer idUsuarioEnEdicion;
 
+    // Texto mostrado en cmbUsuarioPersonaDisponible -> id_persona, para
+    // resolver la seleccion sin volver a consultar la BD.
+    private Map<String, Integer> personaDisponiblePorTexto = new LinkedHashMap<>();
+
     public void initialize() {
         cmbUsuarioEstado.setValue("ACTIVO");
+        cmbUsuarioPersonaDisponible.setOnAction(event -> seleccionarPersonaDisponible());
         cargarUsuarios();
     }
 
-    private void cargarUsuarios() {
+    // Publico para que VentanaPrincipalControl pueda llamarlo cada vez que
+    // se navega a "Usuarios", y no solo la primera vez que se abre la
+    // pantalla (mismo patron que FuncionControl.cargarFunciones).
+    public void cargarUsuarios() {
+
+        cargarPersonasDisponibles();
 
         usuariosCardsContainer.getChildren().clear();
 
@@ -59,6 +69,34 @@ public class UsuarioControl {
         for (Usuario usuario : usuarios) {
             usuariosCardsContainer.getChildren().add(crearTarjetaUsuario(usuario));
         }
+    }
+
+    // Trae los clientes y empleados que todavia no tienen ninguna cuenta de
+    // usuario, para elegir de una lista en vez de buscar por documento.
+    private void cargarPersonasDisponibles() {
+
+        cmbUsuarioPersonaDisponible.getItems().clear();
+        personaDisponiblePorTexto.clear();
+
+        for (Empleado empleado : empleadoBD.listarEmpleadosSinUsuario()) {
+            String texto = empleado.getNombres() + " " + empleado.getApellidos() + " — Empleado (" + empleado.getCargo() + ")";
+            cmbUsuarioPersonaDisponible.getItems().add(texto);
+            personaDisponiblePorTexto.put(texto, empleado.getIdPersona());
+        }
+
+        for (Cliente cliente : clienteBD.listarClientesSinUsuario()) {
+            String texto = cliente.getNombres() + " " + cliente.getApellidos() + " — Cliente";
+            cmbUsuarioPersonaDisponible.getItems().add(texto);
+            personaDisponiblePorTexto.put(texto, cliente.getIdPersona());
+        }
+    }
+
+    private void seleccionarPersonaDisponible() {
+
+        String seleccion = cmbUsuarioPersonaDisponible.getValue();
+
+        idPersonaActual = seleccion == null ? null : personaDisponiblePorTexto.get(seleccion);
+        lblUsuarioPersonaEncontrada.setText(seleccion == null ? "Persona: (sin seleccionar)" : "Persona: " + seleccion);
     }
 
     private VBox crearTarjetaUsuario(Usuario usuario) {
@@ -97,41 +135,24 @@ public class UsuarioControl {
         return tarjeta;
     }
 
+    // La persona que ya tiene el usuario a editar no aparece en la lista de
+    // "sin usuario" (justamente porque ya tiene este), asi que mientras se
+    // edita se oculta el combo y solo se muestra su nombre en la etiqueta.
     private void cargarUsuarioEnFormulario(Usuario usuario) {
 
         idPersonaActual = usuario.getIdPersona();
         idUsuarioEnEdicion = usuario.getIdUsuario();
 
+        cmbUsuarioPersonaDisponible.setVisible(false);
+        cmbUsuarioPersonaDisponible.setManaged(false);
         lblUsuarioPersonaEncontrada.setText("Persona: " + usuario.getNombres() + " " + usuario.getApellidos());
+
         txtUsuarioNombreUsuario.setText(usuario.getNombreUsuario());
         txtUsuarioContrasena.clear();
         cmbUsuarioRol.setValue(usuario.getRol());
         cmbUsuarioEstado.setValue(usuario.getEstado());
 
         lblUsuarioFormTitulo.setText("Editar usuario");
-    }
-
-    @FXML
-    private void buscarPersonaUsuario() {
-
-        String termino = txtUsuarioBuscarDocumento.getText().trim();
-
-        if (termino.isEmpty()) {
-            Alertas.mostrarAviso("Escribe un numero de documento para buscar.");
-            return;
-        }
-
-        Persona persona = personaBD.buscarPorDocumento(termino);
-
-        if (persona == null) {
-            idPersonaActual = null;
-            lblUsuarioPersonaEncontrada.setText("Persona: (sin seleccionar)");
-            Alertas.mostrarAviso("No se encontro ninguna persona con ese documento. Primero debe registrarse como Cliente o Empleado.");
-            return;
-        }
-
-        idPersonaActual = persona.getIdPersona();
-        lblUsuarioPersonaEncontrada.setText("Persona: " + persona.getNombres() + " " + persona.getApellidos());
     }
 
     @FXML
@@ -144,7 +165,7 @@ public class UsuarioControl {
             String estado = cmbUsuarioEstado.getValue();
 
             if (idPersonaActual == null) {
-                Alertas.mostrarAviso("Primero busca y selecciona una persona por documento.");
+                Alertas.mostrarAviso("Primero selecciona una persona de la lista.");
                 return;
             }
 
@@ -168,12 +189,9 @@ public class UsuarioControl {
                 return;
             }
 
-            // BR-12: administrador/cajero deben tener registro de Empleado;
-            // cliente debe tener registro de Cliente. BR-12b: ademas, el
-            // cargo de ese Empleado debe corresponder al rol elegido: solo
-            // empleados con cargo "Administrador" o "Cajero" pueden tener
-            // usuario del sistema (un conserje, por ejemplo, se queda como
-            // empleado sin usuario).
+            // BR-12: administrador/cajero necesitan registro de Empleado;
+            // cliente necesita registro de Cliente. BR-12b: el cargo del
+            // empleado debe coincidir con el rol elegido.
             if ("ADMINISTRADOR".equals(rol) || "CAJERO".equals(rol)) {
                 Empleado empleado = empleadoBD.obtenerEmpleadoPorPersona(idPersonaActual);
 
@@ -229,7 +247,9 @@ public class UsuarioControl {
         idPersonaActual = null;
         idUsuarioEnEdicion = null;
 
-        txtUsuarioBuscarDocumento.clear();
+        cmbUsuarioPersonaDisponible.setVisible(true);
+        cmbUsuarioPersonaDisponible.setManaged(true);
+        cmbUsuarioPersonaDisponible.setValue(null);
         lblUsuarioPersonaEncontrada.setText("Persona: (sin seleccionar)");
         txtUsuarioNombreUsuario.clear();
         txtUsuarioContrasena.clear();

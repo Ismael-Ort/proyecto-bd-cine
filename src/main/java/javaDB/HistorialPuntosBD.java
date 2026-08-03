@@ -10,19 +10,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-// BR-27 a BR-30: los movimientos ACUMULACION los inserta solo el trigger
-// trg_acumula_puntos (ver database/procedimientos_triggers.sql) cuando
-// VentaBD.confirmarPago deja una entrada PAGADA con precio_final > 0. Esta
-// clase nunca inserta una ACUMULACION a mano: solo consulta el historial y
-// registra el INSERT directo de un CANJE, tal como esta documentado en
-// docs/procedimientos_bd.md (seccion 4) y docs/validaciones_en_java.md
-// (seccion 6) — no hay procedimiento almacenado para el canje, un INSERT
-// simple alcanza.
+// Los movimientos ACUMULACION los mete solo el trigger trg_acumula_puntos
+// cuando se confirma un pago. Esta clase nunca inserta una ACUMULACION a
+// mano, solo consulta el historial y registra los CANJE con un INSERT
+// directo (no hay procedimiento para eso).
 public class HistorialPuntosBD {
 
-    // BR-30: un canje siempre cuesta 9 puntos, sin excepcion.
+    // Un canje siempre cuesta 9 puntos.
     public static final int PUNTOS_REQUERIDOS_CANJE = 9;
 
+    // Trae todo el historial de puntos de un cliente, mas reciente primero.
     public List<HistorialPuntos> listarPorCliente(int idCliente) {
 
         String sql = "SELECT id_historial, tipo_movimiento, cantidad_puntos, fecha_movimiento, descripcion, id_cliente, id_venta " +
@@ -54,22 +51,15 @@ public class HistorialPuntosBD {
         return historial;
     }
 
-    // BR-28: ventas del cliente que ya tienen una entrada gratuita
-    // (precio_final = 0, vendida con sp_registrar_venta usando el tipo
-    // "Canje de puntos") con el pago ya confirmado (PAGADA/UTILIZADA), y a
-    // las que todavia no se les registro el descuento de 9 puntos en
-    // historial_puntos. Se exige el pago confirmado (no basta con
-    // RESERVADA) siguiendo el orden documentado en docs/procedimientos_bd.md
-    // seccion 4: primero se confirma el pago, despues se descuentan los
-    // puntos; asi no se descuentan puntos por una reserva que todavia se
-    // podria cancelar (BR-24) sin haberse canjeado nunca.
+    // Ventas con una entrada gratis (canje de puntos) que todavia no se le
+    // descontaron los puntos, este pagada o no.
     public List<Venta> listarVentasCanjeables(int idCliente) {
 
         String sql = "SELECT DISTINCT v.id_venta, v.fecha_venta, v.total_pagado, v.canal_venta, v.observacion, v.estado, " +
                 "v.id_cliente, v.id_empleado, v.id_metodopago " +
                 "FROM venta v " +
                 "JOIN entrada e ON e.id_venta = v.id_venta " +
-                "WHERE v.id_cliente = ? AND e.precio_final = 0 AND e.estado IN ('PAGADA', 'UTILIZADA') " +
+                "WHERE v.id_cliente = ? AND e.precio_final = 0 AND e.estado IN ('RESERVADA', 'PAGADA', 'UTILIZADA') " +
                 "AND NOT EXISTS (SELECT 1 FROM historial_puntos h WHERE h.id_venta = v.id_venta AND h.tipo_movimiento = 'CANJE') " +
                 "ORDER BY v.fecha_venta DESC";
 
@@ -99,10 +89,8 @@ public class HistorialPuntosBD {
         return ventas;
     }
 
-    // BR-28/BR-30: descuenta los 9 puntos del canje con un INSERT directo
-    // (no hay procedimiento para esto, ver docs/procedimientos_bd.md seccion
-    // 4). FidelidadControl ya debio validar antes que el cliente tenga
-    // saldo suficiente (ClienteBD.calcularPuntos >= PUNTOS_REQUERIDOS_CANJE).
+    // Descuenta los 9 puntos del canje con un INSERT directo. Se asume que
+    // ya se valido antes que el cliente tenga puntos suficientes.
     public boolean registrarCanje(int idCliente, int idVenta, String descripcion) {
 
         String sql = "INSERT INTO historial_puntos (tipo_movimiento, cantidad_puntos, descripcion, id_cliente, id_venta) " +

@@ -29,10 +29,14 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 
+// Pantalla de Peliculas: formulario con generos por checkbox, filtro por
+// titulo/genero/estado y manejo de la imagen de portada.
 public class PeliculaControl {
 
     private PeliculaBD peliculaBD = new PeliculaBD();
@@ -75,26 +79,43 @@ public class PeliculaControl {
     @FXML
     private FlowPane checkBoxGenerosContainer;
 
+    @FXML
+    private ComboBox<String> cmbPeliculaFiltrarPor;
+
+    @FXML
+    private TextField txtPeliculaBuscar;
+
+    @FXML
+    private ComboBox<String> cmbPeliculaFiltroGenero;
+
+    @FXML
+    private ComboBox<String> cmbPeliculaFiltroEstado;
+
     private byte[] imagenSeleccionada;
 
-    // Si esta en null, "Guardar pelicula" inserta una pelicula nueva.
-    // Si tiene un id, significa que se esta editando esa pelicula y
-    // "Guardar pelicula" pasa a actualizarla en vez de crear otra.
+    // Si esta en null, "Guardar pelicula" crea una pelicula nueva; si tiene
+    // un id, la esta editando en vez de crear otra.
     private Integer idPeliculaEnEdicion;
 
+    // Ultima lista traida de la BD. Los filtros se aplican en memoria sobre
+    // esta lista en vez de volver a consultar la BD todo el tiempo.
+    private List<Pelicula> peliculasCargadas = new ArrayList<>();
 
+    // nombre_genero -> id_genero, para resolver el filtro por genero sin
+    // volver a consultar la BD.
+    private Map<String, Integer> generosPorNombre = new LinkedHashMap<>();
+
+
+    // Arranca la pantalla: combos, checkboxes de genero, filtro y la lista de peliculas.
     public void initialize(){
-        cmbPeliculaClasificacion.getItems().addAll("G","PG","PG-13","R"); // carga los valores dentro del combobox
+        cmbPeliculaClasificacion.getItems().addAll("G","PG","PG-13","R");
         cmbPeliculaEstado.setValue("ACTIVA");
         Mascaras.aplicarMascaraEnteros(txtPeliculaDuracion, 4);
 
-        for (Genero genero : generoBD.listarGeneros()) {
-            CheckBox checkGenero = new CheckBox(genero.getNombreGenero());
-            checkGenero.setUserData(genero);
-            checkBoxGenerosContainer.getChildren().add(checkGenero);
-        }
+        cargarCheckBoxesGenero();
+        configurarFiltro();
 
-        // RF-17: Cajero solo tiene acceso de lectura a este catalogo.
+        // Cajero solo puede ver el catalogo, no guardar cambios.
         if (!SesionActual.esAdministrador()) {
             btnGuardarPelicula.setDisable(true);
         }
@@ -102,23 +123,137 @@ public class PeliculaControl {
         cargarPeliculas();
     }
 
-    // Trae todas las peliculas de la BD y arma una tarjeta por cada una
-    // dentro de peliculasCardsContainer. Se llama al abrir la pantalla y
-    // cada vez que se registra una pelicula nueva, para que la cartelera
-    // se mantenga al dia.
-    private void cargarPeliculas() {
+    // Arma un checkbox por cada genero activo, separado para poder llamarlo
+    // de nuevo desde recargarGeneros().
+    private void cargarCheckBoxesGenero() {
+
+        checkBoxGenerosContainer.getChildren().clear();
+
+        for (Genero genero : generoBD.listarGeneros()) {
+            CheckBox checkGenero = new CheckBox(genero.getNombreGenero());
+            checkGenero.setUserData(genero);
+            checkBoxGenerosContainer.getChildren().add(checkGenero);
+        }
+    }
+
+    // Refresca los checkboxes y el filtro de genero si se creo/edito algun
+    // genero mientras la app estaba abierta, sin perder lo ya marcado.
+    public void recargarGeneros() {
+
+        List<Integer> idsSeleccionadosAntes = obtenerGenerosSeleccionados();
+
+        cargarCheckBoxesGenero();
+
+        for (Node nodo : checkBoxGenerosContainer.getChildren()) {
+            CheckBox checkGenero = (CheckBox) nodo;
+            Genero genero = (Genero) checkGenero.getUserData();
+            checkGenero.setSelected(idsSeleccionadosAntes.contains(genero.getIdGenero()));
+        }
+
+        cargarItemsFiltroGenero();
+    }
+
+    // Prepara el filtro: elige que campo filtrar (Titulo, Genero o Estado) y
+    // deja solo ese control visible.
+    private void configurarFiltro() {
+
+        cargarItemsFiltroGenero();
+
+        cmbPeliculaFiltrarPor.setOnAction(event -> mostrarControlDeFiltro());
+        txtPeliculaBuscar.textProperty().addListener((obs, viejo, nuevo) -> aplicarFiltro());
+        cmbPeliculaFiltroGenero.setOnAction(event -> aplicarFiltro());
+        cmbPeliculaFiltroEstado.setOnAction(event -> aplicarFiltro());
+
+        mostrarControlDeFiltro();
+    }
+
+    // Recarga los generos del combo de filtro, manteniendo el que ya estaba elegido.
+    private void cargarItemsFiltroGenero() {
+
+        String seleccionActual = cmbPeliculaFiltroGenero.getValue();
+
+        cmbPeliculaFiltroGenero.getItems().clear();
+        generosPorNombre.clear();
+
+        for (Genero genero : generoBD.listarGeneros()) {
+            cmbPeliculaFiltroGenero.getItems().add(genero.getNombreGenero());
+            generosPorNombre.put(genero.getNombreGenero(), genero.getIdGenero());
+        }
+
+        if (seleccionActual != null && cmbPeliculaFiltroGenero.getItems().contains(seleccionActual)) {
+            cmbPeliculaFiltroGenero.setValue(seleccionActual);
+        }
+    }
+
+    // Muestra solo el control que corresponde al "Filtrar por" elegido y
+    // vuelve a aplicar el filtro.
+    private void mostrarControlDeFiltro() {
+
+        String filtro = cmbPeliculaFiltrarPor.getValue();
+
+        boolean porTitulo = "Titulo".equals(filtro);
+        boolean porGenero = "Genero".equals(filtro);
+        boolean porEstado = "Estado".equals(filtro);
+
+        txtPeliculaBuscar.setVisible(porTitulo);
+        txtPeliculaBuscar.setManaged(porTitulo);
+        cmbPeliculaFiltroGenero.setVisible(porGenero);
+        cmbPeliculaFiltroGenero.setManaged(porGenero);
+        cmbPeliculaFiltroEstado.setVisible(porEstado);
+        cmbPeliculaFiltroEstado.setManaged(porEstado);
+
+        aplicarFiltro();
+    }
+
+    // Filtra la lista ya cargada segun el "Filtrar por" elegido y repinta
+    // las tarjetas con el resultado.
+    private void aplicarFiltro() {
+
+        String filtro = cmbPeliculaFiltrarPor.getValue();
+
+        List<Pelicula> resultado = new ArrayList<>();
+
+        for (Pelicula pelicula : peliculasCargadas) {
+
+            if ("Titulo".equals(filtro)) {
+                String texto = txtPeliculaBuscar.getText();
+                if (texto != null && !texto.isBlank()
+                        && !pelicula.getTitulo().toLowerCase().contains(texto.trim().toLowerCase())) {
+                    continue;
+                }
+            } else if ("Genero".equals(filtro)) {
+                String generoElegido = cmbPeliculaFiltroGenero.getValue();
+                if (generoElegido != null) {
+                    Integer idGenero = generosPorNombre.get(generoElegido);
+                    List<Integer> idsGenerosPelicula = peliculaGeneroBD.listarIdsGenerosDePelicula(pelicula.getIdPelicula());
+                    if (idGenero == null || !idsGenerosPelicula.contains(idGenero)) {
+                        continue;
+                    }
+                }
+            } else if ("Estado".equals(filtro)) {
+                String estadoElegido = cmbPeliculaFiltroEstado.getValue();
+                if (estadoElegido != null && !estadoElegido.equals(pelicula.getEstado())) {
+                    continue;
+                }
+            }
+
+            resultado.add(pelicula);
+        }
 
         peliculasCardsContainer.getChildren().clear();
-
-        List<Pelicula> peliculas = peliculaBD.listarPeliculas();
-
-        for (Pelicula pelicula : peliculas) {
+        for (Pelicula pelicula : resultado) {
             peliculasCardsContainer.getChildren().add(crearTarjetaPelicula(pelicula));
         }
     }
 
-    // Arma la tarjeta visual de una pelicula (misma estructura que se
-    // usaba en el FXML de ejemplo, pero ahora con los datos reales).
+    // Trae todas las peliculas de la BD y aplica el filtro activo.
+    public void cargarPeliculas() {
+
+        peliculasCargadas = peliculaBD.listarPeliculas();
+        aplicarFiltro();
+    }
+
+    // Arma la tarjeta visual de una pelicula con sus datos.
     private VBox crearTarjetaPelicula(Pelicula pelicula) {
 
         StackPane marcoPoster = new StackPane();
@@ -174,9 +309,7 @@ public class PeliculaControl {
     }
 
     // Pone los datos de una pelicula ya guardada en el formulario para
-    // poder modificarlos. El id se guarda aparte (idPeliculaEnEdicion) y
-    // nunca se muestra ni se deja editar: al guardar se usa para saber
-    // cual fila actualizar en la BD.
+    // editarla. El id se guarda aparte y no se muestra.
     private void cargarPeliculaEnFormulario(Pelicula pelicula) {
 
         idPeliculaEnEdicion = pelicula.getIdPelicula();
@@ -203,6 +336,7 @@ public class PeliculaControl {
         btnGuardarPelicula.setText("Guardar cambios");
     }
 
+    // Abre el explorador de archivos para elegir la portada y la muestra en el preview.
     @FXML
     private void seleccionarImagenPelicula() {
 
@@ -234,6 +368,7 @@ public class PeliculaControl {
     }
 
 
+    // Valida el formulario y guarda la pelicula (nueva o editada) con sus generos.
     @FXML
     private void guardarPelicula() {
 
@@ -245,22 +380,22 @@ public class PeliculaControl {
             String estado = cmbPeliculaEstado.getValue();
 
             if (titulo.isEmpty()) {
-                System.out.println("Debe escribir el titulo.");
+                Alertas.mostrarAviso("Debe escribir el titulo.");
                 return;
             }
 
             if (duracionTexto.isEmpty()) {
-                System.out.println("Debe escribir la duracion.");
+                Alertas.mostrarAviso("Debe escribir la duracion.");
                 return;
             }
 
             if (clasificacion == null) {
-                System.out.println("Debe seleccionar la clasificacion.");
+                Alertas.mostrarAviso("Debe seleccionar la clasificacion.");
                 return;
             }
 
             if (estado == null) {
-                System.out.println("Debe seleccionar el estado.");
+                Alertas.mostrarAviso("Debe seleccionar el estado.");
                 return;
             }
 
@@ -279,7 +414,7 @@ public class PeliculaControl {
             int duracion = Integer.parseInt(duracionTexto);
 
             if (duracion <= 0) {
-                System.out.println("La duracion debe ser mayor que cero.");
+                Alertas.mostrarAviso("La duracion debe ser mayor que cero.");
                 return;
             }
 
@@ -306,29 +441,21 @@ public class PeliculaControl {
 
             if (guardada) {
                 peliculaGeneroBD.guardarGenerosDePelicula(idPelicula, idsGenerosSeleccionados);
-                System.out.println("Pelicula guardada correctamente.");
                 limpiarFormulario();
                 cargarPeliculas();
             } else {
-                System.out.println("No se pudo guardar la pelicula.");
+                Alertas.mostrarAviso("No se pudo guardar la pelicula.");
             }
 
         } catch (NumberFormatException e) {
-            System.out.println(
-                    "La duracion debe ser un numero entero."
-            );
+            Alertas.mostrarAviso("La duracion debe ser un numero entero.");
 
         } catch (RuntimeException e) {
             Alertas.mostrarAviso(e.getMessage());
         }
-
-
-
     }
 
-    // Recorre los checkbox de genero y devuelve el id_genero de los que
-    // esten marcados (cada checkbox trae su Genero guardado en setUserData,
-    // ver initialize()).
+    // Devuelve los id_genero de los checkbox que esten marcados.
     private List<Integer> obtenerGenerosSeleccionados() {
 
         List<Integer> idsGeneros = new ArrayList<>();

@@ -29,6 +29,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+// Controlador de la pantalla de Funciones: listar, crear, editar y
+// cancelar funciones (pelicula + sala + horario).
 public class FuncionControl {
 
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -56,10 +58,12 @@ public class FuncionControl {
     // null = se va a crear una funcion nueva; con valor = se esta editando esa funcion
     private Integer idFuncionEnEdicion;
 
+    // Prepara el formulario (spinners, mascaras, permisos) y carga la lista.
     public void initialize() {
         cmbFuncionEstado.setValue("PROGRAMADA");
         configurarSelectoresDeHora();
         Mascaras.aplicarMascaraDecimal(txtFuncionTarifa);
+        Mascaras.bloquearEscrituraManual(dpFuncionFecha);
 
         // RF-17: Cajero solo tiene acceso de lectura a esta pantalla.
         if (!SesionActual.esAdministrador()) {
@@ -69,22 +73,22 @@ public class FuncionControl {
         cargarFunciones();
     }
 
-    // Los 4 Spinner de hora/minuto (00-23 y 00-59) para elegir la hora de
-    // inicio y de fin con flechitas, sin tener que escribirla a mano.
+    // Configura los 4 spinners de hora/minuto (inicio y fin), 00-23 y 00-59.
     private void configurarSelectoresDeHora() {
 
         spnFuncionHoraInicioHora.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 0));
         spnFuncionHoraInicioMinuto.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
         spnFuncionHoraFinHora.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, 0));
         spnFuncionHoraFinMinuto.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
+
+        Mascaras.aplicarEditorSpinnerEntero(spnFuncionHoraInicioHora, 0, 23);
+        Mascaras.aplicarEditorSpinnerEntero(spnFuncionHoraInicioMinuto, 0, 59);
+        Mascaras.aplicarEditorSpinnerEntero(spnFuncionHoraFinHora, 0, 23);
+        Mascaras.aplicarEditorSpinnerEntero(spnFuncionHoraFinMinuto, 0, 59);
     }
 
-    // Peliculas (solo ACTIVA) y salas disponibles para elegir en el formulario.
-    // Se llama desde cargarFunciones(), no solo desde initialize(): si no,
-    // el combo se queda con los objetos Pelicula/Sala cacheados desde que
-    // arranco la app, y si despues editas esa pelicula (por ejemplo su
-    // duracion) desde la pantalla de Peliculas, el combo de Funciones
-    // seguiria mostrando/usando el valor viejo hasta reiniciar la app.
+    // Carga peliculas (solo ACTIVA) y salas en los combos. Se llama en cada
+    // cargarFunciones(), no solo al iniciar, para no quedarse con datos viejos.
     private void cargarCombosDeApoyo() {
 
         cmbFuncionPelicula.getItems().clear();
@@ -98,20 +102,14 @@ public class FuncionControl {
         cmbFuncionSala.getItems().addAll(salaBD.listarSalasActivas());
     }
 
-    // Publico para que VentanaPrincipalControl pueda llamarlo cada vez que se
-    // hace clic en "Funciones" en el menu, y no
-    // solo la primera vez que se abre la pantalla.
+    // Publico para que VentanaPrincipalControl lo llame cada vez que se abre
+    // esta pantalla, no solo la primera vez.
     public void cargarFunciones() {
 
-        // Se vuelve a pedir peliculas/salas por la misma razon que se
-        // recalculan los estados mas abajo: que no queden datos viejos
-        // cacheados de cuando arranco la app.
         cargarCombosDeApoyo();
 
-        // Antes de traer la lista, se pide que la BD recalcule el estado
-        // de cada funcion (PROGRAMADA/EN_CURSO/FINALIZADA) segun la hora
-        // del servidor. Asi la pantalla siempre muestra el estado correcto
-        // apenas se abre o se refresca, sin un reloj corriendo en Java.
+        // La BD recalcula el estado de cada funcion (PROGRAMADA/EN_CURSO/
+        // FINALIZADA) segun su hora antes de traer la lista.
         funcionBD.actualizarEstadosAutomaticos();
 
         funcionesListaContainer.getChildren().clear();
@@ -178,6 +176,7 @@ public class FuncionControl {
         return null;
     }
 
+    // Carga los datos de una funcion existente en el formulario para editarla.
     private void cargarFuncionEnFormulario(Funcion funcion) {
 
         idFuncionEnEdicion = funcion.getIdFuncion();
@@ -197,15 +196,14 @@ public class FuncionControl {
         cmbFuncionIdiomaSubtitulos.setDisable(!chkFuncionTieneSubtitulos.isSelected());
         cmbFuncionIdiomaSubtitulos.setValue(idiomaSubtitulos);
 
-        // El estado real solo puede ser PROGRAMADA o CANCELADA para elegir
-        // a mano; si la funcion esta EN_CURSO o FINALIZADA (calculado por
-        // el trigger), se muestra como PROGRAMADA en el combo porque
-        // volver a guardar sin tocarla no debe cancelarla.
+        // Si esta EN_CURSO/FINALIZADA (lo calcula un trigger) se muestra como
+        // PROGRAMADA en el combo, para que guardar sin tocarla no la cancele.
         cmbFuncionEstado.setValue("CANCELADA".equals(funcion.getEstado()) ? "CANCELADA" : "PROGRAMADA");
 
         lblFuncionFormTitulo.setText("Editar funcion");
     }
 
+    // Valida el formulario y guarda (crea, actualiza o cancela) la funcion.
     @FXML
     private void guardarFuncion() {
 
@@ -239,9 +237,8 @@ public class FuncionControl {
                 return;
             }
 
-            // La funcion (hora_inicio a hora_fin) tiene que caber la pelicula
-            // completa; el tiempo extra es para anuncios, limpieza, etc.
-            // (ver comentario de la tabla funcion en database/schema.sql).
+            // La funcion tiene que durar al menos lo que dura la pelicula (el
+            // resto es tiempo extra para anuncios, limpieza, etc.).
             long duracionFuncionMinutos = Duration.between(horaInicio, horaFin).toMinutes();
             if (duracionFuncionMinutos < pelicula.getDuracionMinutos()) {
                 Alertas.mostrarAviso("La funcion dura " + duracionFuncionMinutos + " minutos, pero la pelicula dura "
@@ -304,10 +301,8 @@ public class FuncionControl {
             if (idFuncionEnEdicion == null) {
                 guardado = funcionBD.registrarFuncion(funcion);
             } else if ("CANCELADA".equals(estado)) {
-                // Cancelar una funcion no es un UPDATE normal: dispara la
-                // cancelacion en cascada de sus entradas/ventas (ver
-                // FuncionBD.cancelarFuncion). El resto de los cambios del
-                // formulario se ignora: cancelar es su propia accion.
+                // Cancelar dispara la cancelacion en cascada de entradas/ventas
+                // (ver FuncionBD.cancelarFuncion); el resto de cambios del form se ignora.
                 funcionBD.cancelarFuncion(idFuncionEnEdicion);
                 guardado = true;
             } else {
@@ -327,8 +322,7 @@ public class FuncionControl {
         }
     }
 
-    // Habilita/deshabilita el combo de idioma de subtitulos segun el
-    // checkbox. Si se desmarca, se borra lo que tuviera elegido.
+    // Habilita el combo de subtitulos segun el checkbox; si se desmarca, lo borra.
     @FXML
     private void actualizarCampoSubtitulos() {
 

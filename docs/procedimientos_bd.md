@@ -203,7 +203,10 @@ No hace falta un tercer procedimiento para vender una entrada gratis por canje d
 1. Registrar un tipo de entrada, por ejemplo `'Canje de puntos'`, con `descuento_porcentaje = 100`.
 2. Llamar a `sp_registrar_venta` normal, usando ese `id_tipoentrada`: el procedimiento calculará `descuento = precio_base` y `precio_final = 0` automáticamente.
 3. Como `precio_final` queda en `0`, el trigger `trg_acumula_puntos` **no** generará un punto nuevo cuando se confirme el pago (esto es justamente la regla de negocio: una entrada gratis no debe generar más puntos).
-4. Desde Java, después de confirmar el pago, se inserta el descuento de puntos con un `INSERT` simple:
+4. El pago de esa entrada se puede confirmar desde dos pantallas, no solo una:
+   - **Ventas**, igual que cualquier otra entrada: llamando a `sp_confirmar_pago` (aunque el monto sea RD$0).
+   - **Fidelidad**, al canjear los puntos: si la entrada todavía está `RESERVADA` (el cliente le dijo que no al pago inmediato al comprarla), `FidelidadControl.registrarCanje` llama primero a `sp_confirmar_pago` por ella y recién después inserta el `CANJE` — así canjear puntos también sirve para completar una venta que quedó pendiente, sin depender de haber pasado antes por Ventas. Si la entrada ya estaba `PAGADA`/`UTILIZADA` (se confirmó por RD$0 desde Ventas), este paso se salta.
+5. Cualquiera sea el camino, después de confirmado el pago se inserta el descuento de puntos con un `INSERT` simple:
 
 ```sql
 INSERT INTO historial_puntos (tipo_movimiento, cantidad_puntos, descripcion, id_cliente, id_venta)

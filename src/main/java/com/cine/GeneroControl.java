@@ -56,10 +56,9 @@ public class GeneroControl {
         cargarGeneros();
     }
 
-    // Trae todos los generos de la BD y arma una tarjeta por cada uno
-    // dentro de generosCardsContainer. Se llama al abrir la pantalla y
-    // cada vez que se guarda un genero, para que la lista se mantenga al dia.
-    private void cargarGeneros() {
+    // Trae todos los generos y arma una tarjeta por cada uno. Publico para
+    // que VentanaPrincipalControl tambien lo llame al navegar a "Generos".
+    public void cargarGeneros() {
 
         generosCardsContainer.getChildren().clear();
 

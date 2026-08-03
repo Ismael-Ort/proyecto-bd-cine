@@ -47,33 +47,29 @@
                 <ComboBox fx:id="cmbFidelidadCliente" maxWidth="Infinity" onAction="#consultarSaldo" promptText="Selecciona un cliente" styleClass="form-input" />
             </VBox>
 
+            <!--
+                El saldo se consulta solo (onAction="#consultarSaldo" en el
+                combo de Cliente de arriba); no hace falta un boton aparte
+                para lo mismo. Igual, esta pantalla solo registra CANJE:
+                ACUMULACION nunca se captura a mano, la crea sola el trigger
+                trg_acumula_puntos cuando se confirma un pago en Ventas.
+            -->
             <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
                 <Label styleClass="form-label" text="Saldo disponible:" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Label fx:id="lblFidelidadSaldo" styleClass="saldo-valor" text="-- pts" />
             </HBox>
-            <Button fx:id="btnConsultarSaldo" maxWidth="Infinity" onAction="#consultarSaldo" styleClass="secondary-button" text="Consultar saldo" />
-
-            <!--
-                No hay selector de "tipo de movimiento": esta pantalla solo
-                registra CANJE. ACUMULACION nunca se captura a mano (la crea
-                el trigger trg_acumula_puntos).
-            -->
-            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
-                <Label styleClass="form-label" text="Tipo de movimiento:" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Label styleClass="status-pill, status-canje" text="CANJE" />
-            </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="10" styleClass="saldo-box">
-                <Label styleClass="form-label" text="Costo fijo del canje:" />
+                <Label styleClass="form-label" text="Costo del canje (fijo):" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Label styleClass="saldo-valor" text="9 pts" />
             </HBox>
 
             <VBox spacing="8">
-                <Label styleClass="form-label" text="Venta de la entrada gratuita" />
-                <ComboBox fx:id="cmbFidelidadVenta" maxWidth="Infinity" promptText="Selecciona la venta generada con sp_registrar_venta" styleClass="form-input" />
+                <Label styleClass="form-label" text="Entrada gratis a canjear" />
+                <ComboBox fx:id="cmbFidelidadVenta" maxWidth="Infinity" promptText="Elige la entrada gratis que ya compraste en Ventas" styleClass="form-input" />
+                <Label styleClass="form-hint" text="Primero se compra la entrada gratis en Ventas (tipo &quot;Canje de puntos&quot;); aqui solo se descuentan los 9 puntos de esa compra." wrapText="true" />
             </VBox>
 
             <VBox spacing="8">

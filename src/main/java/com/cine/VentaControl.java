@@ -39,11 +39,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-// Pantalla de Ventas. El canal (TAQUILLA/EN_LINEA) y el empleado NUNCA se
-// eligen a mano: los decide SesionActual segun quien inicio sesion. Un
-// Cliente compra para si mismo (no elige cliente); Administrador/Cajero
-// eligen a que cliente le venden. Cada rol solo ve sus propias ventas,
-// excepto Administrador que las ve todas (ver VentaBD.listarVentas).
+// Pantalla de Ventas. El canal y el empleado los decide la sesion activa,
+// nunca se eligen a mano. Un Cliente compra para si mismo; Admin/Cajero
+// eligen el cliente. Cada rol ve solo sus propias ventas, menos
+// Administrador que las ve todas.
 public class VentaControl {
 
     private ClienteBD clienteBD = new ClienteBD();
@@ -70,10 +69,8 @@ public class VentaControl {
     @FXML private VBox ventasListaContainer;
 
     // Butacas marcadas en la cuadricula, cada una con el tipo de entrada que
-    // estaba elegido en cmbVentaTipoEntrada en el momento de marcarla. Asi
-    // una familia puede comprar, en una sola venta, butacas de tipos
-    // distintos (BR-19): se elige el tipo, se toca la butaca, se cambia el
-    // tipo, se toca la siguiente butaca, etc.
+    // tenia elegido al momento de marcarla. Asi se pueden mezclar tipos
+    // distintos de entrada en una sola venta.
     private Map<Integer, TipoEntrada> butacasSeleccionadas = new LinkedHashMap<>();
 
     // Para no repetir la consulta a la BD cada vez que se cambia el filtro
@@ -85,6 +82,7 @@ public class VentaControl {
     private List<Pelicula> peliculas = new ArrayList<>();
     private List<Sala> salas = new ArrayList<>();
 
+    // Prepara los combos y carga la lista de ventas al abrir la pantalla.
     @FXML
     private void initialize() {
 
@@ -112,7 +110,9 @@ public class VentaControl {
     public void cargarVentas() {
 
         if (!SesionActual.esCliente()) {
-            cmbVentaCliente.getItems().setAll(clienteBD.listarClientes());
+            // Solo clientes ACTIVO: uno INACTIVO no deberia poder recibir
+            // una venta nueva desde Taquilla.
+            cmbVentaCliente.getItems().setAll(clienteBD.listarClientesActivos());
         }
         cmbVentaMetodoPago.getItems().setAll(metodoPagoBD.listarActivos());
         cmbVentaTipoEntrada.getItems().setAll(tipoEntradaBD.listarActivos());
@@ -132,10 +132,9 @@ public class VentaControl {
         pintarListaVentas();
     }
 
-    // BR-19: una venta puede tener varias entradas (varias butacas). Como
-    // VentaBD.listarVentas ya ordena por id_venta, las entradas de una
-    // misma venta llegan siempre juntas: aqui se agrupan para pintar una
-    // sola tarjeta por venta, con una subfila por butaca.
+    // Una venta puede tener varias butacas. Como llegan ordenadas por
+    // id_venta, aqui se agrupan para pintar una sola tarjeta por venta,
+    // con una subfila por butaca.
     private void pintarListaVentas() {
 
         ventasListaContainer.getChildren().clear();
@@ -162,9 +161,8 @@ public class VentaControl {
         }
     }
 
-    // Para que el combo de funciones muestre "Pelicula - Sala - fecha hora"
-    // en vez de solo la fecha (Funcion no conoce el titulo de su pelicula
-    // ni el nombre de su sala, solo sus id).
+    // Hace que el combo de funciones muestre "Pelicula - Sala - fecha hora"
+    // en vez de solo la fecha.
     private void configurarConversorDeFuncion() {
 
         cmbVentaFuncion.setConverter(new StringConverter<>() {
@@ -203,10 +201,9 @@ public class VentaControl {
         return "Sala #" + idSala;
     }
 
-    // Pinta un ToggleButton por butaca ACTIVA de la sala de la funcion
-    // elegida, agrupadas por fila; deshabilita las que ya estan ocupadas.
-    // No usan ToggleGroup a proposito: se puede marcar mas de una butaca
-    // (BR-19), cada boton se prende/apaga independiente de los demas.
+    // Pinta un boton por butaca activa de la sala, agrupadas por fila, y
+    // deshabilita las ocupadas. No usan ToggleGroup a proposito: se puede
+    // marcar mas de una butaca a la vez.
     private void cargarButacas(Funcion funcion) {
 
         ventaSeatGridContainer.getChildren().clear();
@@ -270,6 +267,8 @@ public class VentaControl {
         }
     }
 
+    // Registra la venta con las butacas marcadas, valida todo antes y al
+    // final pregunta si se confirma el pago de una vez.
     @FXML
     private void registrarVenta() {
 
@@ -307,17 +306,20 @@ public class VentaControl {
                     Alertas.mostrarAviso("Debes elegir un cliente.");
                     return;
                 }
+                // Si el usuario no tiene Empleado asociado, se avisa en vez
+                // de reventar con NPE mas abajo.
+                if (SesionActual.getEmpleadoActivo() == null) {
+                    Alertas.mostrarAviso("Tu usuario no tiene un registro de Empleado asociado. "
+                            + "Pide a un administrador que te registre en la pantalla de Empleados con el mismo documento.");
+                    return;
+                }
                 idCliente = cliente.getIdCliente();
                 idEmpleado = SesionActual.getEmpleadoActivo().getIdEmpleado();
                 canal = "TAQUILLA";
             }
 
-            // BR-28/BR-30: una entrada de "Canje de puntos" (descuento del
-            // 100%) solo debe poder venderse si el cliente ya tiene los 9
-            // puntos que esa entrada le va a costar. Sin este chequeo se
-            // podria generar una entrada gratuita que Fidelidad nunca
-            // podria descontar (HistorialPuntosBD.registrarCanje exige el
-            // mismo saldo minimo antes de dejar canjearla).
+            // Una entrada de canje de puntos (descuento del 100%) solo se
+            // puede vender si el cliente ya tiene los puntos suficientes.
             boolean incluyeCanjeDePuntos = butacasSeleccionadas.values().stream()
                     .anyMatch(tipo -> tipo.getDescuentoPorcentaje().compareTo(BigDecimal.valueOf(100)) == 0);
 
@@ -327,10 +329,8 @@ public class VentaControl {
                 return;
             }
 
-            // BR-19: una llamada al procedimiento por butaca, cada una con su
-            // propio tipo de entrada. La primera crea la venta (idVenta queda
-            // en null); de ahi en adelante, todas se agregan a esa misma
-            // venta en vez de crear una por butaca.
+            // Una llamada al procedimiento por butaca. La primera crea la
+            // venta; las siguientes se agregan a esa misma venta.
             Integer idVenta = null;
             List<Entrada> entradasRegistradas = new ArrayList<>();
             BigDecimal total = BigDecimal.ZERO;
@@ -356,10 +356,9 @@ public class VentaControl {
             cargarVentas();
 
         } catch (RuntimeException e) {
-            // Cada butaca es su propia llamada al procedimiento (su propia
-            // transaccion): si una falla a mitad del loop (ej. otra persona
-            // tomo esa butaca primero), las anteriores ya quedaron
-            // registradas. Se refresca la lista para que se vean.
+            // Si una butaca falla a mitad del loop (ej. alguien mas la tomo
+            // primero), las anteriores ya quedaron registradas: se refresca
+            // la lista para que se vean.
             Alertas.mostrarAviso(e.getMessage());
             limpiarFormulario();
             cargarVentas();
@@ -379,12 +378,8 @@ public class VentaControl {
         butacasSeleccionadas.clear();
     }
 
-    // Una tarjeta = una venta, con una subfila por butaca/entrada (BR-19:
-    // una venta puede tener varias). "Confirmar pago" y "Cancelar" son por
-    // butaca, no por venta completa: se puede cancelar una sola butaca de
-    // una compra de varias sin afectar las demas (BR-24). Como
-    // VentaBD.listarVentas ya filtra por rol, todo lo que aparece aqui es
-    // algo que el usuario con sesion iniciada puede tocar.
+    // Una tarjeta = una venta, con una subfila por butaca. "Confirmar pago"
+    // y "Cancelar" son por butaca, no por venta completa.
     private VBox crearTarjetaVenta(List<VentaDetalle> entradasDeLaVenta) {
 
         VentaDetalle primera = entradasDeLaVenta.get(0);
@@ -422,6 +417,8 @@ public class VentaControl {
         return tarjeta;
     }
 
+    // Una fila con los datos de una butaca y sus botones de accion segun
+    // el estado en que este.
     private HBox crearSubfilaEntrada(VentaDetalle entrada) {
 
         Label detalleEntrada = new Label("Butaca " + entrada.getFila() + entrada.getNumero() + " - "
@@ -455,6 +452,7 @@ public class VentaControl {
         return filaInferior;
     }
 
+    // Confirma el pago de una entrada puntual, previa confirmacion del usuario.
     private void confirmarPago(VentaDetalle venta) {
 
         if (!Alertas.confirmar("¿Confirmar el pago de RD$" + venta.getPrecioFinal() + "?")) {
@@ -469,6 +467,7 @@ public class VentaControl {
         }
     }
 
+    // Cancela una entrada puntual, previa confirmacion del usuario.
     private void cancelarEntrada(VentaDetalle venta) {
 
         if (!Alertas.confirmar("¿Cancelar la entrada de la butaca " + venta.getFila() + venta.getNumero() + "?")) {
@@ -476,8 +475,7 @@ public class VentaControl {
         }
 
         try {
-            // EntradaBD.cancelarEntrada solo cancela si la funcion todavia
-            // no ha terminado; si devuelve false, no hizo nada.
+            // Solo cancela si la funcion todavia no ha terminado.
             boolean cancelada = entradaBD.cancelarEntrada(venta.getIdEntrada());
             if (!cancelada) {
                 Alertas.mostrarAviso("No se pudo cancelar: la funcion ya termino.");

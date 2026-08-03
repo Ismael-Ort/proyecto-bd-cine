@@ -1,9 +1,11 @@
 package com.cine;
 
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -27,7 +29,10 @@ public class Pantallas {
         FXMLLoader cargador = new FXMLLoader(Pantallas.class.getResource(rutaFxml));
         Parent raiz = cargador.load();
 
-        Scene escena = new Scene(raiz);
+        // Se arma la Scene con el tamano de pantalla del usuario (igual que
+        // App.java) para que no se vea "encogida" un instante antes de maximizarse.
+        Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
+        Scene escena = new Scene(raiz, pantalla.getWidth(), pantalla.getHeight());
         for (String rutaCss : hojasCss) {
             escena.getStylesheets().add(Pantallas.class.getResource(rutaCss).toExternalForm());
         }

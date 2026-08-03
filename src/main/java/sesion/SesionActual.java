@@ -16,8 +16,8 @@ public class SesionActual {
     private SesionActual() {
     }
 
-    // BR-12: un usuario ADMINISTRADOR/CAJERO trae su Empleado; uno CLIENTE
-    // trae su Cliente. El otro parametro siempre llega null.
+    // El usuario ADMINISTRADOR/CAJERO trae su Empleado; el CLIENTE trae su
+    // Cliente. El otro parametro siempre llega null.
     public static void iniciarSesion(Usuario usuario, Empleado empleado, Cliente cliente) {
         usuarioActivo = usuario;
         empleadoActivo = empleado;

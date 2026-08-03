@@ -63,7 +63,7 @@
                 </VBox>
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label styleClass="form-label" text="Clasificacion" />
-                    <ComboBox fx:id="cmbPeliculaClasificacion" maxWidth="Infinity" promptText="PG-13" styleClass="form-input" />
+                    <ComboBox fx:id="cmbPeliculaClasificacion" maxWidth="Infinity" promptText="Selecciona la clasificacion" styleClass="form-input" />
                 </VBox>
             </HBox>
 
@@ -97,9 +97,18 @@
 
         <VBox spacing="16" HBox.hgrow="ALWAYS">
             <HBox alignment="CENTER_LEFT" spacing="10">
-                <TextField fx:id="txtPeliculaBuscar" promptText="Buscar por titulo..." styleClass="form-input" HBox.hgrow="ALWAYS" />
-                <ComboBox fx:id="cmbPeliculaFiltroGenero" promptText="Filtrar por genero" styleClass="form-input" />
-                <ComboBox fx:id="cmbPeliculaFiltroEstado" promptText="Filtrar por estado" styleClass="form-input">
+                <ComboBox fx:id="cmbPeliculaFiltrarPor" promptText="Filtrar por" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="Titulo" />
+                            <String fx:value="Genero" />
+                            <String fx:value="Estado" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+                <TextField fx:id="txtPeliculaBuscar" promptText="Escribe el titulo..." styleClass="form-input" HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="cmbPeliculaFiltroGenero" promptText="Selecciona un genero" styleClass="form-input" managed="false" visible="false" HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="cmbPeliculaFiltroEstado" promptText="Selecciona un estado" styleClass="form-input" managed="false" visible="false" HBox.hgrow="ALWAYS">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="ACTIVA" />

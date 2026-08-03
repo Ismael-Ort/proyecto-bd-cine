@@ -12,22 +12,18 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-// BR-37: aqui nunca se arma un INSERT/UPDATE a mano sobre venta/entrada.
-// Todo pasa por los procedimientos de database/procedimientos_triggers.sql
-// (sp_registrar_venta, sp_confirmar_pago), llamados con CallableStatement,
-// tal como esta documentado en docs/procedimientos_bd.md (seccion 6).
+// Aqui nunca se arma un INSERT/UPDATE a mano sobre venta/entrada, todo pasa
+// por los procedimientos almacenados (sp_registrar_venta, sp_confirmar_pago)
+// llamados con CallableStatement.
 public class VentaBD {
 
     private EntradaBD entradaBD = new EntradaBD();
 
-    // idEmpleado puede ser null (venta EN_LINEA). idVentaExistente en null
-    // crea una venta nueva (primera butaca de la compra); con un id_venta
-    // agrega esta butaca a esa misma venta (BR-19: una venta puede tener
-    // varias entradas) en vez de crear una venta aparte. Para vender varias
-    // butacas en una sola compra, se llama este metodo una vez por butaca,
-    // pasando en la primera llamada idVentaExistente=null y en las
-    // siguientes el idVenta que devolvio la entrada anterior. Devuelve la
-    // entrada recien creada, ya con el precio que calculo el procedimiento.
+    // idEmpleado puede ser null (venta EN_LINEA). Para vender varias
+    // butacas en una sola compra se llama esto una vez por butaca: primera
+    // vez con idVentaExistente=null (crea la venta), despues pasando el
+    // idVenta que devolvio la llamada anterior para sumarlas a esa misma
+    // venta. Devuelve la entrada ya creada con su precio calculado.
     public Entrada registrarVenta(int idCliente, Integer idEmpleado, String canalVenta, int idMetodoPago,
                                    String observacion, int idFuncion, int idButaca, int idTipoEntrada,
                                    Integer idVentaExistente) {
@@ -123,9 +119,8 @@ public class VentaBD {
             sql += "WHERE v.id_empleado = ? ";
         }
 
-        // id_venta como segundo criterio: asi las entradas de una misma
-        // venta (BR-19: puede tener varias) quedan siempre juntas, incluso
-        // si dos ventas comparten la misma fecha_venta exacta.
+        // id_venta como segundo criterio para que las entradas de una misma
+        // venta queden juntas aunque compartan la fecha_venta exacta.
         sql += "ORDER BY v.fecha_venta DESC, v.id_venta DESC";
 
         List<VentaDetalle> ventas = new ArrayList<>();

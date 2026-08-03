@@ -80,6 +80,7 @@ public class ButacaBD {
         }
     }
 
+    // Guarda una butaca nueva.
     public boolean registrarButaca(Butaca butaca) {
 
         String sql = "insert into butaca (fila, numero, estado, id_sala) values (?,?,?,?)";
@@ -91,12 +92,12 @@ public class ButacaBD {
             ps.setString(3, butaca.getEstado());
             ps.setInt(4, butaca.getIdSala());
 
-            int filas = ps.executeUpdate(); // guarda cuantos registros fueron afectados por el insert, si una pelicula se inserto correctamente normalmente devuelve 1.
+            int filas = ps.executeUpdate();
             if (filas > 0) {
                 return true;
             } else {
                 return false;
-            }// si filas vale 1 es que se inserto correctamente, y devuelve true, si vale cero devuelve false
+            }
 
 
         } catch (SQLException e) {
@@ -113,6 +114,7 @@ public class ButacaBD {
     }
 
 
+    // Actualiza los datos de una butaca existente.
     public boolean actualizarButaca(Butaca butaca) {
 
         String sql = "UPDATE butaca SET fila = ?, numero = ?, estado = ? WHERE id_butaca = ?";

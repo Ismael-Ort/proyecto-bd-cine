@@ -12,10 +12,8 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Punto de entrada real de la aplicacion: la pantalla de login.
-        // LoginControl (via Pantallas.cambiarA) es quien carga
-        // "/com/cine/ventana-principal.fxml" en esta misma ventana una vez
-        // que el usuario/contrasena son validos.
+        // Arranca en la pantalla de login. LoginControl (via Pantallas.cambiarA)
+        // carga la ventana principal despues de un login valido.
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/cine/login.fxml"));
         Parent root = loader.load();
 
@@ -23,10 +21,8 @@ public class App extends Application {
         scene.getStylesheets().add(getClass().getResource("/com/cine/styles.css").toExternalForm());
         scene.getStylesheets().add(getClass().getResource("/com/cine/login.css").toExternalForm());
 
-        // Para que la ventana se adapte a cualquier tamano de pantalla: se deja
-        // redimensionable, con un minimo para que el layout no se vea apretado,
-        // y arranca maximizada usando el espacio visible de la pantalla del
-        // usuario en vez del ancho/alto fijo que trae el FXML (1500x820).
+        // Se usa el tamano real de pantalla del usuario (no el fijo del FXML)
+        // para que la ventana arranque maximizada y bien redimensionable.
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
 
         stage.setTitle("Cinéma - Iniciar sesión");

@@ -47,6 +47,7 @@ public class UsuarioBD {
         }
     }
 
+    // Actualiza los datos de un usuario existente.
     public boolean actualizarUsuario(Usuario usuario) {
 
         String sql = "UPDATE usuario SET nombre_usuario = ?, hash_contrasena = ?, rol = ?, estado = ? WHERE id_usuario = ?";
@@ -75,6 +76,7 @@ public class UsuarioBD {
         }
     }
 
+    // Trae todos los usuarios con los datos de su persona.
     public List<Usuario> listarUsuarios() {
 
         String sql = SELECT_BASE + " ORDER BY u.nombre_usuario";
@@ -101,19 +103,14 @@ public class UsuarioBD {
         return usuarios;
     }
 
-    // BCrypt: genera un salt distinto en cada llamada e incluye ese salt
-    // dentro del hash resultante, asi que nunca se guarda la contrasena en
-    // texto plano ni con un hash reutilizable entre cuentas con la misma
-    // contrasena (a diferencia de un SHA-256 sin salt).
+    // BCrypt genera un salt distinto cada vez, asi que nunca se guarda la
+    // contrasena en texto plano ni con un hash repetido entre cuentas.
     private String hashear(String contrasenaPlana) {
         return BCrypt.hashpw(contrasenaPlana, BCrypt.gensalt());
     }
 
-    // Para el login: busca por nombre_usuario (solo cuentas ACTIVAS) y
-    // compara la contrasena en texto plano contra el hash guardado con
-    // BCrypt.checkpw (que ya sabe extraer el salt del propio hash). Si el
-    // usuario no existe, esta INACTIVO, o la contrasena no coincide,
-    // devuelve null: nunca revela por separado cual de esas tres cosas paso.
+    // Para el login: busca la cuenta ACTIVA y compara la contrasena con
+    // BCrypt. Si algo no coincide devuelve null, sin decir por que.
     public Usuario autenticar(String nombreUsuario, String contrasenaPlana) {
 
         String sql = SELECT_BASE + " WHERE u.nombre_usuario = ? AND u.estado = 'ACTIVO'";

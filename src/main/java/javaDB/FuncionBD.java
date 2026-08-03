@@ -16,6 +16,7 @@ import java.util.List;
 
 public class FuncionBD {
 
+    // Guarda una funcion nueva.
     public boolean registrarFuncion(Funcion funcion) {
 
         String sql = "INSERT INTO funcion (fecha_funcion, hora_inicio, hora_fin, tarifa_base, estado, id_pelicula, id_sala, idioma_audio, idioma_subtitulos) VALUES (?,?,?,?,?,?,?,?,?)";
@@ -48,6 +49,7 @@ public class FuncionBD {
         }
     }
 
+    // Actualiza los datos de una funcion existente.
     public boolean actualizarFuncion(Funcion funcion) {
 
         String sql = "UPDATE funcion SET fecha_funcion = ?, hora_inicio = ?, hora_fin = ?, tarifa_base = ?, estado = ?, id_pelicula = ?, id_sala = ?, idioma_audio = ?, idioma_subtitulos = ? WHERE id_funcion = ?";
@@ -81,11 +83,9 @@ public class FuncionBD {
         }
     }
 
-    // Cancela la funcion llamando a sp_cancelar_funcion (BR-37: no se hace
-    // con un UPDATE directo). Ese procedimiento dispara
-    // trg_cancelar_entradas_por_funcion, que en la misma transaccion
-    // cancela las entradas y ventas de la funcion y devuelve los puntos de
-    // fidelidad ya ganados (ver database/procedimientos_triggers.sql).
+    // Cancela la funcion con sp_cancelar_funcion, que en la misma
+    // transaccion cancela sus entradas y ventas y devuelve los puntos ya
+    // ganados. No se hace con un UPDATE directo.
     public void cancelarFuncion(int idFuncion) {
 
         String sql = "{call sp_cancelar_funcion(?)}";
@@ -107,6 +107,7 @@ public class FuncionBD {
         }
     }
 
+    // Trae todas las funciones.
     public List<Funcion> listarFunciones() {
 
         String sql = "SELECT id_funcion, fecha_funcion, hora_inicio, hora_fin, tarifa_base, estado, id_pelicula, id_sala, idioma_audio, idioma_subtitulos " +
@@ -167,12 +168,8 @@ public class FuncionBD {
         return funciones;
     }
 
-    // Repasa el estado de todas las funciones no canceladas. No compara
-    // fechas/horas aqui en Java (eso dependeria del reloj de la
-    // computadora que corre el programa); solo dispara un UPDATE para que
-    // el trigger trg_actualizar_estado_funcion (ver
-    // database/procedimientos_triggers.sql) recalcule el estado usando la
-    // hora del propio servidor de MySQL, que es la misma para todos.
+    // Dispara un UPDATE "vacio" para que el trigger recalcule el estado de
+    // las funciones usando la hora del servidor de MySQL, no la de Java.
     public void actualizarEstadosAutomaticos() {
 
         String sql = "UPDATE funcion SET estado = estado WHERE estado <> 'CANCELADA'";
@@ -193,10 +190,9 @@ public class FuncionBD {
         }
     }
 
-    // No se puede expresar con un CHECK de una sola fila: hay que comparar
-    // contra las demas funciones de la misma sala y fecha. idFuncionExcluir
-    // sirve para no chocar consigo misma cuando se esta editando (usar 0
-    // para una funcion nueva).
+    // Ve si hay otra funcion en la misma sala y fecha que se cruce en
+    // horario. idFuncionExcluir es para no chocar consigo misma al editar
+    // (usar 0 si es una funcion nueva).
     public boolean existeChoqueHorario(int idSala, LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, int idFuncionExcluir) {
 
         String sql = "SELECT COUNT(*) AS total FROM funcion " +

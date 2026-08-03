@@ -590,7 +590,7 @@
 }
 
 .checkbox-genero-container .check-box .mark {
-    -fx-background-color: #ffffff;
+    -fx-background-color: transparent;
 }
 
 .movie-genre-pill {

@@ -41,12 +41,9 @@ public class PeliculaGeneroBD {
         return idsGeneros;
     }
 
-    // Reemplaza los generos de una pelicula: borra los que tuviera antes e
-    // inserta los que se le pasen ahora. Asi guardar el formulario siempre
-    // deja pelicula_genero igual a lo que esta marcado en pantalla, sin
-    // importar cuantas veces se edite la pelicula. Las dos operaciones van
-    // en una sola transaccion: si la insercion falla a mitad de camino, no
-    // se queda la pelicula sin ningun genero.
+    // Reemplaza los generos de una pelicula: borra los viejos e inserta los
+    // nuevos, todo en una transaccion para que si algo falla no se quede
+    // la pelicula sin generos.
     public void guardarGenerosDePelicula(int idPelicula, List<Integer> idsGeneros) {
 
         String sqlBorrar = "DELETE FROM pelicula_genero WHERE id_pelicula = ?";

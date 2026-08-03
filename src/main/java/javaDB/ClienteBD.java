@@ -19,6 +19,7 @@ public class ClienteBD {
                     "p.id_persona, p.nombres, p.apellidos, p.fecha_nacimiento, p.sexo, p.documento, p.telefono, p.correo " +
                     "FROM cliente c JOIN persona p ON p.id_persona = c.id_persona";
 
+    // Guarda un cliente nuevo.
     public boolean registrarCliente(Cliente cliente) {
 
         String sql = "INSERT INTO cliente (fecha_registro, estado, id_persona) VALUES (?,?,?)";
@@ -45,6 +46,7 @@ public class ClienteBD {
         }
     }
 
+    // Actualiza los datos de un cliente existente.
     public boolean actualizarCliente(Cliente cliente) {
 
         String sql = "UPDATE cliente SET fecha_registro = ?, estado = ? WHERE id_cliente = ?";
@@ -71,6 +73,7 @@ public class ClienteBD {
         }
     }
 
+    // Trae todos los clientes con los datos de su persona.
     public List<Cliente> listarClientes() {
 
         String sql = SELECT_BASE + " ORDER BY p.nombres, p.apellidos";
@@ -86,6 +89,63 @@ public class ClienteBD {
         } catch (SQLException e) {
 
             System.out.println("Error al listar clientes: " + e.getMessage());
+            throw new RuntimeException("No se pudieron cargar los clientes" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar los clientes" + e.getMessage(), e);
+        }
+
+        return clientes;
+    }
+
+    // Igual que listarClientes(), pero solo los ACTIVO: para los pickers
+    // donde se elige un cliente y no se quiere ofrecer los desactivados.
+    public List<Cliente> listarClientesActivos() {
+
+        String sql = SELECT_BASE + " WHERE c.estado = 'ACTIVO' ORDER BY p.nombres, p.apellidos";
+
+        List<Cliente> clientes = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                clientes.add(mapearCliente(rs));
+            }
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al listar clientes activos: " + e.getMessage());
+            throw new RuntimeException("No se pudieron cargar los clientes" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar los clientes" + e.getMessage(), e);
+        }
+
+        return clientes;
+    }
+
+    // Clientes que todavia no tienen ninguna cuenta de usuario: para elegir
+    // de una lista en la pantalla de Usuarios en vez de buscar por documento.
+    public List<Cliente> listarClientesSinUsuario() {
+
+        String sql = SELECT_BASE + " LEFT JOIN usuario u ON u.id_persona = c.id_persona " +
+                "WHERE u.id_usuario IS NULL ORDER BY p.nombres, p.apellidos";
+
+        List<Cliente> clientes = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                clientes.add(mapearCliente(rs));
+            }
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al listar clientes sin usuario: " + e.getMessage());
             throw new RuntimeException("No se pudieron cargar los clientes" + e.getMessage(), e);
 
         } catch (Exception e) {

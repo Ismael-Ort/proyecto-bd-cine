@@ -14,6 +14,7 @@ public class EntradaBD {
     private static final String SELECT_BASE =
             "SELECT id_entrada, precio_base, descuento, precio_final, estado, id_venta, id_funcion, id_butaca, id_tipoentrada FROM entrada";
 
+    // Busca una entrada por su id.
     public Entrada obtenerEntrada(int idEntrada) {
 
         String sql = SELECT_BASE + " WHERE id_entrada = ?";
@@ -74,11 +75,39 @@ public class EntradaBD {
         return idsButacas;
     }
 
-    // No hay procedimiento para cancelar (ver docs/procedimientos_bd.md):
-    // es un UPDATE simple. Libera la butaca para esa funcion (BR-24). Solo
-    // se puede cancelar mientras la funcion no haya terminado (comparando
-    // contra la hora del servidor, igual que trg_actualizar_estado_funcion):
-    // una vez que la pelicula ya paso, no tiene sentido devolver la butaca.
+    // Id de la entrada gratis (canje de puntos) de esa venta que todavia
+    // esta RESERVADA, o null si no hay ninguna. FidelidadControl lo usa
+    // para saber si al canjear puntos hace falta confirmar el pago primero.
+    public Integer obtenerEntradaGratuitaReservada(int idVenta) {
+
+        String sql = "SELECT id_entrada FROM entrada WHERE id_venta = ? AND precio_final = 0 AND estado = 'RESERVADA' LIMIT 1";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setInt(1, idVenta);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_entrada");
+                }
+            }
+
+            return null;
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al buscar la entrada gratuita pendiente: " + e.getMessage());
+            throw new RuntimeException("No se pudo buscar la entrada gratuita pendiente" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar la entrada" + e.getMessage(), e);
+        }
+    }
+
+    // No hay procedimiento para cancelar, es un UPDATE simple. Libera la
+    // butaca, pero solo si la funcion todavia no termino.
     public boolean cancelarEntrada(int idEntrada) {
 
         String sql = "UPDATE entrada e JOIN funcion f ON f.id_funcion = e.id_funcion " +

@@ -65,16 +65,16 @@
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Hora de inicio" />
                 <HBox spacing="10">
-                    <Spinner fx:id="spnFuncionHoraInicioHora" prefWidth="90" styleClass="form-input" />
-                    <Spinner fx:id="spnFuncionHoraInicioMinuto" prefWidth="90" styleClass="form-input" />
+                    <Spinner fx:id="spnFuncionHoraInicioHora" editable="true" prefWidth="90" styleClass="form-input" />
+                    <Spinner fx:id="spnFuncionHoraInicioMinuto" editable="true" prefWidth="90" styleClass="form-input" />
                 </HBox>
             </VBox>
 
             <VBox spacing="8">
                 <Label styleClass="form-label" text="Hora de fin" />
                 <HBox spacing="10">
-                    <Spinner fx:id="spnFuncionHoraFinHora" prefWidth="90" styleClass="form-input" />
-                    <Spinner fx:id="spnFuncionHoraFinMinuto" prefWidth="90" styleClass="form-input" />
+                    <Spinner fx:id="spnFuncionHoraFinHora" editable="true" prefWidth="90" styleClass="form-input" />
+                    <Spinner fx:id="spnFuncionHoraFinMinuto" editable="true" prefWidth="90" styleClass="form-input" />
                 </HBox>
             </VBox>
 

@@ -20,6 +20,8 @@ import logico.Persona;
 import java.time.LocalDate;
 import java.util.List;
 
+// Pantalla de Clientes: buscar por documento, y formulario para
+// crear/editar la Persona + Cliente asociada.
 public class ClienteControl {
 
     private PersonaBD personaBD = new PersonaBD();
@@ -54,11 +56,15 @@ public class ClienteControl {
         cmbClienteTipoDocumento.setValue("Cedula");
 
         Mascaras.aplicarMascaraTelefono(txtClienteTelefono);
+        Mascaras.aplicarMascaraBusquedaDocumento(txtClienteBuscarDocumento);
+        Mascaras.bloquearEscrituraManual(dpClienteFechaNacimiento);
+        Mascaras.bloquearEscrituraManual(dpClienteFechaRegistro);
 
         cargarClientes();
     }
 
-    private void cargarClientes() {
+    // Publico para que VentanaPrincipalControl lo llame cada vez que se navega a "Clientes".
+    public void cargarClientes() {
 
         clientesCardsContainer.getChildren().clear();
 
@@ -70,6 +76,7 @@ public class ClienteControl {
         }
     }
 
+    // Arma la tarjeta visual de un cliente con sus datos y puntos.
     private VBox crearTarjetaCliente(Cliente cliente, int puntos) {
 
         Label nombre = new Label(cliente.getNombres() + " " + cliente.getApellidos());
@@ -112,6 +119,7 @@ public class ClienteControl {
         return tarjeta;
     }
 
+    // Pone los datos de un cliente ya guardado en el formulario para editarlo.
     private void cargarClienteEnFormulario(Cliente cliente) {
 
         idPersonaActual = cliente.getIdPersona();
@@ -130,6 +138,8 @@ public class ClienteControl {
         lblClienteFormTitulo.setText("Editar cliente");
     }
 
+    // Busca una persona por documento: si ya es cliente, carga sus datos
+    // para editar; si no, precarga el formulario para hacerla cliente.
     @FXML
     private void buscarPersonaCliente() {
 
@@ -169,6 +179,7 @@ public class ClienteControl {
         lblClienteFormTitulo.setText("Nuevo cliente (persona existente)");
     }
 
+    // Valida el formulario y guarda la persona y el cliente (nuevo o editado).
     @FXML
     private void guardarCliente() {
 

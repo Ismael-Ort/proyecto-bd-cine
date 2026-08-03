@@ -17,6 +17,7 @@ public class EmpleadoBD {
                     "p.id_persona, p.nombres, p.apellidos, p.fecha_nacimiento, p.sexo, p.documento, p.telefono, p.correo " +
                     "FROM empleado e JOIN persona p ON p.id_persona = e.id_persona";
 
+    // Guarda un empleado nuevo.
     public boolean registrarEmpleado(Empleado empleado) {
 
         String sql = "INSERT INTO empleado (cargo, fecha_contratacion, estado, id_persona) VALUES (?,?,?,?)";
@@ -44,6 +45,7 @@ public class EmpleadoBD {
         }
     }
 
+    // Actualiza los datos de un empleado existente.
     public boolean actualizarEmpleado(Empleado empleado) {
 
         String sql = "UPDATE empleado SET cargo = ?, fecha_contratacion = ?, estado = ? WHERE id_empleado = ?";
@@ -71,6 +73,7 @@ public class EmpleadoBD {
         }
     }
 
+    // Trae todos los empleados con los datos de su persona.
     public List<Empleado> listarEmpleados() {
 
         String sql = SELECT_BASE + " ORDER BY p.nombres, p.apellidos";
@@ -97,6 +100,37 @@ public class EmpleadoBD {
         return empleados;
     }
 
+    // Empleados que todavia no tienen ninguna cuenta de usuario: para elegir
+    // de una lista en la pantalla de Usuarios en vez de buscar por documento.
+    public List<Empleado> listarEmpleadosSinUsuario() {
+
+        String sql = SELECT_BASE + " LEFT JOIN usuario u ON u.id_persona = e.id_persona " +
+                "WHERE u.id_usuario IS NULL ORDER BY p.nombres, p.apellidos";
+
+        List<Empleado> empleados = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                empleados.add(mapearEmpleado(rs));
+            }
+
+        } catch (SQLException e) {
+
+            System.out.println("Error al listar empleados sin usuario: " + e.getMessage());
+            throw new RuntimeException("No se pudieron cargar los empleados" + e.getMessage(), e);
+
+        } catch (Exception e) {
+
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error al conectar o procesar los empleados" + e.getMessage(), e);
+        }
+
+        return empleados;
+    }
+
+    // Para saber si una persona ya es empleado, y editar su registro en
+    // vez de duplicarlo.
     public Empleado obtenerEmpleadoPorPersona(int idPersona) {
 
         String sql = SELECT_BASE + " WHERE e.id_persona = ?";

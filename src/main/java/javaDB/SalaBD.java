@@ -48,8 +48,7 @@ public class SalaBD {
         return salas;
     }
 
-    // esto es lo minimo que necesita el formulario
-    // de Funciones para poder elegir una sala ya existente.
+    // Solo las salas ACTIVA, para elegir en el formulario de Funciones.
     public List<Sala> listarSalasActivas() {
 
         String sql = "SELECT id_sala, nombre_sala, capacidad, estado FROM sala WHERE estado = 'ACTIVA' ORDER BY nombre_sala";
@@ -122,6 +121,7 @@ public class SalaBD {
     }
 
 
+    // Actualiza los datos de una sala existente.
     public boolean actualizarSala(Sala sala) {
 
         String sql = "UPDATE sala SET nombre_sala = ?, capacidad = ?, estado = ? WHERE id_sala = ?";

@@ -1,7 +1,9 @@
 package com.cine;
 
 import javaDB.ClienteBD;
+import javaDB.EntradaBD;
 import javaDB.HistorialPuntosBD;
+import javaDB.VentaBD;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -22,34 +24,30 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-// Pantalla de Fidelidad (tabla `historial_puntos`, BR-27 a BR-30). Aqui
-// NUNCA se registra un movimiento ACUMULACION a mano: eso lo hace solo el
-// trigger trg_acumula_puntos cuando VentaControl.confirmarPago deja una
-// entrada PAGADA con precio_final > 0. Esta pantalla solo:
-//   1. Muestra el saldo de puntos y el historial de un cliente.
-//   2. Permite registrar un CANJE de 9 puntos (BR-30) contra una entrada
-//      gratuita que ya se vendio en Ventas con el tipo "Canje de puntos"
-//      (descuento_porcentaje = 100, precio_final = 0 -> BR-28).
+// Pantalla de Fidelidad (historial_puntos). Los puntos por compra se
+// suman solos con un trigger; aca solo se consulta el saldo/historial
+// de un cliente y se registra el canje de 9 puntos por una entrada
+// gratis ya vendida.
 public class FidelidadControl {
 
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private ClienteBD clienteBD = new ClienteBD();
     private HistorialPuntosBD historialPuntosBD = new HistorialPuntosBD();
+    private EntradaBD entradaBD = new EntradaBD();
+    private VentaBD ventaBD = new VentaBD();
 
     @FXML private VBox filaFidelidadCliente;
     @FXML private ComboBox<Cliente> cmbFidelidadCliente;
     @FXML private Label lblFidelidadSaldo;
-    @FXML private Button btnConsultarSaldo;
     @FXML private ComboBox<Venta> cmbFidelidadVenta;
     @FXML private TextArea txtFidelidadDescripcion;
     @FXML private Button btnRegistrarMovimiento;
     @FXML private ComboBox<String> cmbFidelidadFiltroTipo;
     @FXML private VBox fidelidadListaContainer;
 
-    // Historial ya cargado del cliente que se esta consultando, para poder
-    // repintar la lista al cambiar el filtro de tipo sin volver a consultar
-    // la base de datos (mismo patron que VentaControl.ventasCargadas).
+    // Historial ya cargado del cliente, para repintar la lista al cambiar
+    // el filtro sin volver a consultar la base de datos.
     private List<HistorialPuntos> historialCargado = new ArrayList<>();
 
     @FXML
@@ -60,9 +58,8 @@ public class FidelidadControl {
         cargarFidelidad();
     }
 
-    // Si es Cliente, no elige a quien consultar (siempre es el mismo que
-    // inicio sesion): se oculta el selector de cliente, igual que
-    // "filaClienteVenta" en VentaControl.
+    // Si es Cliente no elige a quien consultar (siempre es el mismo que
+    // inicio sesion), asi que se oculta el selector.
     private void aplicarPermisosSegunRol() {
 
         if (SesionActual.esCliente()) {
@@ -71,8 +68,7 @@ public class FidelidadControl {
         }
     }
 
-    // Publico para que VentanaPrincipalControl lo llame cada vez que se
-    // entra a "Fidelidad" (mismo patron que VentaControl.cargarVentas).
+    // Publico para que VentanaPrincipalControl lo llame cada vez que se entra a "Fidelidad".
     public void cargarFidelidad() {
 
         if (SesionActual.esCliente()) {
@@ -93,9 +89,7 @@ public class FidelidadControl {
         return cmbFidelidadCliente.getValue();
     }
 
-    // Trae saldo, historial y ventas canjeables del cliente elegido. Se usa
-    // tanto al abrir la pantalla (si es Cliente) como al presionar
-    // "Consultar saldo" o elegir un cliente distinto en el combo.
+    // Trae saldo, historial y ventas canjeables del cliente elegido.
     @FXML
     private void consultarSaldo() {
 
@@ -136,8 +130,7 @@ public class FidelidadControl {
         pintarHistorial();
     }
 
-    // BR-29: cada fila del historial ya trae obligatoriamente su cliente y
-    // su venta; aqui solo se pinta lo que ya se consulto (historialCargado).
+    // Pinta el historial ya consultado, aplicando el filtro de tipo elegido.
     private void pintarHistorial() {
 
         fidelidadListaContainer.getChildren().clear();
@@ -205,9 +198,7 @@ public class FidelidadControl {
         return fila;
     }
 
-    // Para que el combo de ventas muestre "Venta #id - dd/mm/aaaa" en vez de
-    // "Venta@hashcode" (Venta no tiene toString propio, a diferencia de
-    // Cliente; mismo motivo que VentaControl.configurarConversorDeFuncion).
+    // Para que el combo muestre "Venta #id - dd/mm/aaaa" en vez del objeto crudo.
     private void configurarConversorDeVenta() {
 
         cmbFidelidadVenta.setConverter(new StringConverter<>() {
@@ -245,10 +236,7 @@ public class FidelidadControl {
                 return;
             }
 
-            // BR-30: se revalida el saldo justo antes de guardar, en vez de
-            // confiar solo en que el boton ya estaba habilitado (pudo haber
-            // cambiado desde la ultima consulta, ej. otro canje ya hecho
-            // para el mismo cliente en otra pantalla).
+            // Se revalida el saldo por si cambio desde la ultima consulta.
             int saldo = clienteBD.calcularPuntos(cliente.getIdCliente());
             if (saldo < HistorialPuntosBD.PUNTOS_REQUERIDOS_CANJE) {
                 Alertas.mostrarAviso("El cliente ya no tiene los " + HistorialPuntosBD.PUNTOS_REQUERIDOS_CANJE + " puntos necesarios para canjear.");
@@ -263,6 +251,14 @@ public class FidelidadControl {
             if (!Alertas.confirmar("¿Canjear " + HistorialPuntosBD.PUNTOS_REQUERIDOS_CANJE
                     + " puntos por la entrada gratuita de la venta #" + venta.getIdVenta() + "?")) {
                 return;
+            }
+
+            // Si la entrada gratuita todavia esta RESERVADA (pendiente de pago),
+            // canjear los puntos aca tambien confirma ese pago; si ya estaba
+            // pagada, no hace falta tocarla de nuevo.
+            Integer idEntradaPendiente = entradaBD.obtenerEntradaGratuitaReservada(venta.getIdVenta());
+            if (idEntradaPendiente != null) {
+                ventaBD.confirmarPago(idEntradaPendiente);
             }
 
             historialPuntosBD.registrarCanje(cliente.getIdCliente(), venta.getIdVenta(), descripcion);

@@ -26,6 +26,17 @@
 --                -> sp_registrar_venta
 --                -> sp_confirmar_pago
 --                -> sp_cancelar_funcion
+--
+-- AUDITORIA (confirmado que los 6 objetos de este archivo se usan desde
+-- el programa Java, ninguno quedo huerfano):
+--   sp_registrar_venta  <- VentaBD.registrarVenta()
+--   sp_confirmar_pago   <- VentaBD.confirmarPago()
+--   sp_cancelar_funcion <- FuncionBD.cancelarFuncion()
+--   trg_acumula_puntos, trg_actualizar_estado_funcion y
+--   trg_cancelar_entradas_por_funcion no se llaman directo (un trigger no
+--   se invoca, se dispara solo): se activan como efecto de los UPDATE que
+--   hacen los 3 procedimientos de arriba y FuncionBD.actualizarEstadosAutomaticos()
+--   (ver el comentario de cada trigger mas abajo para el detalle).
 -- =========================================================
 
 USE cine;
