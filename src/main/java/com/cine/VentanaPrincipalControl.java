@@ -1,6 +1,7 @@
 package com.cine;
 
 import javaDB.ConexionBD;
+import javaDB.FuncionBD;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -63,6 +64,11 @@ public class VentanaPrincipalControl {
     @FXML private FidelidadControl fidelidadViewController;
     @FXML private VBox generosView;
     @FXML private GeneroControl generosViewController;
+
+    // Para "despertar" el estado de las funciones antes de calcular el
+    // checksum (ver revisarCambiosEnBD): si no, el estado nunca cambia solo
+    // con el paso del tiempo y el checksum de "funcion" queda siempre igual.
+    private final FuncionBD funcionBD = new FuncionBD();
 
     // Auto-refresco: cada 20s revisa en un hilo aparte (no en el de JavaFX,
     // para no congelar la interfaz) si cambio algo en la BD de la pantalla
@@ -159,6 +165,15 @@ public class VentanaPrincipalControl {
         }
 
         try {
+            // El estado de una funcion (PROGRAMADA/EN_CURSO/FINALIZADA) no
+            // cambia solo con el paso del tiempo: solo se recalcula cuando
+            // se hace un UPDATE sobre "funcion" (dispara el trigger). Sin
+            // este empujon, el checksum de esa tabla quedaria siempre igual
+            // y el monitor nunca notaria que ya toca pasar a EN_CURSO/FINALIZADA.
+            if (dependeDeFuncion(tablas)) {
+                funcionBD.actualizarEstadosAutomaticos();
+            }
+
             String checksum = ConexionBD.calcularChecksum(tablas);
 
             boolean mismaVistaQueLaVezPasada = vista == vistaDelUltimoChecksum;
@@ -187,6 +202,15 @@ public class VentanaPrincipalControl {
                                 + "Los datos de esta pantalla pueden estar desactualizados; navega a otra pantalla y vuelve para refrescarlos a mano mientras tanto."));
             }
         }
+    }
+
+    private boolean dependeDeFuncion(String[] tablas) {
+        for (String tabla : tablas) {
+            if ("funcion".equals(tabla)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Tablas que le conciernen a cada pantalla, para pedir el checksum solo
