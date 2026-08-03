@@ -41,55 +41,55 @@
                 <VBox fx:id="navMenu" spacing="4" styleClass="nav-menu">
                     <Button fx:id="navPanel" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item, nav-item-selected" text="Panel">
                         <graphic>
-                            <Label styleClass="nav-icon" text="[]" />
+                            <Label styleClass="nav-icon" text="📊" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navPeliculas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Peliculas">
                         <graphic>
-                            <Label styleClass="nav-icon" text="##" />
+                            <Label styleClass="nav-icon" text="🎬" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navSalas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Salas y butacas">
                         <graphic>
-                            <Label styleClass="nav-icon" text="S" />
+                            <Label styleClass="nav-icon" text="🪑" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navFunciones" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Funciones">
                         <graphic>
-                            <Label styleClass="nav-icon" text="F" />
+                            <Label styleClass="nav-icon" text="📅" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navVentas" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Ventas">
                         <graphic>
-                            <Label styleClass="nav-icon" text="\$" />
+                            <Label styleClass="nav-icon" text="🎟" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navClientes" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Clientes">
                         <graphic>
-                            <Label styleClass="nav-icon" text="CL" />
+                            <Label styleClass="nav-icon" text="👥" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navEmpleados" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Empleados">
                         <graphic>
-                            <Label styleClass="nav-icon" text="EM" />
+                            <Label styleClass="nav-icon" text="🧑‍💼" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navUsuarios" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Usuarios">
                         <graphic>
-                            <Label styleClass="nav-icon" text="US" />
+                            <Label styleClass="nav-icon" text="🔐" />
                         </graphic>
                     </Button>
 
                     <Button fx:id="navFidelidad" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Fidelidad">
                         <graphic>
-                            <Label styleClass="nav-icon" text="*" />
+                            <Label styleClass="nav-icon" text="⭐" />
                         </graphic>
                     </Button>
 
@@ -107,7 +107,7 @@
 
                     <Button fx:id="navGeneros" contentDisplay="LEFT" graphicTextGap="12" maxWidth="Infinity" styleClass="nav-item" text="Generos">
                         <graphic>
-                            <Label styleClass="nav-icon" text="G" />
+                            <Label styleClass="nav-icon" text="🏷" />
                         </graphic>
                     </Button>
                 </VBox>
